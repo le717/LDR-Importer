@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-	"name": "Blender 2.6 LDraw Importer 0.8 Beta 1",
+	"name": "Blender 2.6 LDraw Importer 0.8 Beta 2",
 	"description": "Import LDraw models in .dat, and .ldr format",
 	"author": "David Pluntze, JrMasterModelBuilder, le717",
 	"version": (0, 8, 0),
@@ -43,7 +43,7 @@ from bpy.props import *
 file_list = dict()
 mat_list = dict()
 scale = 1.0
-LDrawDir = "C:\LDraw"
+LDrawDir = "C:\Program Files (x86)\LDraw"
 mode_save = bpy.context.mode
 objects = []
 colors = dict()
@@ -169,38 +169,41 @@ def locate( pattern ):
 		isSubpart = True
 	else:
 		isSubpart = False
-	ldrawPath = os.path.join(LDrawDir, fname)
-	hiResPath = os.path.join(LDrawDir, "P", "48", fname)
-	primitivesPath = os.path.join(LDrawDir, "P", fname)
-	partsPath = os.path.join(LDrawDir, "PARTS", fname)
-	partsSPath = os.path.join(LDrawDir, "PARTS", "S", fname)
-	UnofficialPath = os.path.join(LDrawDir, "UNOFFICIAL", fname)
-	UnofficialhiResPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", "48", fname)
-	UnofficialPrimPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", fname)
-	UnofficialPartsPath = os.path.join(LDrawDir, "UNOFFICIAL",  "PARTS", fname)
-	UnofficialPartsSPath = os.path.join(LDrawDir, "UNOFFICIAL",  "PARTS", "S", fname)
+   # Digest the content of LDrawDir.
+	parts = {os.path.join(root, part).lower(): os.path.join(root, part)
+		for root, _, files in os.walk(LDrawDir) for part in files}
+	ldrawPath = os.path.join(LDrawDir, fname).lower()
+	hiResPath = os.path.join(LDrawDir, "P", "48", fname).lower()
+	primitivesPath = os.path.join(LDrawDir, "P", fname).lower()
+	partsPath = os.path.join(LDrawDir, "PARTS", fname).lower()
+	partsSPath = os.path.join(LDrawDir, "PARTS", "S", fname).lower()
+	UnofficialPath = os.path.join(LDrawDir, "UNOFFICIAL", fname).lower()
+	UnofficialhiResPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", "48", fname).lower()
+	UnofficialPrimPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", fname).lower()
+	UnofficialPartsPath = os.path.join(LDrawDir, "UNOFFICIAL",  "PARTS", fname).lower()
+	UnofficialPartsSPath = os.path.join(LDrawDir, "UNOFFICIAL",)
 	if os.path.exists(fname):
 		pass
-	elif os.path.exists(ldrawPath):
-		fname = ldrawPath
-	elif os.path.exists(hiResPath):
-		fname = hiResPath
-	elif os.path.exists(primitivesPath):
-		fname = primitivesPath
-	elif os.path.exists(partsPath):
-		fname = partsPath
-	elif os.path.exists(partsSPath):
-		fname = partsSPath
-	elif os.path.exists(UnofficialPath):
-		fname = UnofficialPath
-	elif os.path.exists(UnofficialhiResPath):
-		fname = UnofficialhiResPath
-	elif os.path.exists(UnofficialPrimPath):
-		fname = UnofficialPrimPath
-	elif os.path.exists(UnofficialPartsPath):
-		fname = UnofficialPartsPath
-	elif os.path.exists(UnofficialPartsSPath):
-		fname = UnofficialPartsSPath
+	elif ldrawPath in parts:
+		fname = parts[ldrawPath]
+	elif hiResPath in parts:
+		fname = parts[hiResPath]
+	elif primitivesPath in parts:
+		fname = parts[primitivesPath]
+	elif partsPath in parts:
+		fname = parts[partsPath]
+	elif partsSPath in parts:
+		fname = parts[partsSPath]
+	elif UnofficialPath in parts:
+		fname = parts[UnofficialPath]
+	elif UnofficialhiResPath in parts:
+		fname = parts[UnofficialhiResPath]
+	elif UnofficialPrimPath in parts:
+		fname = parts[UnofficialPrimPath]
+	elif UnofficialPartsPath in parts:
+		fname = parts[UnofficialPartsPath]
+	elif UnofficialPartsSPath in parts:
+		fname = parts[UnofficialPartsSPath]
 		if isSubpart == False:
 			isPart = True
 	else:
@@ -271,7 +274,7 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
 	ldraw_path = StringProperty( 
 		name="LDraw Home directory", 
 		description=( "The directory where LDraw is installed to." ), 
-		default="C:\LDraw", subtype="DIR_PATH",
+		default=LDrawDir, subtype="DIR_PATH",
 		update=get_path
 		)
 
