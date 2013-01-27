@@ -36,10 +36,10 @@ import mathutils
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import *
+from bpy.props import * # TODO: Find what functions are being used and remove this univerisal import.
 
 
-# global variables
+# Global variables
 file_list = dict()
 mat_list = dict()
 scale = 1.0
@@ -48,7 +48,7 @@ mode_save = bpy.context.mode
 objects = []
 colors = dict()
     
-# class to scan the files   
+# Scans LDraw files   
 class ldraw_file (object):
 
     def __init__ (self, filename, mat, colour = None ):
@@ -75,6 +75,7 @@ class ldraw_file (object):
             else:
                 mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
                 mat_list[colour].diffuse_color = colors[ colour ]
+				# TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal.
                 #mat_list[colour].use_nodes = True
                 self.ob.data.materials.append( mat_list[colour] )
                 
@@ -133,7 +134,7 @@ class ldraw_file (object):
                                     if self.part_count > 1:
                                         self.subparts.append([filename, self.mat, self.colour])
                                         break
-                        #file
+                        # File
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
@@ -141,11 +142,11 @@ class ldraw_file (object):
                             mat_new = self.mat * mathutils.Matrix( ((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)) )
                             self.subfiles.append([new_file, mat_new, tmpdate[1]])
                             
-                        #triangle
+                        # Triangle (tri)
                         if tmpdate[0] == "3":
                             self.parse_line(tmpdate)
                             
-                        #quadrilateral
+                        # Quadrilateral (quad)
                         if tmpdate[0] == "4":
                             self.parse_line(tmpdate)
             if len(self.subfiles) > 0:
@@ -157,8 +158,8 @@ class ldraw_file (object):
                 break
             
             
-# find the needed parts and add it to the list, so second scan is not necessary -David Pluntze
-# Every last LDraw Brick Library folder added for the ability to import every single brick. -le717, @Unknown in V0.7
+# Find the needed parts and add it to the list, so second scan is not necessary
+# Every last LDraw Brick Library folder added for the ability to import every single brick.
 def locate( pattern ):
     '''Locate all files matching supplied filename pattern in and below
     supplied root directory.'''
@@ -214,19 +215,18 @@ def locate( pattern ):
     finds.append(isPart)
     return finds    
 
-# create the actual model -David Pluntze          
+# Create the actual model        
 def create_model(self, context):
     file_name = self.filepath
     print(file_name)
     try:
         
-        # set the initial transformation matrix, set the scale factor to 0.05 
-        # and rotate -90 degrees around the x-axis, so the object is upright -David Pluntze
+        # Set the initial transformation matrix, set the scale factor to 0.05 
+        # and rotate -90 degrees around the x-axis, so the object is upright.
         mat = mathutils.Matrix( ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)) ) * 0.05
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
  
-# Reverted back to LDConfig.ldr from LDCfgalt.ldr due to issues finding the file. -le717, @12-11-12 in V0.7.2
-        # scan LDConfig to get the material infos
+        # Scan LDConfig to get the material color info.
         ldconfig = open ( locate( "LDConfig.ldr" )[0] )
         ldconfig_lines = ldconfig.readlines()
         ldconfig.close()
@@ -240,7 +240,7 @@ def create_model(self, context):
                     (int ( line_split[6][5:7], 16) ) / 255.0 ]
                     
         model = ldraw_file (file_name, mat)
-# Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -le717 @ 12-6-12 in V0.8
+# Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6.
         for cur_obj in objects:
             bpy.context.scene.objects.active = cur_obj
             bpy.ops.object.editmode_toggle()
@@ -284,7 +284,7 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
         
         box = layout.box()
         box.label('Import Options:', icon='FILTER')
-# need to find a way to set the LDraw homedir interactivly -David Pluntze
+# Need to find a way to set the LDraw homedir interactivly.
 #       box.prop(self, 'ldraw_path')
 
     def execute(self, context):
