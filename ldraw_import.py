@@ -33,6 +33,7 @@ bl_info = {
 import os
 import math
 import mathutils
+import platform
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
@@ -75,7 +76,7 @@ class ldraw_file (object):
             else:
                 mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
                 mat_list[colour].diffuse_color = colors[ colour ]
-				# TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal.
+                # TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal.
                 #mat_list[colour].use_nodes = True
                 self.ob.data.materials.append( mat_list[colour] )
                 
@@ -171,8 +172,11 @@ def locate( pattern ):
     else:
         isSubpart = False
    # Digest the content of LDrawDir.
-    parts = {os.path.join(root, part).lower(): os.path.join(root, part)
-        for root, _, files in os.walk(LDrawDir) for part in files}
+    if platform.system() is not ("Windows"):
+	    pass
+    else:
+        parts = {os.path.join(root, part).lower(): os.path.join(root, part)
+            for root, _, files in os.walk(LDrawDir) for part in files}
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "P", "48", fname).lower()
     primitivesPath = os.path.join(LDrawDir, "P", fname).lower()
