@@ -75,9 +75,12 @@ class ldraw_file (object):
                 self.ob.data.materials.append( mat_list[colour] )
             else:
                 mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
-                mat_list[colour].diffuse_color = colors[ colour ]
-                # TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal.
-                #mat_list[colour].use_nodes = True
+                if NODECOLOR:
+                    mat_list[colour].diffuse_color = colors[ colour ]
+                else: 
+                # TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal. Or just else. Adding it this way for debugging purposes.
+                    #mat_list[colour].use_nodes = colors[ color ]
+                    bpy.data.materials[colour].use_nodes
                 self.ob.data.materials.append( mat_list[colour] )
                 
         # Link object to scene
@@ -173,7 +176,7 @@ def locate( pattern ):
         isSubpart = False
    # Digest the content of LDrawDir.
     if platform.system_alias("Windows"):
-	    continue
+        pass
     else:
         parts = {os.path.join(root, part).lower(): os.path.join(root, part)
             for root, _, files in os.walk(LDrawDir) for part in files}
@@ -275,8 +278,8 @@ class IMPORT_OT_ldraw (bpy.types.Operator, ImportHelper):
     bl_options = {'UNDO'}
     
     ## OPTIONS ##
-	
-	nodecolor = bpy.props.BoolProperty(name="Use Material Nodes", description="Import using Material Nodes instead of Material Colors, useful for rendering with Cycles Engine.", default=False)
+    
+    nodeColor = bpy.props.BoolProperty(name="Use Material Nodes", description="Import using Material Nodes instead of Material Colors, useful for rendering with Cycles Engine.", default=True)
     
     ldraw_path = StringProperty( 
         name="LDraw Home directory", 
@@ -295,8 +298,8 @@ class IMPORT_OT_ldraw (bpy.types.Operator, ImportHelper):
 #       box.prop(self, 'ldraw_path')
 
     def execute(self, context):
-	    global NODECOLOR
-		NODECOLOR = bool(self.nodecolor)
+        global NODECOLOR
+        NODECOLOR = bool(self.nodeColor)
         print("executes\n")
         create_model(self, context)
         return {'FINISHED'}
