@@ -265,7 +265,8 @@ def get_path(self, context):
     print(context)
     
 #----------------- Operator -------------------------------------------
-class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
+class IMPORT_OT_ldraw (bpy.types.Operator, ImportHelper):
+    '''LDraw Importer Operator'''
     bl_idname = "import_scene.ldraw"
     bl_description = 'Import an LDraw model (.dat/.ldr)'
     bl_label = "Import LDraw Model"
@@ -274,6 +275,8 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
     bl_options = {'UNDO'}
     
     ## OPTIONS ##
+	
+	nodecolor = bpy.props.BoolProperty(name="Use Material Nodes", description="Import using Material Nodes instead of Material Colors, useful for rendering with Cycles Engine.", default=False)
     
     ldraw_path = StringProperty( 
         name="LDraw Home directory", 
@@ -292,6 +295,8 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
 #       box.prop(self, 'ldraw_path')
 
     def execute(self, context):
+	    global NODECOLOR
+		NODECOLOR = bool(self.nodecolor)
         print("executes\n")
         create_model(self, context)
         return {'FINISHED'}
