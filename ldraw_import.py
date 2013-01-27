@@ -172,8 +172,8 @@ def locate( pattern ):
     else:
         isSubpart = False
    # Digest the content of LDrawDir.
-    if platform.system() is not ("Windows"):
-	    pass
+    if platform.system_alias("Windows"):
+	    continue
     else:
         parts = {os.path.join(root, part).lower(): os.path.join(root, part)
             for root, _, files in os.walk(LDrawDir) for part in files}
