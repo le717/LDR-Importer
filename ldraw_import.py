@@ -26,8 +26,8 @@ bl_info = {
     "location": "File > Import",
     "warning": "A few bugs, otherwise fully functional script.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
-    "tracker_url": "not"
-                   "never",
+    "tracker_url": "maybe"
+                   "soon",
     "category": "Import-Export"}
 
 import os
@@ -40,12 +40,11 @@ from bpy.props import * # TODO: Find what functions are being used and remove th
 
 
 # Global variables
-colors = {}
 file_list = {}
 mat_list = {}
+colors = {}
 scale = 1.0
 LDrawDir = "C:\Program Files (x86)\LDraw"
-mode_save = bpy.context.mode
 objects = []
 
 
@@ -271,9 +270,9 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
     ## OPTIONS ##
     
     ldraw_path = StringProperty( 
-        name="LDraw Home directory", 
-        description=( "The directory where LDraw is installed to." ), 
-        default=LDrawDir, subtype="DIR_PATH",
+        name="LDraw Path", 
+        description=("The path to your LDraw System of Tools installation."), 
+        default=LDrawDir,
         update=get_path
         )
 
