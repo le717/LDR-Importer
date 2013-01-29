@@ -40,13 +40,14 @@ from bpy.props import * # TODO: Find what functions are being used and remove th
 
 
 # Global variables
-file_list = dict()
-mat_list = dict()
+colors = {}
+file_list = {}
+mat_list = {}
 scale = 1.0
 LDrawDir = "C:\Program Files (x86)\LDraw"
 mode_save = bpy.context.mode
 objects = []
-colors = dict()
+
 
 # Scans LDraw files     
 class ldraw_file (object):
