@@ -160,26 +160,27 @@ class ldraw_file (object):
             
 # Find the needed parts and add it to the list, so second scan is not necessary
 # Every last LDraw Brick Library folder added for the ability to import every single brick.
-def locate( pattern ):
+def locate(pattern):
     '''Locate all files matching supplied filename pattern in and below
     supplied root directory.'''
     finds = []
-    fname = pattern.replace('\\', os.path.sep)
+    fname = pattern.replace('\\', os.sep)
     isPart = False
-    if str.lower( os.path.split(fname)[0] ) == 's' :
+    if str.lower(os.path.split(fname)[0]) == 's' :
         isSubpart = True
     else:
         isSubpart = False
-    ldrawPath = os.path.join(LDrawDir, fname)
-    hiResPath = os.path.join(LDrawDir, "P", "48", fname)
-    primitivesPath = os.path.join(LDrawDir, "P", fname)
-    partsPath = os.path.join(LDrawDir, "PARTS", fname)
-    partsSPath = os.path.join(LDrawDir, "PARTS", "S", fname)
-    UnofficialPath = os.path.join(LDrawDir, "UNOFFICIAL", fname)
-    UnofficialhiResPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", "48", fname)
-    UnofficialPrimPath = os.path.join(LDrawDir, "UNOFFICIAL",  "P", fname)
-    UnofficialPartsPath = os.path.join(LDrawDir, "UNOFFICIAL",  "PARTS", fname)
-    UnofficialPartsSPath = os.path.join(LDrawDir, "UNOFFICIAL",  "PARTS", "S", fname)
+
+    ldrawPath = os.path.join(LDrawDir, fname).lower()
+    hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
+    primitivesPath = os.path.join(LDrawDir, "p", fname).lower()
+    partsPath = os.path.join(LDrawDir, "parts", fname).lower()
+    partsSPath = os.path.join(LDrawDir, "parts", "s", fname).lower()
+    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname).lower()
+    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",  "p", "48", fname).lower()
+    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",  "p", fname).lower()
+    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",  "parts", fname).lower()
+    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",  "parts", "s", fname).lower()
     if os.path.exists(fname):
         pass
     elif os.path.exists(ldrawPath):
