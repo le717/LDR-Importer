@@ -51,7 +51,7 @@ objects = []
 # Scans LDraw files     
 class ldraw_file (object):
 
-    def __init__ (self, filename, mat, colour = None ):
+    def __init__(self, filename, mat, colour = None):
         self.subfiles = []
         self.points = []
         self.faces = []
@@ -67,17 +67,17 @@ class ldraw_file (object):
         
         self.ob.location = (0,0,0)
         
-        if ( colour is None ):
+        if (colour is None):
             self.material = None
         else:
             if colour in mat_list:
-                self.ob.data.materials.append( mat_list[colour] )
+                self.ob.data.materials.append(mat_list[colour])
             else:
                 mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
-                mat_list[colour].diffuse_color = colors[ colour ]
+                mat_list[colour].diffuse_color = colors[colour]
                 #mat_list[colour].use_nodes = True
                 # TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal. Or just else. Adding it this way for debugging purposes.
-                self.ob.data.materials.append( mat_list[colour] )
+                self.ob.data.materials.append(mat_list[colour])
                 
         # Link object to scene
         bpy.context.scene.objects.link(self.ob)
@@ -90,7 +90,7 @@ class ldraw_file (object):
         
         objects.append(self.ob) 
         for i in self.subparts:
-            self.submodels.append( ldraw_file( i[0], i[1], i[2] ) )
+            self.submodels.append(ldraw_file( i[0], i[1], i[2] ))
                 
     def parse_line(self, line):
         verts = []
@@ -111,7 +111,7 @@ class ldraw_file (object):
                 f_in = open(filename)
             except:
                 try:
-                    finds = locate( filename )
+                    finds = locate(filename)
                     isPart = finds[1]
                     f_in = open(finds[0])
                 except:
@@ -169,7 +169,7 @@ def locate(pattern):
     if str.lower(os.path.split(fname)[0]) == 's' :
         isSubpart = True
     else:
-        isSubpart = False
+        isSubpart = False		
 
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
@@ -225,7 +225,7 @@ def create_model(self, context):
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
  
         # Scan LDConfig to get the material color info.
-        ldconfig = open ( locate( "LDConfig.ldr" )[0] )
+        ldconfig = open(locate("LDConfig.ldr" )[0])
         ldconfig_lines = ldconfig.readlines()
         ldconfig.close()
         
@@ -233,7 +233,7 @@ def create_model(self, context):
             if len(line) > 3 :
                 if line[2:4].lower() == '!c':
                     line_split = line.split()
-                    print( line, 'color ', line_split[4], 'code ', line_split[6][1:] )
+                    print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
                     colors[line_split[4]] = [ float (int ( line_split[6][1:3], 16) ) / 255.0, float (int ( line_split[6][3:5], 16) ) / 255.0, float 
                     (int ( line_split[6][5:7], 16) ) / 255.0 ]
                     
