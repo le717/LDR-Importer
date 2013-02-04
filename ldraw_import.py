@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+###### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ##### END GPL LICENSE BLOCK #####
+###### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Blender 2.6 LDraw Importer 0.8 Beta 2",
@@ -30,13 +30,11 @@ bl_info = {
                    "soon",
     "category": "Import-Export"}
 
-import os
-import math
-import mathutils
+import os, sys, math, mathutils
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import * # TODO: Find what functions are being used and remove this universal import.
+import bpy.props
 
 
 # Global variables
@@ -44,12 +42,14 @@ file_list = {}
 mat_list = {}
 colors = {}
 scale = 1.0
-LDrawDir = "C:\Program Files (x86)\LDraw"
+WinLDrawDir = "C:\\LDraw"
+OSXLDrawDir = "/Applications/ldraw/"
+LinuxLDrawDir = "~/ldraw/"
 objects = []
 
 
 # Scans LDraw files     
-class ldraw_file (object):
+class ldraw_file(object):
 
     def __init__(self, filename, mat, colour = None):
         self.subfiles = []
@@ -75,8 +75,6 @@ class ldraw_file (object):
             else:
                 mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
                 mat_list[colour].diffuse_color = colors[colour]
-                #mat_list[colour].use_nodes = True
-                # TODO: Add switch to Blender GUI to choose between nodes for Cycles and material color for Blender Internal. Or just else. Adding it this way for debugging purposes.
                 self.ob.data.materials.append(mat_list[colour])
                 
         # Link object to scene
@@ -95,16 +93,15 @@ class ldraw_file (object):
     def parse_line(self, line):
         verts = []
 #       color = int(line[1])
-        num_points = int ( ( len(line) - 2 ) / 3 )
+        num_points = int (( len(line) - 2 ) / 3)
         #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
-                self.points.append( ( self.mat * mathutils.Vector( ( float(line[i * 3 + 2]), float(line[i * 3 + 3]), float(line[i * 3 + 4]) ) ) ).
-                to_tuple() )
+                self.points.append((self.mat * mathutils.Vector((float(line[i * 3 + 2]), float(line[i * 3 + 3]), float(line[i * 3 + 4])))).
+                to_tuple())
                 verts.append(len(self.points)-1)
         self.faces.append(verts)
                 
-    def parse (self, filename):
-
+    def parse(self, filename):
         while True:
 #           file_found = True
             try:
@@ -139,7 +136,7 @@ class ldraw_file (object):
                             new_file = tmpdate[14]
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
 #                           mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
-                            mat_new = self.mat * mathutils.Matrix( ((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)) )
+                            mat_new = self.mat * mathutils.Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
                             self.subfiles.append([new_file, mat_new, tmpdate[1]])
                             
                         # Triangle (tri)
@@ -164,12 +161,12 @@ def locate(pattern):
     '''Locate all files matching supplied filename pattern in and below
     supplied root directory.'''
     finds = []
-    fname = pattern.replace('\\', os.sep)
+    fname = pattern.replace('\\', os.path.sep)
     isPart = False
     if str.lower(os.path.split(fname)[0]) == 's' :
         isSubpart = True
     else:
-        isSubpart = False		
+        isSubpart = False  
 
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
@@ -177,15 +174,15 @@ def locate(pattern):
     partsPath = os.path.join(LDrawDir, "parts", fname).lower()
     partsSPath = os.path.join(LDrawDir, "parts", "s", fname).lower()
     UnofficialPath = os.path.join(LDrawDir, "unofficial", fname).lower()
-    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",  "p", "48", fname).lower()
-    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",  "p", fname).lower()
-    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",  "parts", fname).lower()
-    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",  "parts", "s", fname).lower()
+    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial", "p", "48", fname).lower()
+    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial", "p", fname).lower()
+    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial", "parts", fname).lower()
+    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial", "parts", "s", fname).lower()
     if os.path.exists(fname):
         pass
     elif os.path.exists(ldrawPath):
         fname = ldrawPath
-    elif os.path.exists(hiResPath):
+    elif os.path.exists(hiResPath) and not HighRes:
         fname = hiResPath
     elif os.path.exists(primitivesPath):
         fname = primitivesPath
@@ -221,11 +218,11 @@ def create_model(self, context):
         
         # Set the initial transformation matrix, set the scale factor to 0.05 
         # and rotate -90 degrees around the x-axis, so the object is upright.
-        mat = mathutils.Matrix( ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)) ) * 0.05
+        mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * 0.05
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
  
         # Scan LDConfig to get the material color info.
-        ldconfig = open(locate("LDConfig.ldr" )[0])
+        ldconfig = open(locate("LDConfig.ldr")[0])
         ldconfig_lines = ldconfig.readlines()
         ldconfig.close()
         
@@ -234,19 +231,20 @@ def create_model(self, context):
                 if line[2:4].lower() == '!c':
                     line_split = line.split()
                     print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
-                    colors[line_split[4]] = [ float (int ( line_split[6][1:3], 16) ) / 255.0, float (int ( line_split[6][3:5], 16) ) / 255.0, float 
-                    (int ( line_split[6][5:7], 16) ) / 255.0 ]
+                    colors[line_split[4]] = [float(int(line_split[6][1:3], 16)) / 255.0, float (int( line_split[6][3:5], 16)) / 255.0, float 
+                    (int(line_split[6][5:7], 16)) / 255.0]
                     
-        model = ldraw_file (file_name, mat)
-# Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6.
-        for cur_obj in objects:
-            bpy.context.scene.objects.active = cur_obj
-            bpy.ops.object.editmode_toggle()
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.remove_doubles()
-            bpy.ops.mesh.normals_make_consistent()
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.mode_set()
+        model = ldraw_file(file_name, mat)
+        # Removes doubles and recalculate normals in each brick. Model is super high-poly without it.
+        if not CleanUp:
+            for cur_obj in objects:
+                bpy.context.scene.objects.active = cur_obj
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.remove_doubles()
+                bpy.ops.mesh.normals_make_consistent()
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.mode_set()
        
     except:
         print("Oops. Something messed up.")
@@ -259,7 +257,7 @@ def get_path(self, context):
     print(context)
     
 #----------------- Operator -------------------------------------------
-class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
+class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     '''LDraw Importer Operator'''
     bl_idname = "import_scene.ldraw"
     bl_description = 'Import an LDraw model (.dat/.ldr)'
@@ -268,25 +266,27 @@ class IMPORT_OT_ldraw ( bpy.types.Operator, ImportHelper ):
     bl_region_type = "WINDOW"
     bl_options = {'UNDO'}
     
-    ## OPTIONS ##
+    ## Script Options ##
     
-    ldraw_path = StringProperty( 
-        name="LDraw Path", 
-        description=("The path to your LDraw System of Tools installation."), 
-        default=LDrawDir,
-        update=get_path
-        )
+    ldrawPath = bpy.props.StringProperty(name="LDraw Path", description="The folder path to your LDraw System of Tools installation.", maxlen=1024,
+    default = {"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir), update=get_path)
+    
+    cleanupModel = bpy.props.BoolProperty(name="Disable Model Cleanup", description="Does not remove double vertices or make normals consistent.", default=False)
 
-    ## DRAW ##
-    #def draw(self, context):
-    #   layout = self.layout
-        
-    #   box = layout.box()
-    #   box.label('Import Options:', icon='FILTER')
-# need to find a way to set the LDraw homedir interactivly -David Pluntze
-#       box.prop(self, 'ldraw_path')
+    highresBricks = bpy.props.BoolProperty(name="Do Not Use High-res bricks", description="Do not use high-res bricks to import your model.", default=False) 
+    
+    #ldraw_path = StringProperty( 
+        #name="LDraw Path", 
+        #description=("The path to your LDraw System of Tools installation."), 
+        #default=LDrawDir,
+        #update=get_path
+        #)
 
     def execute(self, context):
+        global LDrawDir, CleanUp, HighRes
+        LDrawDir = str(self.ldrawPath)
+        CleanUp = bool(self.cleanupModel)
+        HighRes = bool(self.highresBricks)
         print("executes\n")
         create_model(self, context)
         return {'FINISHED'}
