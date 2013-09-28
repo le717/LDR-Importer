@@ -32,6 +32,7 @@ bl_info = {
 
 import os, sys, math, mathutils
 import traceback
+from struct import unpack
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
@@ -201,8 +202,15 @@ class ldraw_file(object):
 def getMaterial(colour):
     if colour in colors:
         if not (colour in mat_list):
+            print(colors[colour])
             mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
-            mat_list[colour].diffuse_color = colors[colour]
+            mat_list[colour].diffuse_color = colors[colour]['color']
+            
+            alpha = colors[colour]['alpha']
+            if alpha < 1.0:
+                mat_list[colour].use_transparency = True
+                mat_list[colour].alpha = alpha
+            
         return mat_list[colour]
     return mat_list['0']
 
@@ -279,9 +287,11 @@ def create_model(self, context):
             if len(line) > 3 :
                 if line[2:4].lower() == '!c':
                     line_split = line.split()
-                    print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
-                    colors[line_split[4]] = [float(int(line_split[6][1:3], 16)) / 255.0, float (int( line_split[6][3:5], 16)) / 255.0, float 
-                    (int(line_split[6][5:7], 16)) / 255.0]
+                    #print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
+                    name = line_split[4]
+                    colors[name] = {'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0}
+                    if len(line_split) > 10 and line_split[9] == 'ALPHA':
+                        colors[name]['alpha'] = int(line_split[10]) / 255.0
                     
         model = ldraw_file(file_name, mat)
         # Removes doubles and recalculate normals in each brick. Model is super high-poly without it.
@@ -307,6 +317,10 @@ def create_model(self, context):
 def get_path(self, context):
     print(self)
     print(context)
+    
+def hex_to_rgb(rgb_str):
+    int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
+    return tuple([val/255 for val in int_tuple]) 
     
 #----------------- Operator -------------------------------------------
 class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
