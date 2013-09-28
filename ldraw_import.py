@@ -31,6 +31,7 @@ bl_info = {
     "category": "Import-Export"}
 
 import os, sys, math, mathutils
+import traceback
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
@@ -52,9 +53,9 @@ objects = []
 class ldraw_file(object):
 
     def __init__(self, filename, mat, colour = None):
-        self.subfiles = []
         self.points = []
         self.faces = []
+        self.material_index = []
         self.subparts = []
         self.submodels = []
         self.part_count = 0
@@ -78,6 +79,15 @@ class ldraw_file(object):
         self.parse(filename)
         
         self.me.from_pydata(self.points, [], self.faces)
+        
+        for i, f in enumerate(self.me.polygons):
+            n = self.material_index[i]
+            mat = getMaterial(n)
+            
+            if self.me.materials.get(mat.name) == None:
+                self.me.materials.append(mat)
+            
+            f.material_index = self.me.materials.find(mat.name)
 
         objects.append(self.ob)
         self.ob.select = True
@@ -87,7 +97,11 @@ class ldraw_file(object):
 
     def parse_line(self, line):
         verts = []
-        color = int(line[1])
+        color = line[1]
+        
+        if color == '16':
+            color = self.colour
+
         num_points = int (( len(line) - 2 ) / 3)
         #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
@@ -95,13 +109,17 @@ class ldraw_file(object):
                 to_tuple())
                 verts.append(len(self.points)-1)
         self.faces.append(verts)
+        self.material_index.append(color)
                 
     def parse_quad(self, line):
-        color = int(line[1])
+        color = line[1]
         verts = []
         num_points = 4
         v = []
         
+        if color == '16':
+            color = self.colour
+
         v.append(self.mat * mathutils.Vector((float(line[0 * 3 + 2]), float(line[0 * 3 + 3]), float(line[0 * 3 + 4]))))
         v.append(self.mat * mathutils.Vector((float(line[1 * 3 + 2]), float(line[1 * 3 + 3]), float(line[1 * 3 + 4]))))
         v.append(self.mat * mathutils.Vector((float(line[2 * 3 + 2]), float(line[2 * 3 + 3]), float(line[2 * 3 + 4]))))
@@ -119,21 +137,23 @@ class ldraw_file(object):
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[2].to_tuple(), v[3].to_tuple()])
             
         self.faces.append(verts)
+        self.material_index.append(color)
                 
     def parse(self, filename):
+        subfiles = []
+
         while True:
 #           file_found = True
             try:
                 f_in = open(filename)
             except:
                 try:
-                    finds = locate(filename)
-                    isPart = finds[1]
-                    f_in = open(finds[0])
+                    fname, isPart = locate(filename)
+                    f_in = open(fname)
                 except:
-                    print("File not found: ",filename)
-#                   file_found = False
-            self.part_count = self.part_count + 1
+                    print("File not found: ", filename)
+
+            self.part_count += 1
             if self.part_count > 1 and isPart:
                 self.subparts.append([filename, self.mat, self.colour])
             else:
@@ -156,7 +176,11 @@ class ldraw_file(object):
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
 #                           mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
                             mat_new = self.mat * mathutils.Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
-                            self.subfiles.append([new_file, mat_new, tmpdate[1]])
+                            
+                            color = tmpdate[1]
+                            if color == '16':
+                                color = self.colour
+                            subfiles.append([new_file, mat_new, color])
                             
                         # Triangle (tri)
                         if tmpdate[0] == "3":
@@ -165,8 +189,9 @@ class ldraw_file(object):
                         # Quadrilateral (quad)
                         if tmpdate[0] == "4":
                             self.parse_quad(tmpdate)
-            if len(self.subfiles) > 0:
-                subfile = self.subfiles.pop()
+                            
+            if len(subfiles) > 0:
+                subfile = subfiles.pop()
                 filename = subfile[0]
                 self.mat = subfile[1]
                 self.colour = subfile[2]
@@ -174,10 +199,12 @@ class ldraw_file(object):
                 break
             
 def getMaterial(colour):
-    if not (colour in mat_list):
-        mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
-        mat_list[colour].diffuse_color = colors[colour]
-    return mat_list[colour]
+    if colour in colors:
+        if not (colour in mat_list):
+            mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
+            mat_list[colour].diffuse_color = colors[colour]
+        return mat_list[colour]
+    return mat_list['0']
 
             
 # Find the needed parts and add it to the list, so second scan is not necessary
@@ -185,7 +212,6 @@ def getMaterial(colour):
 def locate(pattern):
     '''Locate all files matching supplied filename pattern in and below
     supplied root directory.'''
-    finds = []
     fname = pattern.replace('\\', os.path.sep)
     isPart = False
     if str.lower(os.path.split(fname)[0]) == 's' :
@@ -231,9 +257,7 @@ def locate(pattern):
         print("Could not find file %s" % fname)
         return
 
-    finds.append(fname)
-    finds.append(isPart)
-    return finds    
+    return (fname, isPart)
 
 # Create the actual model         
 def create_model(self, context):
@@ -275,7 +299,7 @@ def create_model(self, context):
                 m.split_angle = 0.78539
        
     except Exception as ex:
-        print(ex)
+        print (traceback.format_exc())
         print("Oops. Something messed up.")
    
     print ("Import complete!")
