@@ -40,7 +40,6 @@ import bpy.props
 
 
 # Global variables
-file_list = {}
 mat_list = {}
 colors = {}
 scale = 1.0
@@ -267,6 +266,9 @@ def locate(pattern):
 # Create the actual model         
 def create_model(self, context):
     global objects
+    global colors
+    global mat_list
+    
     file_name = self.filepath
     print(file_name)
     try:
@@ -281,6 +283,8 @@ def create_model(self, context):
         ldconfig_lines = ldconfig.readlines()
         ldconfig.close()
         
+        colors = {}
+        mat_list = {}
         for line in ldconfig_lines:
             if len(line) > 3 :
                 if line[2:4].lower() == '!c':
