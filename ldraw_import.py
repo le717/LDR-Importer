@@ -63,35 +63,31 @@ class ldraw_file(object):
         
         self.mat = mat
         self.colour = colour
-        self.me = bpy.data.meshes.new('LDrawMesh')
-        self.ob = bpy.data.objects.new('LDrawObj', self.me)
-        self.ob.name = os.path.basename(filename)
-        
-        self.ob.location = (0,0,0)
-        
-        if (colour is None):
-            self.material = None
-        else:
-            self.ob.data.materials.append(getMaterial(colour))
-                
-        # Link object to scene
-        bpy.context.scene.objects.link(self.ob)
-        
         self.parse(filename)
         
-        self.me.from_pydata(self.points, [], self.faces)
+        if len(self.points) > 0 and len(self.faces) > 0:
+            me = bpy.data.meshes.new('LDrawMesh')
+            me.from_pydata(self.points, [], self.faces)
+            me.validate()
+            me.update()
         
-        for i, f in enumerate(self.me.polygons):
-            n = self.material_index[i]
-            mat = getMaterial(n)
-            
-            if self.me.materials.get(mat.name) == None:
-                self.me.materials.append(mat)
-            
-            f.material_index = self.me.materials.find(mat.name)
+            for i, f in enumerate(me.polygons):
+                n = self.material_index[i]
+                mat = getMaterial(n)
+                
+                if me.materials.get(mat.name) == None:
+                    me.materials.append(mat)
+                
+                f.material_index = me.materials.find(mat.name)
 
-        objects.append(self.ob)
-        self.ob.select = True
+            self.ob = bpy.data.objects.new('LDrawObj', me)
+            self.ob.name = os.path.basename(filename)
+            
+            self.ob.location = (0,0,0)
+
+            objects.append(self.ob)
+            # Link object to scene
+            bpy.context.scene.objects.link(self.ob)
 
         for i in self.subparts:
             self.submodels.append(ldraw_file( i[0], i[1], i[2] ))
@@ -154,12 +150,14 @@ class ldraw_file(object):
                 except:
                     print("File not found: ", filename)
 
+            if f_in != None:
+                lines = f_in.readlines()
+                f_in.close()
+                
             self.part_count += 1
             if self.part_count > 1 and isPart:
                 self.subparts.append([filename, self.mat, self.colour])
             else:
-                lines = f_in.readlines()
-                f_in.close()
                 for retval in lines:
                     tmpdate = retval.strip()
                     if tmpdate != '':
@@ -202,7 +200,6 @@ class ldraw_file(object):
 def getMaterial(colour):
     if colour in colors:
         if not (colour in mat_list):
-            print(colors[colour])
             mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
             mat_list[colour].diffuse_color = colors[colour]['color']
             
@@ -210,7 +207,7 @@ def getMaterial(colour):
             if alpha < 1.0:
                 mat_list[colour].use_transparency = True
                 mat_list[colour].alpha = alpha
-            
+        
         return mat_list[colour]
     return mat_list['0']
 
@@ -269,6 +266,7 @@ def locate(pattern):
 
 # Create the actual model         
 def create_model(self, context):
+    global objects
     file_name = self.filepath
     print(file_name)
     try:
@@ -297,16 +295,23 @@ def create_model(self, context):
         # Removes doubles and recalculate normals in each brick. Model is super high-poly without it.
         if not CleanUp:
             for cur_obj in objects:
+                cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.mesh.remove_doubles(threshold=0.01)
-                bpy.ops.mesh.normals_make_consistent()
-                bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.shade_smooth() 
-                bpy.ops.object.mode_set()
-                m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
-                m.split_angle = 0.78539
+                if bpy.ops.object.mode_set.poll():
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.mesh.remove_doubles(threshold=0.01)
+                    bpy.ops.mesh.normals_make_consistent()
+                    if bpy.ops.object.mode_set.poll():
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        bpy.ops.object.shade_smooth() 
+                        bpy.ops.object.mode_set()
+                        m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
+                        m.split_angle = 0.78539
+                cur_obj.select = False
+                
+        context.scene.update()
+        objects = []
        
     except Exception as ex:
         print (traceback.format_exc())
