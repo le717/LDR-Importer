@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.subheaders { text-align: left; }
+.bold { font-weight: bold; }
+.italic { font-style: italic; }
+td { text-align: center; }
+.center { text-align: center; }
+ a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+</style>
+	<title>Blender 2.6 LDraw Importer Readme</title>
+</head>
+<body>
+<a name="ToC"></a><h2 class="center">Blender 2.6 LDraw Importer Readme</h2>
+<table>
+<thead>
+	<th><strong>Table of Contents</strong></th>
+</thead>
+<tbody>
+<tr>
+<td><a href="#WhatsNeeded">System Requirements</a>
+</td>
+</tr>
+<tr>
+<td><a href="#Install">Installation</a>
+</td>
+</tr>
+<tr>
+<td><a href="#LDrawPath">Setting the LDraw Folder Path</a>
+</td>
+</tr>
+<tr>
+<td><a href="#Changes">Change Log</a>
+</td>
+</tr>
+<tr>
+<td><a href="#Bugs">Known Bugs</a>
+</td>
+</tr>
+<tr>
+<td><a href="#ThePlan">Planned Features</a>
+</td>
+</tr>
+<tr>
+<td><a href="#Support">Support</a>
+</td>
+</tr>
+</tbody>
+</table>
+<br>
+<p class="center">This is the readme for the <span class="bold">Blender 2.6 LDraw</span> Importer script by <a href="http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer" title="Blender Wiki" target="_blank">David Pluntze</a>, maintained 
+by <a href="http://jrmastermodelbuilder.netai.net/"  title="JrMasterModelBuilder" target="_blank">JrMasterModelBuilder</a> and <a href=" 
+http://triangTriangle717.wordpress.com" title="TriangTriangle717" target="_blank">Triangle717</a>, from October 2012 - January 2013,<br> and released to the public under the <a
+ href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank" title ="GNU General Public License, version 2">GNU General Public License Version 2.</p>
+<a name="WhatsNeeded"></a>
+<br>
+<h3 class="center">System Requirements</h3>
+<ul>
+	<li><a href="http://blender.org" title="Blender" target="_blank">Blender 2.63 or higher</a></li>
+	<li><span class="bold">ldraw_import.py</span> (included with this download)</li>
+	<li><a href="http://www.ldraw.org/help/getting-started.html" title="LDraw System of Tools" target="_blank">LDraw System of Tools</a></li>
+	<li><a href="http://mlcad.lm-software.com/" title="MLCad" target="_blank">MLCad</a>, <a href="http://www.leocad.org/trac" title="LeoCAD" target="_blank">
+	LeoCAD</a>, or <a href="http://bricksmith.sourceforge.net/" title="Bricksmith" target="_blank">Bricksmith</a> (all optional)</li>
+</ul><a name="Install"></a>
+
+<h3 class="center">Installation</h3>
+
+<h4 class="center">Windows, OS X, Linux</h4>
+<ul>
+	<li>Open Blender, and click <span class="italic">File &gt; User Preferences &gt; Addons &gt; Install from File...</span></li>
+	<li>Browse for <span class="bold">ldraw_import.py</span>, and open it.</li>
+	<li>Find the script name in the list of Addons (search for LDraw if needed), and tick the check mark to activate it.</li>
+	<li>If you want to load the script at all times, click the <span class="italic">Save as Default</span> button.</li><a name="LDrawPath"></a>
+</ul>
+	
+<h3 class="center">Setting the LDraw Folder Path</h3>
+<ul>
+	<li>Open Blender, and click <span class="italic">File &gt; Import &gt; LDraw Model (.dat/.ldr)</span></li>
+	<li>In the bottom left corner of your screen, under the <span class="bold">Import LDraw Model</span> header, there is a small field with the title <span 
+	class="bold">LDraw Path</span>. Modify the field with the proper folder path to your <span class="italic">LDraw System of Tools</span> installation path.
+	</li>
+</ul>
+<p class="center">That's it! You have successfully installed the <span class="bold">Blender 2.6 LDraw Importer</span> script.</p>
+<a name="Changes"></a>
+
+	
+<h2 class="center">Change Log</h2>
+
+<h3>1.0</h3>
+(Released ?? ??, 2013)<br><br>
+<ul>
+<li>Uploaded source code to <a href="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" title="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" target=
+"_blank">GitHub</a>. -Triangle717</li>
+<li>Switched to plain text version of GPL V2.</li>
+<li>Converted all whitespace to 4 spaces whitespace to conform to Python standards using Blender scripting scene.</li>
+<li>Added most of <a href="http://sourceforge.net/u/mss02/profile/" target="_blank">Marc Schmitt's</a> Linux patch, with minor changes.</li>
+<li>Made LDraw folder paths case-insensitive</li>
+<li>Added ability to set LDraw System of Tools folder path from within Blender using code from <a href="https://github.com/impiaaa/blender-ldraw" target=
+"_blank">Spencer Alves's Blender 2.6 LDraw Importer</a>.</li>
+<li>Added ability to disable automatic model cleanup (remove doubles and recalculate normals). Doing so is <strong>not advised.</strong></li>
+<li>Changed <code>dict()</code> to the proper <code>{}</code> syntax.</li>
+<li>Script cleanup.</li>
+<li>Updated Readme with new information.</li>
+<li>Added OS X and Linux LDraw System of Tools default installation path.</li>
+<li>Updated script options messages</li>
+<li>Added ability to disable use of high-res bricks.</li>
+<li>Correctly construct quads in bricks - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Correctly apply brick materials - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Don't use high-quality bricks by default - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Improvements to model cleanup  - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Fixed materials for multi-colored bricks  - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Handle color value 16 correctly  - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Added support for transparent colors  - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Several bugfixes and optimizations  - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Fix for crash when importing a second time during the same session  - patch submitted via GitHub by
+<a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Moved all imports to separate lines</li>
+<li>Removed whitespace in blank lines</li>
+<li>Converted reading of <code>LDCondig.ldr</code> to use <code>with</code> statement</li>
+<li>Lots of PEP 8 fixes</li>
+<li>Added docstrings for various functions</li>
+<li>Do not display successful import message if an error occurred</li>
+<li>Fixed <code>if cond is not None</code> and <code>if cond is None</code> errors</li>
+<li>Name model being imported in successful import message</li>
+<li>Locate <code>LDCondig.ldr</code> directly, instead of using <code>locate()</code></li>
+<li>Added Banbury to author list</li>
+<li>Updated version number</li>
+<li>Updated class name to follow convention</li>
+<li>Disable Blender tracker URL button in GUI</li>
+<li>Gracefully stop import if <code>LDrawDir</code> does not exist</li>
+</ul>
+
+<h3>0.8 Beta 1</h3>
+(Released January 3, 2012)<br><br>
+<ul>
+<li>Simplified code dealing with the LDraw path. (Line 28) -TriangTriangle717</li>
+<li>Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -TriangTriangle717</li>
+<li>Changed default LDraw path from "LDraw System of Parts" to "C:\LDraw". -TriangTriangle717</li>
+<li>Updated script warning to be more descriptive. -rioforce</li>
+<li>Updated import completion and error messages. -Triangle717</li>
+<li>Corrected <span class="italic">LDrawDir = " "</span> line to allow use of "\" instead of having to convert them to "/". -Triangle717</li>
+<li>Reformatted Readme CSS from paragraphed blocks to one line code. -Triangle717</li>
+<li>Identified and completely removed <span class="bold">add_utils.py</span> code and functions from script 
+(it did not seem to be doing anything).-Triangle717</li>
+<li>Placed script under the GNU General Public License Version 2, and updated script to add GPL V2 block. -Triangle717</li>
+<li>Updated Installation Instructions -Triangle717</li>
+<li>Minor Readme updates -Triangle717</li>
+</ul>
+
+<h3>0.7.2</h3>
+(Released December 13, 2012)<br><br>
+<ul>
+<li><span class="bold">ldraw_import.py</span> can be installed to the <span class="italic">scripts/startup</span> folder, eliminating a few installation 
+steps. -Triangle717</li>
+<li>Added GPL Licence Block to <span class="bold">add_utils.py</span> (forgot to add it the first time). -Triangle717</li>
+<li>Reverted back to <span class="italic">LDConfig.ldr</span> due to problems with script being unable to find <span class="italic">LDCfgalt.ldr</span></li>
+<li>Updated menu register/unregister functions. -Triangle717</li>
+<li>Added script warning. -Triangle717</li>
+<li><span class="bold">NEW BUG:</span> Bricksmith LDR models do no properly import. -ProfessorBrickkeper</li>
+<li>Implemented some CSS code into Readme to eliminate redundant inline styling and to provide for greater expandability. -Triangle717</li>
+<li>Added <span class="bold">Planned Features</span> section to the Readme. -Triangle717</li>
+<li>Minor changes. -Triangle717</li>
+</ul>
+
+<h3>0.7.1 Special BMesh Edition</h3>
+(Released November 4, 2012)<br><br>
+<ul>
+<li>Enabled the use of <a href="http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.63/BMesh" target="_blank" title="BMesh on Blender Wiki">BMesh</a> 
+for importing (up to 150-gon) -Triangle717</li>
+<li>Modified Readme to mention special notes about release -Triangle717</li>
+<li>Renamed script to denote differences between it and the normal, non-BMesh version. -Triangle717</li>
+<li>Added GPL block from <span class="bold">add_utils.py</span> code, and removed duplicate import functions in <span>add_utils</span>. -Triangle717</li>
+<li>Changed text from <span class="italic">LDraw Brick Library</span> to <span class="italic">LDraw System of Tools</span> to comply with LDraw bylaws. -Triangle717
+</li>
+</ul>
+
+<h3>0.7.1</h3>
+(Released October 30, 2012)<br><br>
+<ul>
+<li>Renamed script to <span class="bold">ldraw_import.py</span> -Triangle717</li>
+<li>Corrected bl_info in ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
+<li>Embedded entire <span class="bold"><a href="http://www.tud.ttu.ee/material/Arvutigraafika/Tracking/b261/2.60/scripts/addons/modules/add_utils.py" target=
+"_blank" title="add_utils.py">add_utils.py</a></span> file into ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
+<li>Changed minimum Blender version requirement to 2.63 -Triangle717</li>
+<li>Added Bricksmith to optional system requirements -Triangle717</li>
+<li>Updated bl_info just a little bit -Triangle717</li>
+<li>Python script editing programs for OS X -JrMasterModelBuilder</li>
+<li>Changed the used LDraw color chart from <span class="italic">LDConfig.ldr</span> to <span class="italic">LDCfgalt.ldr</span> because of the latter's 
+higher color quality, which is better for renders (the swap seems to work correctly, with no color errors. Code to use <span class="italic">LDConfig.ldr
+</span> is still present, and can be reverted at any time) -Triangle717</li>
+<li>Updated and added a few comments -Triangle717</li>
+</ul>
+
+<h3>0.7</h3>
+(Released October 23, 2012)<br><br>
+<ul>
+<li>Added ability to import from every LDraw folder, including Unofficial bricks -Triangle717</li>
+<li>Removal of commented functions present since V0.5 -Triangle717 </li>
+<li>Removal of commented function added in an attempt to correct errors in V0.5 -Triangle717</li>
+<li>Removed faulty functions commented out in V0.6 -Triangle717</li>
+<li>Changed Import Menu text -Triangle717</li>
+<li>OS X Script Installation Instructions -JrMasterModelBuilder & <a href="http://www.youtube.com/user/BrickkeepersLab" target="_blank">ProfessorBrickkeeper
+</a></li>
+<li>Marked some comments with David Pluntze's name because they were his comments -Triangle717</li>
+</ul>
+
+<h3>0.6</h3>
+(Released October 19, 2012)<br><br>
+<ul>
+<li>Undocumented script correction - JrMasterModelBuilder</li>
+<li>Identified script requirements (add_utils.py) - JrMasterModelBuilder</li>
+<li>Removed faulty functions that performed the opposite of what was intended - Triangle717</li>
+<li>Corrected LDraw stylization -Triangle717</li>
+<li>Updated script description and summary of functions -Triangle717</li>
+</ul>
+
+<h3>0.5</h3>
+(Released February 23, 2012)<br><br>
+<ul>
+<li>Original version by David Pluntze</li>
+</ul><a name="Bugs"></a>
+
+<h2 class="center">Known Bugs</h2><br> 
+<ol>
+<li>If a brick cannot be found, entire import stops</li> 
+<li>Bricksmith LDR files do not properly import due to different layout than normal LDR files</li>
+<li>Blender crashes if user imports multiple models and available RAM is too low to continue. Can never be fixed, due to various computers with 
+different amounds of RAM</li> 
+<li>Find a way to set the LDraw Brick Library path in Blender itself</li>
+</ol><a name="ThePlan"></a>
+
+<h2 class="center">Planned Features</h2><br> 
+<ol>
+<li>Conform to standard Blender script API to be considered for official Blender adoption.
+See this <a href="http://www.blender.org/documentation/blender_python_api_2_68_release/info_best_practice.html" target="_blank">page</a> for more info</li>
+<li>Do not stop entire import process if brick cannot be found, rather skip the brick and continue with import</li>
+<li>Add the ability to properly import Bricksmith LDR models)</li>
+<li>Adapt the ability to set metallic colors if at all possible</li>
+<li>Perhaps create an EXE installer for Windows that would automatically install the script</li>
+</ol>
+<a name="Support"></a>
+
+<h2 class="center">Support</h2>
+<br>
+<p>
+To submit bug reports or get the newest, bleeding-edge script, please go to 
+<a href="https://github.com/le717/Blender-2.6-LDraw-Importer" target="_blank">https://github.com/le717/Blender-2.6-LDraw-Importer</a>. 
+<br>
+To download the newest release, please visit <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/releases" target="_blank">
+https://github.com/le717/Blender-2.6-LDraw-Importer/releases</a></p>
+<br>
+<br>
+
+<a class="ToC" href="#ToC">Back to the top</a>
+</body>
+</html>
