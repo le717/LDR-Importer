@@ -378,7 +378,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_label = "Import LDraw Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     ## Script Options ##
 
