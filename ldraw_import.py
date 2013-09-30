@@ -17,10 +17,10 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender 2.6 LDraw Importer 0.8 Beta 2",
+    "name": "Blender 2.6 LDraw Importer 1.0 RC1",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, JrMasterModelBuilder, le717",
-    "version": (0, 8, 0),
+    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury",
+    "version": (1, 0, 0),
     "blender": (2, 6, 3),
     "api": 31236,
     "location": "File > Import",
@@ -53,7 +53,7 @@ objects = []
 
 
 # Scans LDraw files
-class ldraw_file(object):
+class LDrawFile(object):
 
     def __init__(self, filename, mat, colour=None):
         self.points = []
@@ -92,7 +92,7 @@ class ldraw_file(object):
             bpy.context.scene.objects.link(self.ob)
 
         for i in self.subparts:
-            self.submodels.append(ldraw_file(i[0], i[1], i[2]))
+            self.submodels.append(LDrawFile(i[0], i[1], i[2]))
 
     def parse_line(self, line):
         verts = []
@@ -176,7 +176,7 @@ class ldraw_file(object):
                                     if self.part_count > 1:
                                         self.subparts.append([filename, self.mat, self.colour])
                                         break
-                        # The model content
+                        # The brick content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
@@ -206,6 +206,7 @@ class ldraw_file(object):
 
 
 def getMaterial(colour):
+    """Get and apply each brick's material"""
     if colour in colors:
         if not (colour in mat_list):
             mat_list[colour] = bpy.data.materials.new('Mat_' + colour + "_")
@@ -310,7 +311,7 @@ def create_model(self, context):
                     if len(line_split) > 10 and line_split[9] == 'ALPHA':
                         colors[name]['alpha'] = int(line_split[10]) / 255.0
 
-        model = ldraw_file(file_name, mat)
+        model = LDrawFile(file_name, mat)
         """
         Remove doubles and recalculate normals in each brick.
         The model is super high-poly without the cleanup.
@@ -389,7 +390,6 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
-        print("executes\n")
         create_model(self, context)
         return {'FINISHED'}
 
