@@ -83,12 +83,12 @@ class LDrawFile(object):
 
             for i, f in enumerate(me.polygons):
                 n = self.material_index[i]
-                mat = getMaterial(n)
+                material = getMaterial(n)
 
-                if me.materials.get(mat.name) is None:
-                    me.materials.append(mat)
+                if me.materials.get(material.name) is None:
+                    me.materials.append(material)
 
-                f.material_index = me.materials.find(mat.name)
+                f.material_index = me.materials.find(material.name)
 
             self.ob = bpy.data.objects.new('LDrawObj', me)
             self.ob.name = os.path.basename(filename)
@@ -286,7 +286,7 @@ def locate(pattern):
     return (fname, isPart)
 
 
-def create_model(self, context):
+def create_model(self, scale, context):
     """Create the actual model"""
     global objects
     global colors
@@ -298,7 +298,7 @@ def create_model(self, context):
 
         # Set the initial transformation matrix, set the scale factor to 0.05
         # and rotate -90 degrees around the x-axis, so the object is upright.
-        mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * 0.05
+        mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
         # If LDrawDir does not exist, stop the import
@@ -389,6 +389,13 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         update=get_path
     )
 
+
+    scale = bpy.props.FloatProperty(
+        name="Scale",
+        description="Scale the model by this amount.",
+        default = 0.05
+    )
+
     cleanupModel = bpy.props.BoolProperty(
         name="Enable Model Cleanup",
         description="Remove double vertices and make normals consistent",
@@ -413,7 +420,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
         CenterMesh = bool(self.origin_to_mesh)
-        create_model(self, context)
+        create_model(self, self.scale, context)
         return {'FINISHED'}
 
 
