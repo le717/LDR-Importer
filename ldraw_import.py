@@ -77,7 +77,8 @@ class ldraw_file(object):
                 n = self.material_index[i]
                 mat = getMaterial(n)
 
-                if me.materials.get(mat.name) == None:
+                #if me.materials.get(mat.name) == None:
+                if me.materials.get(mat.name) is None:
                     me.materials.append(mat)
 
                 f.material_index = me.materials.find(mat.name)
@@ -111,6 +112,7 @@ class ldraw_file(object):
         self.material_index.append(color)
 
     def parse_quad(self, line):
+        """Properly construct quads in each brick"""
         color = line[1]
         verts = []
         num_points = 4
@@ -142,7 +144,7 @@ class ldraw_file(object):
         subfiles = []
 
         while True:
-#           file_found = True
+           #file_found = True
             #FIXME: Change these convulted lines to be simpler and use with
             try:
                 f_in = open(filename)
@@ -153,7 +155,8 @@ class ldraw_file(object):
                 except Exception as ex:
                     print("File not found: ", filename)
 
-            if f_in != None:
+            #if f_in != None:
+            if f_in is not None:
                 lines = f_in.readlines()
                 f_in.close()
 
@@ -168,7 +171,10 @@ class ldraw_file(object):
                         # LDraw brick comments
                         if tmpdate[0] == "0":
                             if len(tmpdate) >= 3:
-                                if tmpdate[1] == "!LDRAW_ORG" and 'Part' in tmpdate[2]:
+                                if (
+                                    tmpdate[1] == "!LDRAW_ORG" and
+                                    'Part' in tmpdate[2]
+                                ):
                                     if self.part_count > 1:
                                         self.subparts.append([filename, self.mat, self.colour])
                                         break
@@ -230,6 +236,7 @@ def locate(pattern):
     else:
         isSubpart = False
 
+    #lint:disable
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
     primitivesPath = os.path.join(LDrawDir, "p", fname).lower()
@@ -240,11 +247,12 @@ def locate(pattern):
     UnofficialPrimPath = os.path.join(LDrawDir, "unofficial", "p", fname).lower()
     UnofficialPartsPath = os.path.join(LDrawDir, "unofficial", "parts", fname).lower()
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial", "parts", "s", fname).lower()
+    #lint:enable
     if os.path.exists(fname):
         pass
     elif os.path.exists(ldrawPath):
         fname = ldrawPath
-    elif os.path.exists(hiResPath) and not HighRes:
+    elif os.path.exists(hiResPath) and not HighRes:  # lint:ok
         fname = hiResPath
     elif os.path.exists(primitivesPath):
         fname = primitivesPath
@@ -262,7 +270,8 @@ def locate(pattern):
         fname = UnofficialPartsPath
     elif os.path.exists(UnofficialPartsSPath):
         fname = UnofficialPartsSPath
-        if isSubpart == False:
+        #if isSubpart == False:
+        if not isSubpart:
             isPart = True
     else:
         print("Could not find file %s" % fname)
@@ -328,11 +337,11 @@ def create_model(self, context):
         context.scene.update()
         objects = []
 
+        print("Import completed successfully!")
+
     except Exception as ex:
         print (traceback.format_exc())
-        print("Oops. Something messed up.")
-
-    print ("Import complete!")
+        print("Oops, something messed up!")
 
 
 def get_path(self, context):
@@ -341,6 +350,7 @@ def get_path(self, context):
 
 
 def hex_to_rgb(rgb_str):
+    """Convert color hex value to RGB value"""
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
 
