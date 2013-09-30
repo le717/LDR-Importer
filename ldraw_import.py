@@ -38,8 +38,8 @@ import traceback
 from struct import unpack
 
 import bpy
-from bpy_extras.io_utils import ImportHelper
 import bpy.props
+from bpy_extras.io_utils import ImportHelper
 
 
 # Global variables
@@ -77,7 +77,6 @@ class ldraw_file(object):
                 n = self.material_index[i]
                 mat = getMaterial(n)
 
-                #if me.materials.get(mat.name) == None:
                 if me.materials.get(mat.name) is None:
                     me.materials.append(mat)
 
@@ -155,7 +154,6 @@ class ldraw_file(object):
                 except Exception as ex:
                     print("File not found: ", filename)
 
-            #if f_in != None:
             if f_in is not None:
                 lines = f_in.readlines()
                 f_in.close()
@@ -270,7 +268,6 @@ def locate(pattern):
         fname = UnofficialPartsPath
     elif os.path.exists(UnofficialPartsSPath):
         fname = UnofficialPartsSPath
-        #if isSubpart == False:
         if not isSubpart:
             isPart = True
     else:
@@ -296,7 +293,9 @@ def create_model(self, context):
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
         # Scan LDConfig to get the material color info.
-        with open(locate("LDConfig.ldr")[0]) as ldconfig:
+        #FIXME: If LDrawDir does not exist, it is made know here.
+        #FIXME: Gracefully catch the FileNotFoundError, with using try or exists()
+        with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
             ldconfig_lines = ldconfig.readlines()
 
         colors = {}
@@ -337,7 +336,7 @@ def create_model(self, context):
         context.scene.update()
         objects = []
 
-        print("Import completed successfully!")
+        print("{0} successfully imported!".format(file_name))
 
     except Exception as ex:
         print (traceback.format_exc())
