@@ -30,7 +30,10 @@ bl_info = {
                    "soon",
     "category": "Import-Export"}
 
-import os, sys, math, mathutils
+import os
+import sys
+import math
+import mathutils
 import traceback
 from struct import unpack
 
@@ -49,70 +52,70 @@ LinuxLDrawDir = "~/ldraw/"
 objects = []
 
 
-# Scans LDraw files     
+# Scans LDraw files
 class ldraw_file(object):
 
-    def __init__(self, filename, mat, colour = None):
+    def __init__(self, filename, mat, colour=None):
         self.points = []
         self.faces = []
         self.material_index = []
         self.subparts = []
         self.submodels = []
         self.part_count = 0
-        
+
         self.mat = mat
         self.colour = colour
         self.parse(filename)
-        
+
         if len(self.points) > 0 and len(self.faces) > 0:
             me = bpy.data.meshes.new('LDrawMesh')
             me.from_pydata(self.points, [], self.faces)
             me.validate()
             me.update()
-        
+
             for i, f in enumerate(me.polygons):
                 n = self.material_index[i]
                 mat = getMaterial(n)
-                
+
                 if me.materials.get(mat.name) == None:
                     me.materials.append(mat)
-                
+
                 f.material_index = me.materials.find(mat.name)
 
             self.ob = bpy.data.objects.new('LDrawObj', me)
             self.ob.name = os.path.basename(filename)
-            
-            self.ob.location = (0,0,0)
+
+            self.ob.location = (0, 0, 0)
 
             objects.append(self.ob)
             # Link object to scene
             bpy.context.scene.objects.link(self.ob)
 
         for i in self.subparts:
-            self.submodels.append(ldraw_file( i[0], i[1], i[2] ))
+            self.submodels.append(ldraw_file(i[0], i[1], i[2]))
 
     def parse_line(self, line):
         verts = []
         color = line[1]
-        
+
         if color == '16':
             color = self.colour
 
-        num_points = int (( len(line) - 2 ) / 3)
+        num_points = int((len(line) - 2) / 3)
         #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
                 self.points.append((self.mat * mathutils.Vector((float(line[i * 3 + 2]), float(line[i * 3 + 3]), float(line[i * 3 + 4])))).
                 to_tuple())
-                verts.append(len(self.points)-1)
+                verts.append(len(self.points) - 1)
         self.faces.append(verts)
         self.material_index.append(color)
-                
+
     def parse_quad(self, line):
         color = line[1]
         verts = []
         num_points = 4
         v = []
-        
+
         if color == '16':
             color = self.colour
 
@@ -120,39 +123,40 @@ class ldraw_file(object):
         v.append(self.mat * mathutils.Vector((float(line[1 * 3 + 2]), float(line[1 * 3 + 3]), float(line[1 * 3 + 4]))))
         v.append(self.mat * mathutils.Vector((float(line[2 * 3 + 2]), float(line[2 * 3 + 3]), float(line[2 * 3 + 4]))))
         v.append(self.mat * mathutils.Vector((float(line[3 * 3 + 2]), float(line[3 * 3 + 3]), float(line[3 * 3 + 4]))))
-        
+
         nA = (v[1] - v[0]).cross(v[2] - v[0])
         nB = (v[2] - v[1]).cross(v[3] - v[1])
 
         for i in range(num_points):
             verts.append(len(self.points) + i)
-        
+
         if (nA.dot(nB) < 0):
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[3].to_tuple(), v[2].to_tuple()])
         else:
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[2].to_tuple(), v[3].to_tuple()])
-            
+
         self.faces.append(verts)
         self.material_index.append(color)
-                
+
     def parse(self, filename):
         subfiles = []
 
         while True:
 #           file_found = True
+            #FIXME: Change these convulted lines to be simpler and use with
             try:
                 f_in = open(filename)
-            except:
+            except Exception as ex:
                 try:
                     fname, isPart = locate(filename)
                     f_in = open(fname)
-                except:
+                except Exception as ex:
                     print("File not found: ", filename)
 
             if f_in != None:
                 lines = f_in.readlines()
                 f_in.close()
-                
+
             self.part_count += 1
             if self.part_count > 1 and isPart:
                 self.subparts.append([filename, self.mat, self.colour])
@@ -161,67 +165,70 @@ class ldraw_file(object):
                     tmpdate = retval.strip()
                     if tmpdate != '':
                         tmpdate = tmpdate.split()
-                        #comment
+                        # LDraw brick comments
                         if tmpdate[0] == "0":
                             if len(tmpdate) >= 3:
-                                if tmpdate[1] == "!LDRAW_ORG" and 'Part' in tmpdate[2] :
+                                if tmpdate[1] == "!LDRAW_ORG" and 'Part' in tmpdate[2]:
                                     if self.part_count > 1:
                                         self.subparts.append([filename, self.mat, self.colour])
                                         break
-                        #file
+                        # The model content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
-#                           mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
+                           #mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
                             mat_new = self.mat * mathutils.Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
-                            
+
                             color = tmpdate[1]
                             if color == '16':
                                 color = self.colour
                             subfiles.append([new_file, mat_new, color])
-                            
+
                         # Triangle (tri)
                         if tmpdate[0] == "3":
                             self.parse_line(tmpdate)
-                            
+
                         # Quadrilateral (quad)
                         if tmpdate[0] == "4":
                             self.parse_quad(tmpdate)
-                            
+
             if len(subfiles) > 0:
                 subfile = subfiles.pop()
                 filename = subfile[0]
                 self.mat = subfile[1]
                 self.colour = subfile[2]
-            else:        
+            else:
                 break
-            
+
+
 def getMaterial(colour):
     if colour in colors:
         if not (colour in mat_list):
-            mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
+            mat_list[colour] = bpy.data.materials.new('Mat_' + colour + "_")
             mat_list[colour].diffuse_color = colors[colour]['color']
-            
+
             alpha = colors[colour]['alpha']
             if alpha < 1.0:
                 mat_list[colour].use_transparency = True
                 mat_list[colour].alpha = alpha
-        
+
         return mat_list[colour]
     return mat_list['0']
 
-            
-# Find the needed parts and add it to the list, so second scan is not necessary
-# Every last LDraw Brick Library folder added for the ability to import every single brick.
+
 def locate(pattern):
-    '''Locate all files matching supplied filename pattern in and below
-    supplied root directory.'''
+    """
+    Locate all files matching supplied filename pattern in and below
+    supplied root directory.
+    Check all available possible folders so every single brick
+    can be imported, even unofficial ones.
+    """
     fname = pattern.replace('\\', os.path.sep)
     isPart = False
-    if str.lower(os.path.split(fname)[0]) == 's' :
+    if str.lower(os.path.split(fname)[0]) == 's':
         isSubpart = True
     else:
-        isSubpart = False  
+        isSubpart = False
 
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
@@ -263,30 +270,30 @@ def locate(pattern):
 
     return (fname, isPart)
 
-# Create the actual model         
+
 def create_model(self, context):
+    """Create the actual model"""
     global objects
     global colors
     global mat_list
-    
+
     file_name = self.filepath
     print(file_name)
     try:
-        
-        # Set the initial transformation matrix, set the scale factor to 0.05 
+
+        # Set the initial transformation matrix, set the scale factor to 0.05
         # and rotate -90 degrees around the x-axis, so the object is upright.
         mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * 0.05
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
- 
+
         # Scan LDConfig to get the material color info.
-        ldconfig = open(locate("LDConfig.ldr")[0])
-        ldconfig_lines = ldconfig.readlines()
-        ldconfig.close()
-        
+        with open(locate("LDConfig.ldr")[0]) as ldconfig:
+            ldconfig_lines = ldconfig.readlines()
+
         colors = {}
         mat_list = {}
         for line in ldconfig_lines:
-            if len(line) > 3 :
+            if len(line) > 3:
                 if line[2:4].lower() == '!c':
                     line_split = line.split()
                     #print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
@@ -294,9 +301,13 @@ def create_model(self, context):
                     colors[name] = {'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0}
                     if len(line_split) > 10 and line_split[9] == 'ALPHA':
                         colors[name]['alpha'] = int(line_split[10]) / 255.0
-                    
+
         model = ldraw_file(file_name, mat)
-        # Removes doubles and recalculate normals in each brick. Model is super high-poly without it.
+        """
+        Remove doubles and recalculate normals in each brick.
+        The model is super high-poly without the cleanup.
+        Cleanup can be disabled by user if wished.
+        """
         if not CleanUp:
             for cur_obj in objects:
                 cur_obj.select = True
@@ -308,30 +319,34 @@ def create_model(self, context):
                     bpy.ops.mesh.normals_make_consistent()
                     if bpy.ops.object.mode_set.poll():
                         bpy.ops.object.mode_set(mode='OBJECT')
-                        bpy.ops.object.shade_smooth() 
+                        bpy.ops.object.shade_smooth()
                         bpy.ops.object.mode_set()
                         m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
                         m.split_angle = 0.78539
                 cur_obj.select = False
-                
+
         context.scene.update()
         objects = []
-       
+
     except Exception as ex:
         print (traceback.format_exc())
         print("Oops. Something messed up.")
-   
+
     print ("Import complete!")
+
 
 def get_path(self, context):
     print(self)
     print(context)
-    
+
+
 def hex_to_rgb(rgb_str):
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
-    return tuple([val/255 for val in int_tuple]) 
-    
-#----------------- Operator -------------------------------------------
+    return tuple([val / 255 for val in int_tuple])
+
+# ------------ Operator ------------ #
+
+
 class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     '''LDraw Importer Operator'''
     bl_idname = "import_scene.ldraw"
@@ -340,22 +355,25 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'UNDO'}
-    
-    ## Script Options ##
-    
-    ldrawPath = bpy.props.StringProperty(name="LDraw Path", description="The folder path to your LDraw System of Tools installation.", maxlen=1024,
-    default = {"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir), update=get_path)
-    
-    cleanupModel = bpy.props.BoolProperty(name="Disable Model Cleanup", description="Does not remove double vertices or make normals consistent.", default=False)
 
-    highresBricks = bpy.props.BoolProperty(name="Do Not Use High-res bricks", description="Do not use high-res bricks to import your model.", default=True) 
-    
-    #ldraw_path = StringProperty( 
-        #name="LDraw Path", 
-        #description=("The path to your LDraw System of Tools installation."), 
-        #default=LDrawDir,
-        #update=get_path
-        #)
+    ## Script Options ##
+
+    ldrawPath = bpy.props.StringProperty(
+    name="LDraw Path",
+    description="The folder path to your LDraw System of Tools installation.",
+    maxlen=1024,
+    default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir),
+    update=get_path)
+
+    cleanupModel = bpy.props.BoolProperty(
+        name="Disable Model Cleanup",
+        description="Does not remove double vertices or make normals consistent.",
+        default=False)
+
+    highresBricks = bpy.props.BoolProperty(
+        name="Do Not Use High-res bricks",
+        description="Do not use high-res bricks to import your model.",
+        default=True)
 
     def execute(self, context):
         global LDrawDir, CleanUp, HighRes
@@ -366,9 +384,11 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         create_model(self, context)
         return {'FINISHED'}
 
+
 # Registering / Unregister
 def menu_import(self, context):
     self.layout.operator(IMPORT_OT_ldraw.bl_idname, text="LDraw (.dat/.ldr)")
+
 
 def register():
     bpy.utils.register_module(__name__)
