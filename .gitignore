@@ -121,10 +121,13 @@ UpgradeLog*.XML
 ############
 
 # Windows image file caches
-Thumbs.db
+*.db
 
 # Folder config file
 Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
 
 #############
@@ -162,3 +165,6 @@ pip-log.txt
 
 # Mac junk
 .DS_Store
+
+*.zip
+blender_python_*/*
