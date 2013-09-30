@@ -31,6 +31,8 @@ bl_info = {
     "category": "Import-Export"}
 
 import os, sys, math, mathutils
+import traceback
+from struct import unpack
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
@@ -52,47 +54,51 @@ objects = []
 class ldraw_file(object):
 
     def __init__(self, filename, mat, colour = None):
-        self.subfiles = []
         self.points = []
         self.faces = []
+        self.material_index = []
         self.subparts = []
         self.submodels = []
         self.part_count = 0
         
         self.mat = mat
         self.colour = colour
-        self.me = bpy.data.meshes.new('LDrawMesh')
-        self.ob = bpy.data.objects.new('LDrawObj', self.me)
-        self.ob.name = os.path.basename(filename)
-        
-        self.ob.location = (0,0,0)
-        
-        if (colour is None):
-            self.material = None
-        else:
-            if colour in mat_list:
-                self.ob.data.materials.append(mat_list[colour])
-            else:
-                mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
-                mat_list[colour].diffuse_color = colors[colour]
-                self.ob.data.materials.append(mat_list[colour])
-                
-        # Link object to scene
-        bpy.context.scene.objects.link(self.ob)
-        
         self.parse(filename)
         
-        self.me.from_pydata(self.points, [], self.faces)
+        if len(self.points) > 0 and len(self.faces) > 0:
+            me = bpy.data.meshes.new('LDrawMesh')
+            me.from_pydata(self.points, [], self.faces)
+            me.validate()
+            me.update()
         
-        self.ob.select = True
-        
-        objects.append(self.ob) 
+            for i, f in enumerate(me.polygons):
+                n = self.material_index[i]
+                mat = getMaterial(n)
+                
+                if me.materials.get(mat.name) == None:
+                    me.materials.append(mat)
+                
+                f.material_index = me.materials.find(mat.name)
+
+            self.ob = bpy.data.objects.new('LDrawObj', me)
+            self.ob.name = os.path.basename(filename)
+            
+            self.ob.location = (0,0,0)
+
+            objects.append(self.ob)
+            # Link object to scene
+            bpy.context.scene.objects.link(self.ob)
+
         for i in self.subparts:
             self.submodels.append(ldraw_file( i[0], i[1], i[2] ))
-                
+
     def parse_line(self, line):
         verts = []
-#       color = int(line[1])
+        color = line[1]
+        
+        if color == '16':
+            color = self.colour
+
         num_points = int (( len(line) - 2 ) / 3)
         #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
@@ -100,26 +106,58 @@ class ldraw_file(object):
                 to_tuple())
                 verts.append(len(self.points)-1)
         self.faces.append(verts)
+        self.material_index.append(color)
+                
+    def parse_quad(self, line):
+        color = line[1]
+        verts = []
+        num_points = 4
+        v = []
+        
+        if color == '16':
+            color = self.colour
+
+        v.append(self.mat * mathutils.Vector((float(line[0 * 3 + 2]), float(line[0 * 3 + 3]), float(line[0 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[1 * 3 + 2]), float(line[1 * 3 + 3]), float(line[1 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[2 * 3 + 2]), float(line[2 * 3 + 3]), float(line[2 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[3 * 3 + 2]), float(line[3 * 3 + 3]), float(line[3 * 3 + 4]))))
+        
+        nA = (v[1] - v[0]).cross(v[2] - v[0])
+        nB = (v[2] - v[1]).cross(v[3] - v[1])
+
+        for i in range(num_points):
+            verts.append(len(self.points) + i)
+        
+        if (nA.dot(nB) < 0):
+            self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[3].to_tuple(), v[2].to_tuple()])
+        else:
+            self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[2].to_tuple(), v[3].to_tuple()])
+            
+        self.faces.append(verts)
+        self.material_index.append(color)
                 
     def parse(self, filename):
+        subfiles = []
+
         while True:
 #           file_found = True
             try:
                 f_in = open(filename)
             except:
                 try:
-                    finds = locate(filename)
-                    isPart = finds[1]
-                    f_in = open(finds[0])
+                    fname, isPart = locate(filename)
+                    f_in = open(fname)
                 except:
-                    print("File not found: ",filename)
-#                   file_found = False
-            self.part_count = self.part_count + 1
+                    print("File not found: ", filename)
+
+            if f_in != None:
+                lines = f_in.readlines()
+                f_in.close()
+                
+            self.part_count += 1
             if self.part_count > 1 and isPart:
                 self.subparts.append([filename, self.mat, self.colour])
             else:
-                lines = f_in.readlines()
-                f_in.close()
                 for retval in lines:
                     tmpdate = retval.strip()
                     if tmpdate != '':
@@ -137,7 +175,11 @@ class ldraw_file(object):
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
 #                           mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
                             mat_new = self.mat * mathutils.Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
-                            self.subfiles.append([new_file, mat_new, tmpdate[1]])
+                            
+                            color = tmpdate[1]
+                            if color == '16':
+                                color = self.colour
+                            subfiles.append([new_file, mat_new, color])
                             
                         # Triangle (tri)
                         if tmpdate[0] == "3":
@@ -145,22 +187,36 @@ class ldraw_file(object):
                             
                         # Quadrilateral (quad)
                         if tmpdate[0] == "4":
-                            self.parse_line(tmpdate)
-            if len(self.subfiles) > 0:
-                subfile = self.subfiles.pop()
+                            self.parse_quad(tmpdate)
+                            
+            if len(subfiles) > 0:
+                subfile = subfiles.pop()
                 filename = subfile[0]
                 self.mat = subfile[1]
                 self.colour = subfile[2]
             else:        
                 break
             
+def getMaterial(colour):
+    if colour in colors:
+        if not (colour in mat_list):
+            mat_list[colour] = bpy.data.materials.new('Mat_'+colour+"_")
+            mat_list[colour].diffuse_color = colors[colour]['color']
+            
+            alpha = colors[colour]['alpha']
+            if alpha < 1.0:
+                mat_list[colour].use_transparency = True
+                mat_list[colour].alpha = alpha
+        
+        return mat_list[colour]
+    return mat_list['0']
+
             
 # Find the needed parts and add it to the list, so second scan is not necessary
 # Every last LDraw Brick Library folder added for the ability to import every single brick.
 def locate(pattern):
     '''Locate all files matching supplied filename pattern in and below
     supplied root directory.'''
-    finds = []
     fname = pattern.replace('\\', os.path.sep)
     isPart = False
     if str.lower(os.path.split(fname)[0]) == 's' :
@@ -206,12 +262,11 @@ def locate(pattern):
         print("Could not find file %s" % fname)
         return
 
-    finds.append(fname)
-    finds.append(isPart)
-    return finds    
+    return (fname, isPart)
 
 # Create the actual model         
 def create_model(self, context):
+    global objects
     file_name = self.filepath
     print(file_name)
     try:
@@ -230,31 +285,47 @@ def create_model(self, context):
             if len(line) > 3 :
                 if line[2:4].lower() == '!c':
                     line_split = line.split()
-                    print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
-                    colors[line_split[4]] = [float(int(line_split[6][1:3], 16)) / 255.0, float (int( line_split[6][3:5], 16)) / 255.0, float 
-                    (int(line_split[6][5:7], 16)) / 255.0]
+                    #print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
+                    name = line_split[4]
+                    colors[name] = {'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0}
+                    if len(line_split) > 10 and line_split[9] == 'ALPHA':
+                        colors[name]['alpha'] = int(line_split[10]) / 255.0
                     
         model = ldraw_file(file_name, mat)
         # Removes doubles and recalculate normals in each brick. Model is super high-poly without it.
         if not CleanUp:
             for cur_obj in objects:
+                cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.mesh.remove_doubles()
-                bpy.ops.mesh.normals_make_consistent()
-                bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.mode_set()
+                if bpy.ops.object.mode_set.poll():
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.mesh.remove_doubles(threshold=0.01)
+                    bpy.ops.mesh.normals_make_consistent()
+                    if bpy.ops.object.mode_set.poll():
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        bpy.ops.object.shade_smooth() 
+                        bpy.ops.object.mode_set()
+                        m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
+                        m.split_angle = 0.78539
+                cur_obj.select = False
+                
+        context.scene.update()
+        objects = []
        
-    except:
+    except Exception as ex:
+        print (traceback.format_exc())
         print("Oops. Something messed up.")
-        pass
    
     print ("Import complete!")
 
 def get_path(self, context):
     print(self)
     print(context)
+    
+def hex_to_rgb(rgb_str):
+    int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
+    return tuple([val/255 for val in int_tuple]) 
     
 #----------------- Operator -------------------------------------------
 class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
@@ -273,7 +344,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     
     cleanupModel = bpy.props.BoolProperty(name="Disable Model Cleanup", description="Does not remove double vertices or make normals consistent.", default=False)
 
-    highresBricks = bpy.props.BoolProperty(name="Do Not Use High-res bricks", description="Do not use high-res bricks to import your model.", default=False) 
+    highresBricks = bpy.props.BoolProperty(name="Do Not Use High-res bricks", description="Do not use high-res bricks to import your model.", default=True) 
     
     #ldraw_path = StringProperty( 
         #name="LDraw Path", 
