@@ -67,6 +67,14 @@ class LDrawFile(object):
         self.colour = colour
         self.parse(filename)
 
+        # Always reset 3D cursor to <0,0,0>
+        bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
+        #TODO: If origin to geometry switch will not work here, where will it work?
+        # if not CenterMesh:
+         # bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+        # else:
+        # bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+
         if len(self.points) > 0 and len(self.faces) > 0:
             me = bpy.data.meshes.new('LDrawMesh')
             me.from_pydata(self.points, [], self.faces)
@@ -323,7 +331,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         The model is super high-poly without the cleanup.
         Cleanup can be disabled by user if wished.
         """
-        if not CleanUp:
+        if CleanUp:
             for cur_obj in objects:
                 cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
@@ -375,27 +383,36 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     ## Script Options ##
 
     ldrawPath = bpy.props.StringProperty(
-    name="LDraw Path",
-    description="The folder path to your LDraw System of Tools installation.",
-    maxlen=1024,
-    default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir),
-    update=get_path)
+        name="LDraw Path",
+        description="The folder path to your LDraw System of Tools installation.",
+        default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir),
+        update=get_path
+    )
 
     cleanupModel = bpy.props.BoolProperty(
-        name="Disable Model Cleanup",
-        description="Does not remove double vertices or make normals consistent.",
-        default=False)
+        name="Enable Model Cleanup",
+        description="Remove double vertices and make normals consistent",
+        default=True
+    )
 
     highresBricks = bpy.props.BoolProperty(
         name="Do Not Use High-res bricks",
         description="Do not use high-res bricks to import your model.",
-        default=True)
+        default=True
+    )
+
+    #origin_to_mesh = bpy.props.BoolProperty(
+        #name="Set Origin to Geometry",
+        #description="Set origin to model geometry instead of <0,0,0>",
+        #default=False
+        #)
 
     def execute(self, context):
-        global LDrawDir, CleanUp, HighRes
+        global LDrawDir, CleanUp, HighRes, CenterMesh
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
+        CenterMesh = bool(self.origin_to_mesh)
         create_model(self, context)
         return {'FINISHED'}
 
