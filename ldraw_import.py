@@ -26,8 +26,8 @@ bl_info = {
     "location": "File > Import",
     "warning": "A few bugs, otherwise fully functional script.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
-    "tracker_url": "maybe"
-                   "soon",
+    #"tracker_url": "maybe"
+                   #"soon",
     "category": "Import-Export"}
 
 import os
@@ -285,7 +285,7 @@ def create_model(self, context):
     global mat_list
 
     file_name = self.filepath
-    print(file_name)
+    print("\n{0}".format(file_name))
     try:
 
         # Set the initial transformation matrix, set the scale factor to 0.05
@@ -293,9 +293,15 @@ def create_model(self, context):
         mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * 0.05
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
+        # If LDrawDir does not exist, stop the import
+        if not os.path.isdir(LDrawDir):
+            print ('''
+ERROR: Cannot find LDraw System of Tools installation at
+{0}
+'''.format(LDrawDir))
+            return False
+
         # Scan LDConfig to get the material color info.
-        #FIXME: If LDrawDir does not exist, it is made know here.
-        #FIXME: Gracefully catch the FileNotFoundError, with using try or exists()
         with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
             ldconfig_lines = ldconfig.readlines()
 
