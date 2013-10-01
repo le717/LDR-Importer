@@ -67,14 +67,6 @@ class LDrawFile(object):
         self.colour = colour
         self.parse(filename)
 
-        # Always reset 3D cursor to <0,0,0>
-        bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
-        #TODO: If origin to geometry switch will not work here, where will it work?
-        # if not CenterMesh:
-         # bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-        # else:
-        # bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-
         if len(self.points) > 0 and len(self.faces) > 0:
             me = bpy.data.meshes.new('LDrawMesh')
             me.from_pydata(self.points, [], self.faces)
@@ -160,7 +152,7 @@ class LDrawFile(object):
                     fname, isPart = locate(filename)
                     f_in = open(fname)
                 except Exception as ex:
-                    print("File not found: ", filename)
+                    print("File not found: {0}".format(filename))
 
             if f_in is not None:
                 lines = f_in.readlines()
@@ -280,7 +272,7 @@ def locate(pattern):
         if not isSubpart:
             isPart = True
     else:
-        print("Could not find file %s" % fname)
+        print("Could not find file {0}".format(fname))
         return
 
     return (fname, isPart)
@@ -351,15 +343,18 @@ ERROR: Cannot find LDraw System of Tools installation at
         context.scene.update()
         objects = []
 
+        # Always reset 3D cursor to <0,0,0> after import
+        bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
+
+        # Display success message
         print("{0} successfully imported!".format(file_name))
 
     except Exception as ex:
-        print (traceback.format_exc())
-        print("Oops, something messed up!")
+        print(traceback.format_exc())
+        print("\n\nOops, something went wrong!")
 
 
 def get_path(self, context):
-    print(self)
     print(context)
 
 
@@ -389,11 +384,10 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         update=get_path
     )
 
-
     scale = bpy.props.FloatProperty(
         name="Scale",
         description="Scale the model by this amount.",
-        default = 0.05
+        default=0.05
     )
 
     cleanupModel = bpy.props.BoolProperty(
