@@ -17,14 +17,14 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender 2.6 LDraw Importer 1.0 RC1",
+    "name": "Blender 2.6 LDraw Importer 1.0",
     "description": "Import LDraw models in .dat, and .ldr format",
     "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury",
     "version": (1, 0, 0),
     "blender": (2, 6, 3),
     "api": 31236,
     "location": "File > Import",
-    "warning": "A few bugs, otherwise fully functional script.",
+    "warning": "Does not support Cycles materials",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
                    #"soon",
@@ -158,8 +158,10 @@ class LDrawFile(object):
 
                 # The brick could not be found at all
                 except Exception as ex:
-                    print("File not found: {0}".format(filename))
-                    #FIXME: continue the import anyway?
+                    print("\nFile not found: {0}".format(filename))
+                    # break prevents a consequential but unnecessary traceback
+                    # from occurring, while only displaying the missing brick
+                    break
 
             self.part_count += 1
             if self.part_count > 1 and isPart:
@@ -354,7 +356,7 @@ ERROR: Cannot find LDraw System of Tools installation at
 
     except Exception as ex:
         print(traceback.format_exc())
-        print("\n\nOops, something went wrong!")
+        print("\nOops, something went wrong!")
 
 
 def get_path(self, context):
