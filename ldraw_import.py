@@ -143,20 +143,23 @@ class LDrawFile(object):
         subfiles = []
 
         while True:
-           #file_found = True
-            #FIXME: Change these convulted lines to be simpler and use with
+            #FIXME: Change these convulted try blocks to be simpler
+            # Attempt to open the required brick using relative path
             try:
-                f_in = open(filename)
+                with open(filename, "rt") as f_in:
+                    lines = f_in.readlines()
             except Exception as ex:
+                # That didn't work, so attempt to open the required brick
+                # using absolute path
                 try:
                     fname, isPart = locate(filename)
-                    f_in = open(fname)
+                    with open(fname, "rt") as f_in:
+                        lines = f_in.readlines()
+
+                # The brick could not be found at all
                 except Exception as ex:
                     print("File not found: {0}".format(filename))
-
-            if f_in is not None:
-                lines = f_in.readlines()
-                f_in.close()
+                    #FIXME: continue the import anyway?
 
             self.part_count += 1
             if self.part_count > 1 and isPart:
@@ -273,7 +276,7 @@ def locate(pattern):
             isPart = True
     else:
         print("Could not find file {0}".format(fname))
-        return
+        return None
 
     return (fname, isPart)
 
