@@ -52,8 +52,8 @@ a:hover { text-decoration: underline; }
 <br>
 <p class="center">This is the readme for the <span class="bold">Blender 2.6 LDraw</span> Importer script by <a href="http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer" title="Blender Wiki" target="_blank">David Pluntze</a>, maintained 
 by <a href="http://jrmastermodelbuilder.netai.net/"  title="JrMasterModelBuilder" target="_blank">JrMasterModelBuilder</a> and <a href=" 
-http://triangTriangle717.wordpress.com" title="TriangTriangle717" target="_blank">Triangle717</a>, from October 2012 - January 2013,<br> and released to the public under the <a
- href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank" title ="GNU General Public License, version 2">GNU General Public License Version 2.</p>
+http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle717</a>, from October 2012 - January 2013,<br> and released to the public under the 
+<a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank" title ="GNU General Public License, version 2">GNU General Public License Version 2.</p>
 <a name="WhatsNeeded"></a>
 <br>
 <h3 class="center">System Requirements</h3>
@@ -89,7 +89,8 @@ http://triangTriangle717.wordpress.com" title="TriangTriangle717" target="_blank
 <h2 class="center">Change Log</h2>
 
 <h3>1.0</h3>
-(Released ?? ??, 2013)<br><br>
+<em>Banbury Edition</em><br>
+(Released ?? ??, 2013)<br>
 <ul>
 <li>Uploaded source code to <a href="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" title="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" target=
 "_blank">GitHub</a>. -Triangle717</li>
@@ -133,14 +134,22 @@ http://triangTriangle717.wordpress.com" title="TriangTriangle717" target="_blank
 <li>Swapped model cleanup switch from "Disable Cleanup" to "Enable Cleanup"</li>
 <li>Removed <code>maxpath</code>limit in folder path to LDraw System of Tools field</li>  
 <li>3D cursor is always reset to &lt;0,0,0&gt; before importing</li> 
+<li>Preserve LDraw System of Tools installation path using presets - patch submitted via GitHub by 
+<a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Added import scale slider - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Fix for rounding errors in alpha value and split angle - patch submitted via GitHub by 
+<a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
+<li>Converted brick readings to use <code>with</code> statement</li>
+<li>Continue import even if brick is missing</li>
+<li>Various cleanup</li>
 </ul>
 
 <h3>0.8 Beta 1</h3>
 (Released January 3, 2012)<br><br>
 <ul>
-<li>Simplified code dealing with the LDraw path. (Line 28) -TriangTriangle717</li>
-<li>Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -TriangTriangle717</li>
-<li>Changed default LDraw path from "LDraw System of Parts" to "C:\LDraw". -TriangTriangle717</li>
+<li>Simplified code dealing with the LDraw path. (Line 28) -Triangle717</li>
+<li>Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -Triangle717</li>
+<li>Changed default LDraw path from "LDraw System of Parts" to "C:\LDraw". -Triangle717</li>
 <li>Updated script warning to be more descriptive. -rioforce</li>
 <li>Updated import completion and error messages. -Triangle717</li>
 <li>Corrected <span class="italic">LDrawDir = " "</span> line to allow use of "\" instead of having to convert them to "/". -Triangle717</li>

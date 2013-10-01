@@ -143,7 +143,6 @@ class LDrawFile(object):
         subfiles = []
 
         while True:
-            #FIXME: Change these convulted try blocks to be simpler
             # Attempt to open the required brick using relative path
             try:
                 with open(filename, "rt") as f_in:
@@ -158,7 +157,7 @@ class LDrawFile(object):
 
                 # The brick could not be found at all
                 except Exception as ex:
-                    print("\nFile not found: {0}".format(filename))
+                    print("\nFile not found: {0}".format(fname))
                     # break prevents a consequential but unnecessary traceback
                     # from occurring, while only displaying the missing brick
                     break
