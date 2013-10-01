@@ -323,7 +323,7 @@ ERROR: Cannot find LDraw System of Tools installation at
                     name = line_split[4]
                     colors[name] = {'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0}
                     if len(line_split) > 10 and line_split[9] == 'ALPHA':
-                        colors[name]['alpha'] = int(line_split[10]) / 255.0
+                        colors[name]['alpha'] = int(line_split[10]) / 256.0
 
         model = LDrawFile(file_name, mat)
         """
@@ -345,7 +345,7 @@ ERROR: Cannot find LDraw System of Tools installation at
                         bpy.ops.object.shade_smooth()
                         bpy.ops.object.mode_set()
                         m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
-                        m.split_angle = 0.78539
+                        m.split_angle = math.pi / 4
                 cur_obj.select = False
 
         context.scene.update()
