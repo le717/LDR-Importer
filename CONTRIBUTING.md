@@ -27,7 +27,7 @@ Coming soon.
 Separate Branches
 -----------------
 
-I've divided the project into three separate, distinct branches: master, unstable, and exporter.
+I've divided the project into two separate, distinct branches: master, unstable.
 
 * The **master** branch is where stable, complete, mostly bug-free code belongs. It is this script that will make up the next, official release. If someone 
 wanted to download a prerelease version and not worry about it being broken, they would download this branch.
@@ -37,7 +37,3 @@ master branch does not contain error code. If someone wanted to download the new
 
 The **unstable** branch is never to be merged into the **master** branch. When the changes made in the unstable is to be added into the master, you need to 
 manually merge them and commit it.
-
-* The **exporter** branch contains an experimental Blender 2.6 LDraw exporter script, ported from another Blender 2.3 LDraw script. It is no where near 
-completion, and requires a large amount of new and rewritten code to use LDConfig.ldr and support modern LDraw guidelines to considered stable and be released 
-with the importer script.
