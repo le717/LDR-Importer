@@ -419,7 +419,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
-        CenterMesh = bool(self.origin_to_mesh)
+        #CenterMesh = bool(self.origin_to_mesh)
         create_model(self, self.scale, context)
         return {'FINISHED'}
 
