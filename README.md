@@ -30,5 +30,5 @@ I've laid out some guidelines to help you contribute to the **Blender 2.6 LDraw 
 Official Releases
 -----------------
 All releases for version 1.0 onward will be hosted using GitHub [Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
-All previous releases are hosted on my personal [Sourceforge.net account](http://sourceforge.net/projects/le717.u).
+All previous releases are hosted on my personal [Sourceforge.net account](http://sourceforge.net/projects/le717.u/files/Blender/Blender%202.6%20LDraw%20Importer/).
 Releases will be called when the script is deemed to be in working order and contains good changes to release.
