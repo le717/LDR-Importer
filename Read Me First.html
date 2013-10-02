@@ -1,17 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<style>
-.subheaders { text-align: left; }
-.bold { font-weight: bold; }
-.italic { font-style: italic; }
-td { text-align: center; }
-.center { text-align: center; }
- a { text-decoration: none; }
-a:hover { text-decoration: underline; }
-</style>
-	<title>Blender 2.6 LDraw Importer Readme</title>
+
+    <!-- Force IE to recognize HTML5 code -->
+	<!--[if IE]>
+		<script>/*@cc_on'abbr article aside audio canvas details figcaption figure footer header hgroup mark menu meter nav output progress section summary time video'.replace(/\w+/g,function(n){document.createElement(n)})@*/</script>
+	<![endif]-->
+    
+    <meta charset="UTF-8" />
+    <title>Blender 2.6 LDraw Importer Readme</title>
+    <style type="text/css">
+    .subheaders { text-align: left; }
+    .bold { font-weight: bold; }
+    .italic { font-style: italic; }
+    td { text-align: center; }
+    .center { text-align: center; }
+     a { text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    </style>
+
 </head>
+
 <body>
 <a name="ToC"></a><h2 class="center">Blender 2.6 LDraw Importer Readme</h2>
 <table>
@@ -237,11 +246,9 @@ higher color quality, which is better for renders (the swap seems to work correc
 
 <h2 class="center">Known Bugs</h2><br> 
 <ol>
-<li>If a brick cannot be found, entire import stops</li> 
 <li>Bricksmith LDR files do not properly import due to different layout than normal LDR files</li>
 <li>Blender crashes if user imports multiple models and available RAM is too low to continue. Can never be fixed, due to various computers with 
-different amounds of RAM</li> 
-<li>Find a way to set the LDraw Brick Library path in Blender itself</li>
+different amounts of RAM</li>
 </ol><a name="ThePlan"></a>
 
 <h2 class="center">Planned Features</h2><br> 
@@ -250,9 +257,8 @@ different amounds of RAM</li>
 <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues" target="_blank">https://github.com/le717/Blender-2.6-LDraw-Importer/issues</a>. 
 <li>Conform to standard Blender script API to be considered for official Blender adoption.
 See this <a href="http://www.blender.org/documentation/blender_python_api_2_68_release/info_best_practice.html" target="_blank">page</a> for more info</li>
-<li>Do not stop entire import process if brick cannot be found, rather skip the brick and continue with import</li>
-<li>Add the ability to properly import Bricksmith LDR models)</li>
-<li>Adapt the ability to set metallic colors if at all possible</li>
+<li>Add the ability to properly import Bricksmith LDR models</li>
+<li>Adapt the ability to set metallic colors</li>
 <li>Perhaps create an EXE installer for Windows that would automatically install the script</li>
 </ol>
 <a name="Support"></a>
