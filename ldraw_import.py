@@ -74,7 +74,11 @@ class LDrawFile(object):
 
             for i, f in enumerate(me.polygons):
                 n = self.material_index[i]
-                material = getMaterial(n)
+
+                if not UseCycles:
+                    material = getMaterial(n)
+                else:
+                    material = getCyclesMaterial(n)
 
                 if me.materials.get(material.name) is None:
                     me.materials.append(material)
@@ -258,6 +262,251 @@ def getMaterial(colour):
 
         return mat_list[colour]
     return mat_list['0']
+
+
+def getCyclesMaterial(colour):
+    if colour in colors:
+        if not (colour in mat_list):
+            col = colors[colour]
+            if col['name'] == 'Milky_White':
+                mat = getCyclesMilkyWhite('Mat_' + colour + "_", col['color'])
+            elif col['material'] == 'BASIC' and col['luminance'] == 0:
+                mat = getCyclesBase('Mat_' + colour + "_", col['color'], col['alpha'])
+            elif col['luminance'] > 0:
+                mat = getCyclesEmit('Mat_' + colour + "_", col['color'], col['alpha'], col['luminance'])
+            elif col['material'] == 'CHROME':
+                mat = getCyclesChrome('Mat_' + colour + "_", col['color'])
+            elif col['material'] == 'PEARLESCENT':
+                mat = getCyclesPearlMetal('Mat_' + colour + "_", col['color'], 0.2)
+            elif col['material'] == 'METAL':
+                mat = getCyclesPearlMetal('Mat_' + colour + "_", col['color'], 0.5)
+            elif col['material'] == 'RUBBER':
+                mat = getCyclesRubber('Mat_' + colour + "_", col['color'], col['alpha'])
+            else:
+                mat = getCyclesBase('Mat_' + colour + "_", col['color'], col['alpha'])
+
+            mat_list[colour] = mat
+
+        return mat_list[colour]
+    else:
+        mat_list[colour] = getCyclesBase('Mat_' + colour + "_", (1,1,0), 1.0)
+        return mat_list[colour]
+
+    return None
+
+
+def getCyclesBase(name, diff_color, alpha):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    if alpha == 1.0:
+        mix.inputs['Fac'].default_value = 0.25
+        node = nodes.new('ShaderNodeBsdfDiffuse')
+        node.location = -242, 154
+        node.inputs['Color'].default_value = diff_color + (1.0,)
+        node.inputs['Roughness'].default_value = 0.1
+    else:
+        # NOTE: The alpha transparency used by LDraw is too simplistic for Cycles.
+        # So I'm not using the value here. Other transparent colors like 'Milky White'
+        # will need special materials.
+        mix.inputs['Fac'].default_value = 0.1
+        node = nodes.new('ShaderNodeBsdfGlass')
+        node.location = -242, 154
+        node.inputs['Color'].default_value = diff_color + (1.0,)
+        node.inputs['Roughness'].default_value = 0.01
+        node.inputs['IOR'].default_value = 1.4
+
+    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
+    aniso.location = -242, -23
+    aniso.inputs['Roughness'].default_value = 0.2
+    aniso.inputs['Anisotropy'].default_value = 0.02
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(node.outputs[0], mix.inputs[1])
+    links.new(aniso.outputs[0], mix.inputs[2])
+
+    return mat
+
+
+def getCyclesEmit(name, diff_color, alpha, luminance):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+    mix.inputs['Fac'].default_value = luminance / 100
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    # NOTE: The alpha value again is not making much sense here.
+    # I'm leaving it in, in case someone has an idea how to use it.
+
+    trans = nodes.new('ShaderNodeBsdfTranslucent')
+    trans.location = -242, 154
+    trans.inputs['Color'].default_value = diff_color + (1.0,)
+
+    emit = nodes.new('ShaderNodeEmission')
+    emit.location = -242, -23
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(trans.outputs[0], mix.inputs[1])
+    links.new(emit.outputs[0], mix.inputs[2])
+
+    return mat
+
+def getCyclesChrome(name, diff_color):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    glass = nodes.new('ShaderNodeBsdfGlossy')
+    glass.location = -242, 154
+    glass.inputs['Color'].default_value = diff_color + (1.0,)
+    glass.inputs['Roughness'].default_value = 0.1
+
+    links.new(glass.outputs[0], out.inputs[0])
+
+    return mat
+
+
+def getCyclesPearlMetal(name, diff_color, roughness):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+    mix.inputs['Fac'].default_value = 0.5
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    glossy = nodes.new('ShaderNodeBsdfGlossy')
+    glossy.location = -242, 154
+    glossy.inputs['Color'].default_value = diff_color + (1.0,)
+    glossy.inputs['Roughness'].default_value = roughness
+
+    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
+    aniso.location = -242, -23
+    aniso.inputs['Roughness'].default_value = 0.3
+    aniso.inputs['Anisotropy'].default_value = 0.02
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(glossy.outputs[0], mix.inputs[1])
+    links.new(aniso.outputs[0], mix.inputs[2])
+
+    return mat
+
+
+def getCyclesRubber(name, diff_color, alpha):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    if alpha == 1.0:
+        mix.inputs['Fac'].default_value = 0.25
+        node = nodes.new('ShaderNodeBsdfDiffuse')
+        node.location = -242, 154
+        node.inputs['Color'].default_value = diff_color + (1.0,)
+        node.inputs['Roughness'].default_value = 0.3
+    else:
+        # NOTE: The alpha transparency used by LDraw is too simplistic for Cycles.
+        # So I'm not using the value here. Other transparent colors like 'Milky White'
+        # will need special materials.
+        mix.inputs['Fac'].default_value = 0.1
+        node = nodes.new('ShaderNodeBsdfGlass')
+        node.location = -242, 154
+        node.inputs['Color'].default_value = diff_color + (1.0,)
+        node.inputs['Roughness'].default_value = 0.01
+        node.inputs['IOR'].default_value = 1.5191
+
+    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
+    aniso.location = -242, -23
+    aniso.inputs['Roughness'].default_value = 0.5
+    aniso.inputs['Anisotropy'].default_value = 0.02
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(node.outputs[0], mix.inputs[1])
+    links.new(aniso.outputs[0], mix.inputs[2])
+
+    return mat
+
+
+def getCyclesMilkyWhite(name, diff_color):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    for n in nodes:
+        nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+    mix.inputs['Fac'].default_value = 0.1
+
+    out = nodes.new('ShaderNodeOutputMaterial')
+    out.location = 290, 100
+
+    trans = nodes.new('ShaderNodeBsdfTranslucent')
+    trans.location = -242, 154
+    trans.inputs['Color'].default_value = diff_color + (1.0,)
+
+    diff = nodes.new('ShaderNodeBsdfDiffuse')
+    diff.location = -242, -23
+    diff.inputs['Color'].default_value = diff_color + (1.0,)
+    diff.inputs['Roughness'].default_value = 0.1
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(trans.outputs[0], mix.inputs[1])
+    links.new(diff.outputs[0], mix.inputs[2])
+
+    return mat
+
 
 
 def locate(pattern):
@@ -490,11 +739,19 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         default=True
     )
 
+    cycles = bpy.props.BoolProperty(
+        name="Use Cycles materials",
+        description="Creates materials for rendering in Cycles.",
+        default=True
+    )
+
     def execute(self, context):
-        global LDrawDir, CleanUp, HighRes, CenterMesh
+        global LDrawDir, CleanUp, HighRes, CenterMesh, UseCycles
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
+        UseCycles = bool(self.cycles)
+
         create_model(self, self.scale, context)
         return {'FINISHED'}
 
