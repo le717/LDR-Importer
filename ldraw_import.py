@@ -384,7 +384,7 @@ ERROR: Cannot find LDraw System of Tools installation at
 
 
 def scanLDConfig():
-    # Scan LDConfig to get the material color info.
+    """Scan LDConfig to get the material color info."""
     with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
         ldconfig_lines = ldconfig.readlines()
 
@@ -486,18 +486,11 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         default=True
     )
 
-    #origin_to_mesh = bpy.props.BoolProperty(
-        #name="Set Origin to Geometry",
-        #description="Set origin to model geometry instead of <0,0,0>",
-        #default=False
-        #)
-
     def execute(self, context):
         global LDrawDir, CleanUp, HighRes, CenterMesh
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
-        #CenterMesh = bool(self.origin_to_mesh)
         create_model(self, self.scale, context)
         return {'FINISHED'}
 
