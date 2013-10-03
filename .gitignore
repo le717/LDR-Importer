@@ -168,4 +168,7 @@ pip-log.txt
 
 *.zip
 blender_python_*/*
+
 Archives/
+
+.idea
