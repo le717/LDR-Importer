@@ -88,6 +88,7 @@ class LDrawFile(object):
             self.ob.location = (0, 0, 0)
 
             objects.append(self.ob)
+
             # Link object to scene
             bpy.context.scene.objects.link(self.ob)
 
@@ -256,7 +257,6 @@ def getMaterial(colour):
 
             mat_list[colour] = mat
 
-
         return mat_list[colour]
     return mat_list['0']
 
@@ -344,6 +344,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         colors = {}
         mat_list = {}
 
+        # Get material list from LDConfig
         scanLDConfig()
 
         model = LDrawFile(file_name, mat)
@@ -430,15 +431,19 @@ def scanLDConfig():
 
                 colors[code] = color
 
+
 def hasColorValue(line, value):
     return value in line
+
 
 def getColorValue(line, value):
     if value in line:
         n = line.index(value)
-        return line[n+1]
+        return line[n + 1]
+
 
 def get_path(self, context):
+    """Displays full file path of model being imported"""
     print(context)
 
 
@@ -451,7 +456,7 @@ def hex_to_rgb(rgb_str):
 
 
 class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
-    '''LDraw Importer Operator'''
+    """LDraw Importer Operator"""
     bl_idname = "import_scene.ldraw"
     bl_description = 'Import an LDraw model (.dat/.ldr)'
     bl_label = "Import LDraw Model"
