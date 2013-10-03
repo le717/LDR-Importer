@@ -52,9 +52,8 @@ LinuxLDrawDir = "~/ldraw/"
 objects = []
 
 
-# Scans LDraw files
 class LDrawFile(object):
-
+    """Scans LDraw files"""
     def __init__(self, filename, mat, colour=None):
         self.points = []
         self.faces = []
