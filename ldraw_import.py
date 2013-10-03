@@ -217,13 +217,49 @@ def getMaterial(colour):
     """Get and apply each brick's material"""
     if colour in colors:
         if not (colour in mat_list):
-            mat_list[colour] = bpy.data.materials.new('Mat_' + colour + "_")
-            mat_list[colour].diffuse_color = colors[colour]['color']
+            mat = bpy.data.materials.new('Mat_' + colour + "_")
+            col = colors[colour]
 
-            alpha = colors[colour]['alpha']
+            mat.diffuse_color = col['color']
+
+            alpha = col['alpha']
             if alpha < 1.0:
-                mat_list[colour].use_transparency = True
-                mat_list[colour].alpha = alpha
+                mat.use_transparency = True
+                mat.alpha = alpha
+
+            mat.emit = col['luminance'] / 100
+
+            if col['material'] == 'CHROME':
+                mat.specular_intensity = 1.4
+                mat.roughness = 0.01
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.3
+            elif col['material'] == 'PEARLESCENT':
+                mat.specular_intensity = 0.1
+                mat.roughness = 0.32
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.07
+            elif col['material'] == 'RUBBER':
+                mat.specular_intensity = 0.19
+            elif col['material'] == 'METAL':
+                mat.specular_intensity = 1.473
+                mat.specular_hardness = 292
+                mat.diffuse_fresnel = 0.93
+                mat.darkness = 0.771
+                mat.roughness = 0.01
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.9
+            #elif col['material'] == 'GLITTER':
+            #    slot = mat.texture_slots.add()
+            #    tex = bpy.data.textures.new('GlitterTex', type = 'STUCCI')
+            #    tex.use_color_ramp = True
+            #
+            #    slot.texture = tex
+            else:
+                mat.specular_intensity = 0.2
+
+            mat_list[colour] = mat
+
 
         return mat_list[colour]
     return mat_list['0']
@@ -309,21 +345,10 @@ ERROR: Cannot find LDraw System of Tools installation at
 '''.format(LDrawDir))
             return False
 
-        # Scan LDConfig to get the material color info.
-        with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
-            ldconfig_lines = ldconfig.readlines()
-
         colors = {}
         mat_list = {}
-        for line in ldconfig_lines:
-            if len(line) > 3:
-                if line[2:4].lower() == '!c':
-                    line_split = line.split()
-                    #print(line, 'color ', line_split[4], 'code ', line_split[6][1:])
-                    name = line_split[4]
-                    colors[name] = {'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0}
-                    if len(line_split) > 10 and line_split[9] == 'ALPHA':
-                        colors[name]['alpha'] = int(line_split[10]) / 256.0
+
+        scanLDConfig()
 
         model = LDrawFile(file_name, mat)
         """
@@ -357,6 +382,61 @@ ERROR: Cannot find LDraw System of Tools installation at
         print (traceback.format_exc())
         print("Oops, something messed up!")
 
+
+def scanLDConfig():
+    # Scan LDConfig to get the material color info.
+    with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
+        ldconfig_lines = ldconfig.readlines()
+
+    for line in ldconfig_lines:
+        if len(line) > 3:
+            if line[2:4].lower() == '!c':
+                line_split = line.split()
+
+                name = line_split[2]
+                code = line_split[4]
+
+                color = {'name': name, 'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0, 'luminance': 0.0, 'material': 'BASIC'}
+
+                #if len(line_split) > 10 and line_split[9] == 'ALPHA':
+                if hasColorValue(line_split, 'ALPHA'):
+                    color['alpha'] = int(getColorValue(line_split, 'ALPHA')) / 256.0
+
+                if hasColorValue(line_split, 'LUMINANCE'):
+                    color['luminance'] = int(getColorValue(line_split, 'LUMINANCE'))
+
+                if hasColorValue(line_split, 'CHROME'):
+                    color['material'] = 'CHROME'
+
+                if hasColorValue(line_split, 'PEARLESCENT'):
+                    color['material'] = 'PEARLESCENT'
+
+                if hasColorValue(line_split, 'RUBBER'):
+                    color['material'] = 'RUBBER'
+
+                if hasColorValue(line_split, 'METAL'):
+                    color['material'] = 'METAL'
+
+                if hasColorValue(line_split, 'MATERIAL'):
+                    subline = line_split[line_split.index('MATERIAL'):]
+
+                    color['material'] = getColorValue(subline, 'MATERIAL')
+                    color['secondary_color'] = getColorValue(subline, 'VALUE')[1:]
+                    color['fraction'] = getColorValue(subline, 'FRACTION')
+                    color['vfraction'] = getColorValue(subline, 'VFRACTION')
+                    color['size'] = getColorValue(subline, 'SIZE')
+                    color['minsize'] = getColorValue(subline, 'MINSIZE')
+                    color['maxsize'] = getColorValue(subline, 'MAXSIZE')
+
+                colors[code] = color
+
+def hasColorValue(line, value):
+    return value in line
+
+def getColorValue(line, value):
+    if value in line:
+        n = line.index(value)
+        return line[n+1]
 
 def get_path(self, context):
     print(self)
