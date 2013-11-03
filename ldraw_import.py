@@ -55,6 +55,7 @@ objects = []
 class LDrawFile(object):
     """Scans LDraw files"""
     def __init__(self, filename, mat, colour=None):
+
         self.points = []
         self.faces = []
         self.material_index = []
@@ -99,6 +100,7 @@ class LDrawFile(object):
             self.submodels.append(LDrawFile(i[0], i[1], i[2]))
 
     def parse_line(self, line):
+
         verts = []
         color = line[1]
 
@@ -144,26 +146,33 @@ class LDrawFile(object):
         self.material_index.append(color)
 
     def parse(self, filename):
+
         subfiles = []
 
         while True:
             # Attempt to open the required brick using relative path
             try:
+            #FIXME: Handle FileNotFoundError for .dat files that do not exist
                 with open(filename, "rt") as f_in:
                     lines = f_in.readlines()
-            except Exception as ex:
-                # That didn't work, so attempt to open the required brick
-                # using absolute path
+
+            except Exception:
+                """
+                That didn't work, so attempt to open the required brick
+                using absolute path.
+                """
                 try:
                     fname, isPart = locate(filename)
                     with open(fname, "rt") as f_in:
                         lines = f_in.readlines()
 
                 # The brick could not be found at all
-                except Exception as ex:
+                except Exception:
                     print("\nFile not found: {0}".format(fname))
-                    # break prevents a consequential but unnecessary traceback
-                    # from occurring, while only displaying the missing brick
+                    """
+                    'break' prevents a consequential but unnecessary traceback
+                    from occurring, while only displaying the missing brick.
+                    """
                     break
 
             self.part_count += 1
@@ -184,6 +193,7 @@ class LDrawFile(object):
                                     if self.part_count > 1:
                                         self.subparts.append([filename, self.mat, self.colour])
                                         break
+
                         # The brick content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
@@ -217,31 +227,34 @@ def getMaterial(colour):
     """Get and apply each brick's material"""
     if colour in colors:
         if not (colour in mat_list):
-            mat = bpy.data.materials.new('Mat_' + colour + "_")
+            mat = bpy.data.materials.new("Mat_" + colour + "_")
             col = colors[colour]
 
-            mat.diffuse_color = col['color']
+            mat.diffuse_color = col["color"]
 
-            alpha = col['alpha']
+            alpha = col["alpha"]
             if alpha < 1.0:
                 mat.use_transparency = True
                 mat.alpha = alpha
 
-            mat.emit = col['luminance'] / 100
+            mat.emit = col["luminance"] / 100
 
-            if col['material'] == 'CHROME':
+            if col["material"] == "CHROME":
                 mat.specular_intensity = 1.4
                 mat.roughness = 0.01
                 mat.raytrace_mirror.use = True
                 mat.raytrace_mirror.reflect_factor = 0.3
-            elif col['material'] == 'PEARLESCENT':
+
+            elif col["material"] == "PEARLESCENT":
                 mat.specular_intensity = 0.1
                 mat.roughness = 0.32
                 mat.raytrace_mirror.use = True
                 mat.raytrace_mirror.reflect_factor = 0.07
-            elif col['material'] == 'RUBBER':
+
+            elif col["material"] == "RUBBER":
                 mat.specular_intensity = 0.19
-            elif col['material'] == 'METAL':
+
+            elif col["material"] == "METAL":
                 mat.specular_intensity = 1.473
                 mat.specular_hardness = 292
                 mat.diffuse_fresnel = 0.93
@@ -249,53 +262,72 @@ def getMaterial(colour):
                 mat.roughness = 0.01
                 mat.raytrace_mirror.use = True
                 mat.raytrace_mirror.reflect_factor = 0.9
-            #elif col['material'] == 'GLITTER':
+
+            #elif col["material"] == "GLITTER":
             #    slot = mat.texture_slots.add()
-            #    tex = bpy.data.textures.new('GlitterTex', type = 'STUCCI')
+            #    tex = bpy.data.textures.new("GlitterTex", type = "STUCCI")
             #    tex.use_color_ramp = True
             #
             #    slot.texture = tex
+
             else:
                 mat.specular_intensity = 0.2
 
             mat_list[colour] = mat
 
         return mat_list[colour]
-    return mat_list['0']
+    return mat_list["0"]
 
 
 def getCyclesMaterial(colour):
+    """Get Cycles Material Values"""
     if colour in colors:
         if not (colour in mat_list):
             col = colors[colour]
-            if col['name'] == 'Milky_White':
-                mat = getCyclesMilkyWhite('Mat_' + colour + "_", col['color'])
-            elif col['material'] == 'BASIC' and col['luminance'] == 0:
-                mat = getCyclesBase('Mat_' + colour + "_", col['color'], col['alpha'])
-            elif col['luminance'] > 0:
-                mat = getCyclesEmit('Mat_' + colour + "_", col['color'], col['alpha'], col['luminance'])
-            elif col['material'] == 'CHROME':
-                mat = getCyclesChrome('Mat_' + colour + "_", col['color'])
-            elif col['material'] == 'PEARLESCENT':
-                mat = getCyclesPearlMetal('Mat_' + colour + "_", col['color'], 0.2)
-            elif col['material'] == 'METAL':
-                mat = getCyclesPearlMetal('Mat_' + colour + "_", col['color'], 0.5)
-            elif col['material'] == 'RUBBER':
-                mat = getCyclesRubber('Mat_' + colour + "_", col['color'], col['alpha'])
+
+            if col["name"] == "Milky_White":
+                mat = getCyclesMilkyWhite("Mat_{0}_".format(colour),
+                                          col["color"])
+
+            elif (col["material"] == "BASIC" and col["luminance"]) == 0:
+                mat = getCyclesBase("Mat_{0}_".format(colour),
+                                    col["color"], col["alpha"])
+
+            elif col["luminance"] > 0:
+                mat = getCyclesEmit("Mat_{0}_".format(colour), col["color"],
+                                    col["alpha"], col["luminance"])
+
+            elif col["material"] == "CHROME":
+                mat = getCyclesChrome("Mat_{0}_".format(colour), col['color'])
+
+            elif col["material"] == "PEARLESCENT":
+                mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
+                                          col["color"], 0.2)
+
+            elif col["material"] == "METAL":
+                mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
+                                          col["color"], 0.5)
+
+            elif col["material"] == "RUBBER":
+                mat = getCyclesRubber("Mat_{0}_".format(colour),
+                                      col["color"], col["alpha"])
+
             else:
-                mat = getCyclesBase('Mat_' + colour + "_", col['color'], col['alpha'])
+                mat = getCyclesBase("Mat_{0}_".format(colour),
+                                    col["color"], col["alpha"])
 
             mat_list[colour] = mat
 
         return mat_list[colour]
     else:
-        mat_list[colour] = getCyclesBase('Mat_' + colour + "_", (1,1,0), 1.0)
+        mat_list[colour] = getCyclesBase('Mat_' + colour + "_", (1, 1, 0), 1.0)
         return mat_list[colour]
 
     return None
 
 
 def getCyclesBase(name, diff_color, alpha):
+
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -317,16 +349,20 @@ def getCyclesBase(name, diff_color, alpha):
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
         node.inputs['Roughness'].default_value = 0.1
+
     else:
-        # NOTE: The alpha transparency used by LDraw is too simplistic for Cycles.
-        # So I'm not using the value here. Other transparent colors like 'Milky White'
-        # will need special materials.
+        """
+        The alpha transparency used by LDraw is too simplistic for Cycles,
+        so I'm not using the value here. Other transparent colors
+        like 'Milky White' will need special materials.
+        """
         mix.inputs['Fac'].default_value = 0.1
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
         node.inputs['Roughness'].default_value = 0.01
-        node.inputs['IOR'].default_value = 1.4
+        # The IOR of LEGO brick plastic is 1.46
+        node.inputs['IOR'].default_value = 1.46
 
     aniso = nodes.new('ShaderNodeBsdfAnisotropic')
     aniso.location = -242, -23
@@ -341,6 +377,7 @@ def getCyclesBase(name, diff_color, alpha):
 
 
 def getCyclesEmit(name, diff_color, alpha, luminance):
+
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -373,7 +410,9 @@ def getCyclesEmit(name, diff_color, alpha, luminance):
 
     return mat
 
+
 def getCyclesChrome(name, diff_color):
+    """Set Cycles Chrome Material"""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -397,6 +436,7 @@ def getCyclesChrome(name, diff_color):
 
 
 def getCyclesPearlMetal(name, diff_color, roughness):
+
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -431,6 +471,7 @@ def getCyclesPearlMetal(name, diff_color, roughness):
 
 
 def getCyclesRubber(name, diff_color, alpha):
+
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -452,10 +493,13 @@ def getCyclesRubber(name, diff_color, alpha):
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
         node.inputs['Roughness'].default_value = 0.3
+
     else:
-        # NOTE: The alpha transparency used by LDraw is too simplistic for Cycles.
-        # So I'm not using the value here. Other transparent colors like 'Milky White'
-        # will need special materials.
+        """
+        The alpha transparency used by LDraw is too simplistic for Cycles,
+        so I'm not using the value here. Other transparent colors
+        like 'Milky White' will need special materials.
+        """
         mix.inputs['Fac'].default_value = 0.1
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
@@ -476,6 +520,7 @@ def getCyclesRubber(name, diff_color, alpha):
 
 
 def getCyclesMilkyWhite(name, diff_color):
+
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -508,7 +553,6 @@ def getCyclesMilkyWhite(name, diff_color):
     return mat
 
 
-
 def locate(pattern):
     """
     Locate all files matching supplied filename pattern in and below
@@ -524,22 +568,28 @@ def locate(pattern):
         isSubpart = False
 
     #lint:disable
+    # Define all possible folders in the library, including unofficial bricks
     ldrawPath = os.path.join(LDrawDir, fname).lower()
     hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
     primitivesPath = os.path.join(LDrawDir, "p", fname).lower()
     partsPath = os.path.join(LDrawDir, "parts", fname).lower()
     partsSPath = os.path.join(LDrawDir, "parts", "s", fname).lower()
     UnofficialPath = os.path.join(LDrawDir, "unofficial", fname).lower()
-    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial", "p", "48", fname).lower()
-    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial", "p", fname).lower()
-    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial", "parts", fname).lower()
-    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial", "parts", "s", fname).lower()
+    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
+                                       "p", "48", fname).lower()
+    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
+                                      "p", fname).lower()
+    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
+                                      "parts", fname).lower()
+    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
+                                        "parts", "s", fname).lower()
     #lint:enable
+    #TODO: Why pass if fname exists? Is that line even needed?
     if os.path.exists(fname):
         pass
     elif os.path.exists(ldrawPath):
         fname = ldrawPath
-    elif os.path.exists(hiResPath) and not HighRes:  # lint:ok
+    elif os.path.exists(hiResPath) and not HighRes:
         fname = hiResPath
     elif os.path.exists(primitivesPath):
         fname = primitivesPath
@@ -595,7 +645,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         # Get material list from LDConfig
         scanLDConfig()
 
-        model = LDrawFile(file_name, mat)
+        LDrawFile(file_name, mat)
         """
         Remove doubles and recalculate normals in each brick.
         The model is super high-poly without the cleanup.
@@ -614,7 +664,8 @@ ERROR: Cannot find LDraw System of Tools installation at
                         bpy.ops.object.mode_set(mode='OBJECT')
                         bpy.ops.object.shade_smooth()
                         bpy.ops.object.mode_set()
-                        m = cur_obj.modifiers.new("edge_split", type='EDGE_SPLIT')
+                        m = cur_obj.modifiers.new("edge_split",
+                                                  type='EDGE_SPLIT')
                         m.split_angle = math.pi / 4
                 cur_obj.select = False
 
@@ -627,7 +678,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         # Display success message
         print("{0} successfully imported!".format(file_name))
 
-    except Exception as ex:
+    except Exception:
         print(traceback.format_exc())
         print("\nOops, something went wrong!")
 
@@ -681,10 +732,12 @@ def scanLDConfig():
 
 
 def hasColorValue(line, value):
+
     return value in line
 
 
 def getColorValue(line, value):
+
     if value in line:
         n = line.index(value)
         return line[n + 1]
@@ -746,7 +799,8 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     )
 
     def execute(self, context):
-        global LDrawDir, CleanUp, HighRes, CenterMesh, UseCycles
+        """Set import options and run the script"""
+        global LDrawDir, CleanUp, HighRes, UseCycles
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
