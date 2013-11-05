@@ -68,7 +68,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
 <h3 class="center">System Requirements</h3>
 <ul>
 	<li><a href="http://blender.org" title="Blender" target="_blank">Blender 2.63 or higher</a></li>
-	<li><span class="bold">ldraw_import.py</span> (included with this download)</li>
+	<li><code>ldraw_import.py</code> (included with this download)</li>
 	<li><a href="http://www.ldraw.org/help/getting-started.html" title="LDraw System of Tools" target="_blank">LDraw System of Tools</a></li>
 	<li><a href="http://mlcad.lm-software.com/" title="MLCad" target="_blank">MLCad</a>, <a href="http://www.leocad.org/trac" title="LeoCAD" target="_blank">
 	LeoCAD</a> (both optional)</li>
@@ -98,9 +98,22 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
 	
 <h2 class="center">Change Log</h2>
 
-<h3>1.0</h3>
+<strong>1.1</strong><br>
+(Released ?? ??, 2013)<br>
+<ul>
+<li>Added Blender Render material support for Chrome, Pearlescent, Rubber, and Metal colors</li>
+<li>Removed unused import option</li>
+<li>Added basic support for Cycles materials and switch to use them</li>
+<li>Fix string concentration errors</li>
+<li>Fix LEGO brick plastic IOR value</li>
+<li>Fix some line length PEP 8 issues</li>
+<li>Fix crash when trying to import a non-existent brick (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/11" target="_blank">Issue #11</a></li> 
+<li>Detect render engine and use proper materials for it rather than selecting a checkbox</li>
+</ul>
+
+<strong>1.0</strong><br>
 <em>Banbury Edition</em><br>
-(Released October 1, 2013)<br>
+(Released October 1, 2013)
 <ul>
 <li>Uploaded source code to <a href="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" target="_blank">GitHub</a>. -Triangle717</li>
 <li>Switched to plain text version of GPL V2.</li>
@@ -154,30 +167,30 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
 <li>Various cleanup</li>
 </ul>
 
-<h3>0.8 Beta 1</h3>
-(Released January 3, 2012)<br><br>
+<strong>0.8 Beta 1</strong><br>
+(Released January 3, 2012)<br>
 <ul>
 <li>Simplified code dealing with the LDraw path. (Line 28) -Triangle717</li>
 <li>Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -Triangle717</li>
 <li>Changed default LDraw path from "LDraw System of Parts" to "C:\LDraw". -Triangle717</li>
 <li>Updated script warning to be more descriptive. -rioforce</li>
 <li>Updated import completion and error messages. -Triangle717</li>
-<li>Corrected <span class="italic">LDrawDir = " "</span> line to allow use of "\" instead of having to convert them to "/". -Triangle717</li>
+<li>Corrected <code>LDrawDir = " "</code> line to allow use of <code>\</code> instead of having to convert them to <code>/</code> or <code>\\</code>. -Triangle717</li>
 <li>Reformatted Readme CSS from paragraphed blocks to one line code. -Triangle717</li>
-<li>Identified and completely removed <span class="bold">add_utils.py</span> code and functions from script 
+<li>Identified and completely removed <code>add_utils.py</code> code and functions from script 
 (it did not seem to be doing anything).-Triangle717</li>
 <li>Placed script under the GNU General Public License Version 2, and updated script to add GPL V2 block. -Triangle717</li>
 <li>Updated Installation Instructions -Triangle717</li>
 <li>Minor Readme updates -Triangle717</li>
 </ul>
 
-<h3>0.7.2</h3>
-(Released December 13, 2012)<br><br>
+<strong>0.7.2</strong><br>
+(Released December 13, 2012)<br>
 <ul>
-<li><span class="bold">ldraw_import.py</span> can be installed to the <span class="italic">scripts/startup</span> folder, eliminating a few installation 
+<li><code>ldraw_import.py</code> can be installed to the <span class="italic">scripts/startup</span> folder, eliminating a few installation 
 steps. -Triangle717</li>
-<li>Added GPL Licence Block to <span class="bold">add_utils.py</span> (forgot to add it the first time). -Triangle717</li>
-<li>Reverted back to <span class="italic">LDConfig.ldr</span> due to problems with script being unable to find <span class="italic">LDCfgalt.ldr</span></li>
+<li>Added GPL Licence Block to <code>add_utils.py</code> (forgot to add it the first time). -Triangle717</li>
+<li>Reverted back to </code>LDConfig.ldr</code> due to problems with script being unable to find <code>LDCfgalt.ldr</code></li>
 <li>Updated menu register/unregister functions. -Triangle717</li>
 <li>Added script warning. -Triangle717</li>
 <li><span class="bold">NEW BUG:</span> Bricksmith LDR models do no properly import. -ProfessorBrickkeper</li>
@@ -186,37 +199,37 @@ steps. -Triangle717</li>
 <li>Minor changes. -Triangle717</li>
 </ul>
 
-<h3>0.7.1 Special BMesh Edition</h3>
-(Released November 4, 2012)<br><br>
+<strong>0.7.1 Special BMesh Edition</strong><br>
+(Released November 4, 2012)<br>
 <ul>
 <li>Enabled the use of <a href="http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.63/BMesh" target="_blank" title="BMesh on Blender Wiki">BMesh</a> 
 for importing (up to 150-gon) -Triangle717</li>
 <li>Modified Readme to mention special notes about release -Triangle717</li>
 <li>Renamed script to denote differences between it and the normal, non-BMesh version. -Triangle717</li>
-<li>Added GPL block from <span class="bold">add_utils.py</span> code, and removed duplicate import functions in <span>add_utils</span>. -Triangle717</li>
+<li>Added GPL block from <code>add_utils.py</code> code, and removed duplicate import functions in <span>add_utils</span>. -Triangle717</li>
 <li>Changed text from <span class="italic">LDraw Brick Library</span> to <span class="italic">LDraw System of Tools</span> to comply with LDraw bylaws. -Triangle717
 </li>
 </ul>
 
-<h3>0.7.1</h3>
-(Released October 30, 2012)<br><br>
+<strong>0.7.1</strong><br>
+(Released October 30, 2012)<br>
 <ul>
-<li>Renamed script to <span class="bold">ldraw_import.py</span> -Triangle717</li>
-<li>Corrected bl_info in ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
-<li>Embedded entire <span class="bold"><a href="http://www.tud.ttu.ee/material/Arvutigraafika/Tracking/b261/2.60/scripts/addons/modules/add_utils.py" target=
-"_blank" title="add_utils.py">add_utils.py</a></span> file into ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
+<li>Renamed script to <code>ldraw_import.py</code> -Triangle717</li>
+<li>Corrected bl_info in <code>ldraw_import.py</code> to enable activation in Blender 2.64 -Triangle717</li>
+<li>Embedded entire <a href="http://www.tud.ttu.ee/material/Arvutigraafika/Tracking/b261/2.60/scripts/addons/modules/add_utils.py" target=
+"_blank" title="add_utils.py"><code>add_utils.py</code></a> file into ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
 <li>Changed minimum Blender version requirement to 2.63 -Triangle717</li>
 <li>Added Bricksmith to optional system requirements -Triangle717</li>
 <li>Updated bl_info just a little bit -Triangle717</li>
 <li>Python script editing programs for OS X -JrMasterModelBuilder</li>
-<li>Changed the used LDraw color chart from <span class="italic">LDConfig.ldr</span> to <span class="italic">LDCfgalt.ldr</span> because of the latter's 
-higher color quality, which is better for renders (the swap seems to work correctly, with no color errors. Code to use <span class="italic">LDConfig.ldr
-</span> is still present, and can be reverted at any time) -Triangle717</li>
+<li>Changed the used LDraw color chart from <code>LDConfig.ldr</code> to <code>LDCfgalt.ldr</code> because of the latter's 
+higher color quality, which is better for renders (the swap seems to work correctly, with no color errors. Code to use <code>LDConfig.ldr</code>  
+is still present, and can be reverted at any time) -Triangle717</li>
 <li>Updated and added a few comments -Triangle717</li>
 </ul>
 
-<h3>0.7</h3>
-(Released October 23, 2012)<br><br>
+<strong>0.7</strong><br>
+(Released October 23, 2012)<br>
 <ul>
 <li>Added ability to import from every LDraw folder, including Unofficial bricks -Triangle717</li>
 <li>Removal of commented functions present since V0.5 -Triangle717 </li>
@@ -228,18 +241,18 @@ higher color quality, which is better for renders (the swap seems to work correc
 <li>Marked some comments with David Pluntze's name because they were his comments -Triangle717</li>
 </ul>
 
-<h3>0.6</h3>
+<strong>0.6</strong>><br>
 (Released October 19, 2012)<br><br>
 <ul>
 <li>Undocumented script correction - JrMasterModelBuilder</li>
-<li>Identified script requirements (add_utils.py) - JrMasterModelBuilder</li>
+<li>Identified script requirements (<code>add_utils.py</code>) - JrMasterModelBuilder</li>
 <li>Removed faulty functions that performed the opposite of what was intended - Triangle717</li>
 <li>Corrected LDraw stylization -Triangle717</li>
 <li>Updated script description and summary of functions -Triangle717</li>
 </ul>
 
-<h3>0.5</h3>
-(Released February 23, 2012)<br><br>
+<strong>0.5</strong><br>
+(Released February 23, 2012)<br>
 <ul>
 <li>Original version by David Pluntze</li>
 </ul><a name="Bugs"></a>
