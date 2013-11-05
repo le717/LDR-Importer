@@ -151,29 +151,28 @@ class LDrawFile(object):
 
         while True:
             # Attempt to open the required brick using relative path
-            try:
-            #FIXME: Handle FileNotFoundError for .dat files that do not exist
+            if os.path.exists(filename):
                 with open(filename, "rt") as f_in:
                     lines = f_in.readlines()
 
-            except Exception:
                 """
                 That didn't work, so attempt to open the required brick
                 using absolute path.
                 """
-                try:
-                    fname, isPart = locate(filename)
+            else:
+                fname, isPart = locate(filename)
+
+                if os.path.exists(fname):
                     with open(fname, "rt") as f_in:
                         lines = f_in.readlines()
-
-                # The brick could not be found at all
-                except Exception:
+                else:
+                    #TODO: URL
+                    """
+                    http://www.blender.org/documentation/blender_python_api_2_69_release/bpy.types.Operator.html?highlight=operator#bpy.types.Operator.report
+                    See 2.69\scripts\addons\io_scene_fbx\import_fbx.py
+                    """
                     print("\nFile not found: {0}".format(fname))
-                    """
-                    'break' prevents a consequential but unnecessary traceback
-                    from occurring, while only displaying the missing brick.
-                    """
-                    break
+                    return False
 
             self.part_count += 1
             if self.part_count > 1 and isPart:
@@ -560,9 +559,9 @@ def locate(pattern):
     Check all available possible folders so every single brick
     can be imported, even unofficial ones.
     """
-    fname = pattern.replace('\\', os.path.sep)
+    fname = pattern.replace("\\", os.path.sep)
     isPart = False
-    if str.lower(os.path.split(fname)[0]) == 's':
+    if str.lower(os.path.split(fname)[0]) == "s":
         isSubpart = True
     else:
         isSubpart = False
@@ -589,7 +588,7 @@ def locate(pattern):
         pass
     elif os.path.exists(ldrawPath):
         fname = ldrawPath
-    elif os.path.exists(hiResPath) and not HighRes:
+    elif os.path.exists(hiResPath) and not HighRes:  # lint:ok
         fname = hiResPath
     elif os.path.exists(primitivesPath):
         fname = primitivesPath
@@ -607,11 +606,12 @@ def locate(pattern):
         fname = UnofficialPartsPath
     elif os.path.exists(UnofficialPartsSPath):
         fname = UnofficialPartsSPath
+
+        # Since this is not a subpart, mark it as a root part
         if not isSubpart:
             isPart = True
     else:
         print("Could not find file {0}".format(fname))
-        return None
 
     return (fname, isPart)
 
