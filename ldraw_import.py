@@ -54,8 +54,9 @@ objects = []
 
 class LDrawFile(object):
     """Scans LDraw files"""
-    def __init__(self, filename, mat, colour=None):
+    def __init__(self, context, filename, mat, colour=None):
 
+        engine = context.scene.render.engine
         self.points = []
         self.faces = []
         self.material_index = []
@@ -76,10 +77,12 @@ class LDrawFile(object):
             for i, f in enumerate(me.polygons):
                 n = self.material_index[i]
 
-                if not UseCycles:
-                    material = getMaterial(n)
-                else:
+                # Use Cycles materials if user is using Cycles
+                if engine == 'CYCLES':
                     material = getCyclesMaterial(n)
+                # Non-Cycles materials (BI, BGE, POV-Ray, etc...)
+                else:
+                    material = getMaterial(n)
 
                 if me.materials.get(material.name) is None:
                     me.materials.append(material)
@@ -97,7 +100,7 @@ class LDrawFile(object):
             bpy.context.scene.objects.link(self.ob)
 
         for i in self.subparts:
-            self.submodels.append(LDrawFile(i[0], i[1], i[2]))
+            self.submodels.append(LDrawFile(context, i[0], i[1], i[2]))
 
     def parse_line(self, line):
 
@@ -645,7 +648,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         # Get material list from LDConfig
         scanLDConfig()
 
-        LDrawFile(file_name, mat)
+        LDrawFile(context, file_name, mat)
         """
         Remove doubles and recalculate normals in each brick.
         The model is super high-poly without the cleanup.
@@ -792,35 +795,30 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         default=True
     )
 
-    cycles = bpy.props.BoolProperty(
-        name="Use Cycles materials",
-        description="Creates materials for rendering in Cycles.",
-        default=True
-    )
-
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUp, HighRes, UseCycles
+        global LDrawDir, CleanUp, HighRes
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
         HighRes = bool(self.highresBricks)
-        UseCycles = bool(self.cycles)
 
         create_model(self, self.scale, context)
         return {'FINISHED'}
 
 
-# Registering / Unregister
 def menu_import(self, context):
+    """Import menu listing label"""
     self.layout.operator(IMPORT_OT_ldraw.bl_idname, text="LDraw (.dat/.ldr)")
 
 
 def register():
+    """Register Menu Listing"""
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_import)
 
 
 def unregister():
+    """Unregister Menu Listing"""
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
