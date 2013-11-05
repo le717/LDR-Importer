@@ -17,17 +17,17 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender 2.6 LDraw Importer 1.0",
+    "name": "Blender 2.6 LDraw Importer 1.1",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury",
-    "version": (1, 0, 0),
+    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce",
+    "version": (1, 1, 0),
     "blender": (2, 63, 0),
     "api": 31236,
     "location": "File > Import",
-    "warning": "Does not support Cycles materials",
+    "warning": "Cycles support is incomplete",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
-                   #"soon",
+                    #"soon",
     "category": "Import-Export"}
 
 import os
@@ -113,8 +113,10 @@ class LDrawFile(object):
         num_points = int((len(line) - 2) / 3)
         #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
-                self.points.append((self.mat * mathutils.Vector((float(line[i * 3 + 2]), float(line[i * 3 + 3]), float(line[i * 3 + 4])))).
-                to_tuple())
+                self.points.append(
+                    (self.mat * mathutils.Vector((float(line[i * 3 + 2]),
+                     float(line[i * 3 + 3]), float(line[i * 3 + 4])))).
+                    to_tuple())
                 verts.append(len(self.points) - 1)
         self.faces.append(verts)
         self.material_index.append(color)
@@ -129,10 +131,14 @@ class LDrawFile(object):
         if color == '16':
             color = self.colour
 
-        v.append(self.mat * mathutils.Vector((float(line[0 * 3 + 2]), float(line[0 * 3 + 3]), float(line[0 * 3 + 4]))))
-        v.append(self.mat * mathutils.Vector((float(line[1 * 3 + 2]), float(line[1 * 3 + 3]), float(line[1 * 3 + 4]))))
-        v.append(self.mat * mathutils.Vector((float(line[2 * 3 + 2]), float(line[2 * 3 + 3]), float(line[2 * 3 + 4]))))
-        v.append(self.mat * mathutils.Vector((float(line[3 * 3 + 2]), float(line[3 * 3 + 3]), float(line[3 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[0 * 3 + 2]),
+                 float(line[0 * 3 + 3]), float(line[0 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[1 * 3 + 2]),
+                 float(line[1 * 3 + 3]), float(line[1 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[2 * 3 + 2]),
+                 float(line[2 * 3 + 3]), float(line[2 * 3 + 4]))))
+        v.append(self.mat * mathutils.Vector((float(line[3 * 3 + 2]),
+                 float(line[3 * 3 + 3]), float(line[3 * 3 + 4]))))
 
         nA = (v[1] - v[0]).cross(v[2] - v[0])
         nB = (v[2] - v[1]).cross(v[3] - v[1])
@@ -141,9 +147,11 @@ class LDrawFile(object):
             verts.append(len(self.points) + i)
 
         if (nA.dot(nB) < 0):
-            self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[3].to_tuple(), v[2].to_tuple()])
+            self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
+                               v[3].to_tuple(), v[2].to_tuple()])
         else:
-            self.points.extend([v[0].to_tuple(), v[1].to_tuple(), v[2].to_tuple(), v[3].to_tuple()])
+            self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
+                               v[2].to_tuple(), v[3].to_tuple()])
 
         self.faces.append(verts)
         self.material_index.append(color)
@@ -193,15 +201,21 @@ class LDrawFile(object):
                                     'Part' in tmpdate[2]
                                 ):
                                     if self.part_count > 1:
-                                        self.subparts.append([filename, self.mat, self.colour])
+                                        self.subparts.append(
+                                            [filename, self.mat, self.colour]
+                                        )
                                         break
 
                         # The brick content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
-                           #mat_new = self.mat * mathutils.Matrix( [[a, d, g, 0], [b, e, h, 0], [c, f, i, 0], [x, y, z, 1]] )
-                            mat_new = self.mat * mathutils.Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
+                            #mat_new = self.mat * mathutils.Matrix(
+                                #[[a, d, g, 0], [b, e, h, 0], [c, f, i, 0],
+                                 #[x, y, z, 1]])
+                            mat_new = self.mat * mathutils.Matrix(
+                                ((a, b, c, x), (d, e, f, y), (g, h, i, z),
+                                 (0, 0, 0, 1)))
 
                             color = tmpdate[1]
                             if color == '16':
@@ -582,7 +596,7 @@ def locate(pattern):
     UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
                                       "p", fname).lower()
     UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
-                                      "parts", fname).lower()
+                                       "parts", fname).lower()
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
                                         "parts", "s", fname).lower()
     #lint:enable
@@ -631,7 +645,8 @@ def create_model(self, scale, context):
 
         # Set the initial transformation matrix, set the scale factor to 0.05
         # and rotate -90 degrees around the x-axis, so the object is upright.
-        mat = mathutils.Matrix(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
+        mat = mathutils.Matrix(
+            ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
         mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
         # If LDrawDir does not exist, stop the import
@@ -772,14 +787,14 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
 
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
-        description="The folder path to your LDraw System of Tools installation.",
-        default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir),
-        update=get_path
+        description="Folder path to your LDraw System of Tools installation",
+        default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(
+            sys.platform, LinuxLDrawDir), update=get_path
     )
 
     scale = bpy.props.FloatProperty(
         name="Scale",
-        description="Scale the model by this amount.",
+        description="Scale the model by this amount",
         default=0.05
     )
 
@@ -791,7 +806,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
 
     highresBricks = bpy.props.BoolProperty(
         name="Do Not Use High-res bricks",
-        description="Do not use high-res bricks to import your model.",
+        description="Do not use high-res bricks to import your model",
         default=True
     )
 
