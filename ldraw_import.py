@@ -41,7 +41,6 @@ from time import strftime
 import bpy
 import bpy.props
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty
 
 # Global variables
 mat_list = {}
@@ -685,8 +684,23 @@ def create_model(self, scale, context):
             Cleanup can be disabled by user if wished.
             """
 
+            # Default values for model cleanup options
+            CleanUp = False
+            GameFix = False
+
+            # The CleanUp option was selected
+            if CleanUpOpt == "CleanUp":
+                CleanUp = True
+                debugPrint("CleanUp option selected")
+
+            # The GameFix option was selected
+            elif CleanUpOpt == "GameFix":
+                GameFix = True
+                debugPrint("GameFix option selected")
+
             # Standard cleanup actions
             if (CleanUp or GameFix):  # lint:ok
+
                 # Select all the mesh
                 for cur_obj in objects:
                     cur_obj.select = True
@@ -714,7 +728,8 @@ def create_model(self, scale, context):
             if CleanUp:  # lint:ok
                 # Add (do not apply!) 30 degree edge split to all bricks
                 for cur_obj in objects:
-                    edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                    edges = cur_obj.modifiers.new(
+                        "Edge Split", type='EDGE_SPLIT')
                     edges.split_angle = 0.523599
 
             # -------- Actions only for GameFix option -------- #
@@ -762,7 +777,7 @@ def create_model(self, scale, context):
             return {'CANCELLED'}
     else:
         debugPrint("ERROR: File not imported. Reason: Invalid File Type {0}"
-        .format("Must be a .dat, .ldr, or .lcd)"))
+                   .format("Must be a .dat, .ldr, or .lcd)"))
         self.report({'ERROR'}, "File not imported. Reason: {0}".format(
                     "Invalid File Type (Must be a .dat, .ldr, or .lcd)"))
         return {'CANCELLED'}
@@ -850,9 +865,20 @@ def hex_to_rgb(rgb_str):
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
-    print("\n[LDraw Importer] {0} - {1}".format(string, strftime("%H:%M:%S")))
+    print("\n[LDraw Importer] {0} - {1}\n".format(
+          string, strftime("%H:%M:%S")))
 
 # ------------ Operator ------------ #
+
+# Model cleanup options
+# First option does not require any checks
+#TODO: Finish GameFix
+CLEANUP_OPTIONS = (
+    ("DoNothing", "Original LDraw Brick", "Do not perform any changes"),
+    ("CleanUp", "Model Cleanup",
+"Remove double vertices, make normals consistent, add 35 degree edge split"),
+    ("GameFix", "Game Optimization", "Optimize model for video game usage"),
+)
 
 
 class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
@@ -862,16 +888,17 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_label = "Import LDraw Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     ## File type filter in file browser ##
 
     filename_ext = ".dat"
-    filter_glob = StringProperty(
+    filter_glob = bpy.props.StringProperty(
         default="*.dat;*.ldr;*.lcd",
-        options={'HIDDEN'})
+        options={'HIDDEN'}
+    )
 
-    ## Script Options ##
+    ## Import options ##
 
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
@@ -886,31 +913,35 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         default=0.05
     )
 
-    cleanupModel = bpy.props.BoolProperty(
-        name="Enable Model Cleanup",
-        description="Remove double vertices and make normals consistent",
-        default=True
-    )
-
-    gameFix = bpy.props.BoolProperty(
-        name="Enable Game Optimization",
-        description="A test by rioforce",
-        default=False
-    )
-
     highResBricks = bpy.props.BoolProperty(
         name="Use High-res bricks",
         description="Import high-resolution bricks in your model",
         default=False
     )
 
+    cleanUpModel = bpy.props.EnumProperty(
+        name="Model Cleanup Options",
+        items=CLEANUP_OPTIONS,
+        description="Model cleanup options"
+    )
+
+    def draw(self, context):
+        """Display model cleanup options"""
+        layout = self.layout
+        box = layout.box()
+        box.label("Import Options:", icon='FILTER')
+        box.prop(self, "ldrawPath")
+        box.prop(self, "scale")
+        box.prop(self, "highResBricks")
+        box.label("Model Cleanup:", icon='MATERIAL')
+        box.prop(self, "cleanUpModel", expand=True)
+
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUp, GameFix, HighRes
+        global LDrawDir, CleanUp, GameFix, HighRes, CleanUpOpt
         LDrawDir = str(self.ldrawPath)
-        CleanUp = bool(self.cleanupModel)
-        GameFix = bool(self.gameFix)
         HighRes = bool(self.highResBricks)
+        CleanUpOpt = str(self.cleanUpModel)
 
         create_model(self, self.scale, context)
         return {'FINISHED'}
