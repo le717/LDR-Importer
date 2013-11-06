@@ -585,11 +585,15 @@ def locate(pattern):
 
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
+    
+    # Standard Paths:
     ldrawPath = os.path.join(LDrawDir, fname)
     hiResPath = os.path.join(LDrawDir, "p", "48", fname)
     primitivesPath = os.path.join(LDrawDir, "p", fname)
     partsPath = os.path.join(LDrawDir, "parts", fname)
     partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
+    
+    # Unoffical Paths:
     UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
     UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
                                        "p", "48", fname)
@@ -600,10 +604,7 @@ def locate(pattern):
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
                                         "parts", "s", fname)
     #lint:enable
-    #TODO: Why pass if fname exists? Is that line even needed?
-    if os.path.exists(fname):
-        pass
-    elif os.path.exists(ldrawPath):
+    if os.path.exists(ldrawPath):
         fname = ldrawPath
     elif os.path.exists(hiResPath) and not HighRes:  # lint:ok
         fname = hiResPath
@@ -629,8 +630,10 @@ def locate(pattern):
             isPart = True
     else:
         print("Could not find file {0}".format(fname))
-    # Needs to return a proper file or the error handling for calls to this will try to use an uninitialized variable
-    # if the file is not found.
+
+     
+    # TODO: Currently will return the inputted path, causing any error checking to clear 
+    # until it tries to actually load parts.
     return (fname, isPart)
 
 
