@@ -680,6 +680,11 @@ ERROR: Cannot find LDraw System of Tools installation at
                     bpy.ops.mesh.select_all(action='SELECT')
                     bpy.ops.mesh.remove_doubles(threshold=0.01)
                     bpy.ops.mesh.normals_make_consistent()
+                    if bpy.ops.object.mode_set.poll():
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+                        bpy.ops.object.shade_smooth()
+                        bpy.ops.object.mode_set()
 
        # Model CleanUp-only actions
         if CleanUp:
@@ -689,12 +694,7 @@ ERROR: Cannot find LDraw System of Tools installation at
                 if bpy.ops.object.mode_set.poll():
                     bpy.ops.object.mode_set(mode='EDIT')
                     bpy.ops.mesh.select_all(action='SELECT')
-                    bpy.ops.mesh.remove_doubles(threshold=0.01)
-                    bpy.ops.mesh.normals_make_consistent()
                     if bpy.ops.object.mode_set.poll():
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-                        bpy.ops.object.shade_smooth()
                         bpy.ops.object.mode_set()
                         m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
                         m.split_angle = 0.523599
@@ -708,17 +708,12 @@ ERROR: Cannot find LDraw System of Tools installation at
                 if bpy.ops.object.mode_set.poll():
                     bpy.ops.object.mode_set(mode='EDIT')
                     bpy.ops.mesh.select_all(action='SELECT')
-                    bpy.ops.mesh.remove_doubles(threshold=0.01)
-                    bpy.ops.mesh.normals_make_consistent()
-                if bpy.ops.object.mode_set.poll():
-                    bpy.ops.object.mode_set(mode='OBJECT')
-                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-                    bpy.ops.object.shade_smooth()
-                    bpy.ops.object.mode_set()
-                    m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
-                    m.ratio = 0.7
-                    m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                    m.split_angle = 0.802851
+                    if bpy.ops.object.mode_set.poll():
+                        bpy.ops.object.mode_set()
+                        m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
+                        m.ratio = 0.7
+                        m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                        m.split_angle = 0.802851
 
         # Deselect the items
         cur_obj.select = False
@@ -751,37 +746,43 @@ def scanLDConfig():
                 name = line_split[2]
                 code = line_split[4]
 
-                color = {'name': name, 'color': hex_to_rgb(line_split[6][1:]), 'alpha': 1.0, 'luminance': 0.0, 'material': 'BASIC'}
+                color = {
+                    "name": name,
+                    "color": hex_to_rgb(line_split[6][1:]),
+                    "alpha": 1.0,
+                    "luminance": 0.0,
+                    "material": "BASIC"
+                }
 
                 #if len(line_split) > 10 and line_split[9] == 'ALPHA':
-                if hasColorValue(line_split, 'ALPHA'):
-                    color['alpha'] = int(getColorValue(line_split, 'ALPHA')) / 256.0
+                if hasColorValue(line_split, "ALPHA"):
+                    color["alpha"] = int(getColorValue(line_split, "ALPHA")) / 256.0
 
-                if hasColorValue(line_split, 'LUMINANCE'):
-                    color['luminance'] = int(getColorValue(line_split, 'LUMINANCE'))
+                if hasColorValue(line_split, "LUMINANCE"):
+                    color["luminance"] = int(getColorValue(line_split, "LUMINANCE"))
 
-                if hasColorValue(line_split, 'CHROME'):
-                    color['material'] = 'CHROME'
+                if hasColorValue(line_split, "CHROME"):
+                    color["material"] = "CHROME"
 
-                if hasColorValue(line_split, 'PEARLESCENT'):
-                    color['material'] = 'PEARLESCENT'
+                if hasColorValue(line_split, "PEARLESCENT"):
+                    color["material"] = "PEARLESCENT"
 
                 if hasColorValue(line_split, 'RUBBER'):
-                    color['material'] = 'RUBBER'
+                    color["material"] = "RUBBER"
 
-                if hasColorValue(line_split, 'METAL'):
-                    color['material'] = 'METAL'
+                if hasColorValue(line_split, "METAL"):
+                    color["material"] = "METAL"
 
-                if hasColorValue(line_split, 'MATERIAL'):
-                    subline = line_split[line_split.index('MATERIAL'):]
+                if hasColorValue(line_split, "MATERIAL"):
+                    subline = line_split[line_split.index("MATERIAL"):]
 
-                    color['material'] = getColorValue(subline, 'MATERIAL')
-                    color['secondary_color'] = getColorValue(subline, 'VALUE')[1:]
-                    color['fraction'] = getColorValue(subline, 'FRACTION')
-                    color['vfraction'] = getColorValue(subline, 'VFRACTION')
-                    color['size'] = getColorValue(subline, 'SIZE')
-                    color['minsize'] = getColorValue(subline, 'MINSIZE')
-                    color['maxsize'] = getColorValue(subline, 'MAXSIZE')
+                    color["material"] = getColorValue(subline, "MATERIAL")
+                    color["secondary_color"] = getColorValue(subline, "VALUE")[1:]
+                    color["fraction"] = getColorValue(subline, "FRACTION")
+                    color["vfraction"] = getColorValue(subline, "VFRACTION")
+                    color["size"] = getColorValue(subline, "SIZE")
+                    color["minsize"] = getColorValue(subline, "MINSIZE")
+                    color["maxsize"] = getColorValue(subline, "MAXSIZE")
 
                 colors[code] = color
 
