@@ -40,14 +40,7 @@ from struct import unpack
 import bpy
 import bpy.props
 from bpy_extras.io_utils import ImportHelper
-import collections
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       IntProperty,
-                       FloatProperty,
-                       CollectionProperty,
-                       )
+from bpy.props import StringProperty
 
 # Global variables
 mat_list = {}
@@ -58,6 +51,7 @@ WinLDrawDir = "C:\\LDraw"
 OSXLDrawDir = "/Applications/ldraw/"
 LinuxLDrawDir = "~/ldraw/"
 objects = []
+
 
 class LDrawFile(object):
     """Scans LDraw files"""
@@ -417,8 +411,10 @@ def getCyclesEmit(name, diff_color, alpha, luminance):
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
-    # NOTE: The alpha value again is not making much sense here.
-    # I'm leaving it in, in case someone has an idea how to use it.
+    """
+    NOTE: The alpha value again is not making much sense here.
+    I'm leaving it in, in case someone has an idea how to use it.
+    """
 
     trans = nodes.new('ShaderNodeBsdfTranslucent')
     trans.location = -242, 154
@@ -494,7 +490,7 @@ def getCyclesPearlMetal(name, diff_color, roughness):
 
 
 def getCyclesRubber(name, diff_color, alpha):
-
+    """Cycles Rubber Material"""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -673,7 +669,7 @@ ERROR: Cannot find LDraw System of Tools installation at
         The model is super high-poly without the cleanup.
         Cleanup can be disabled by user if wished.
         """
-        
+
         # Standard cleanup actions
         if (CleanUp or GameFix):
             for cur_obj in objects:
@@ -684,8 +680,8 @@ ERROR: Cannot find LDraw System of Tools installation at
                     bpy.ops.mesh.select_all(action='SELECT')
                     bpy.ops.mesh.remove_doubles(threshold=0.01)
                     bpy.ops.mesh.normals_make_consistent()
-        
-       # Model CleanUp-only actions      
+
+       # Model CleanUp-only actions
         if CleanUp:
             for cur_obj in objects:
                 cur_obj.select = True
@@ -723,7 +719,7 @@ ERROR: Cannot find LDraw System of Tools installation at
                     m.ratio = 0.7
                     m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
                     m.split_angle = 0.802851
-                    
+
         # Deselect the items
         cur_obj.select = False
 
@@ -823,9 +819,9 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'UNDO', 'PRESET'}
-   
-    ## File type filter in file browser ## 
-   
+
+    ## File type filter in file browser ##
+
     filename_ext = ".dat"
     filter_glob = StringProperty(default="*.dat;*.ldr;*.lcd", options={'HIDDEN'})
 
@@ -849,7 +845,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         description="Remove double vertices and make normals consistent",
         default=True
     )
-    
+
     gameFix = bpy.props.BoolProperty(
         name="Enable Game Optimisation",
         description="A test by rioforce",
