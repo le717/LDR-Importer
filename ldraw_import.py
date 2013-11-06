@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blender 2.6 LDraw Importer 1.1",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce",
+    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce, Tribex",
     "version": (1, 1, 0),
     "blender": (2, 63, 0),
     "api": 31236,
@@ -585,20 +585,20 @@ def locate(pattern):
 
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
-    ldrawPath = os.path.join(LDrawDir, fname).lower()
-    hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
-    primitivesPath = os.path.join(LDrawDir, "p", fname).lower()
-    partsPath = os.path.join(LDrawDir, "parts", fname).lower()
-    partsSPath = os.path.join(LDrawDir, "parts", "s", fname).lower()
-    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname).lower()
+    ldrawPath = os.path.join(LDrawDir, fname)
+    hiResPath = os.path.join(LDrawDir, "p", "48", fname)
+    primitivesPath = os.path.join(LDrawDir, "p", fname)
+    partsPath = os.path.join(LDrawDir, "parts", fname)
+    partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
+    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
     UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
-                                       "p", "48", fname).lower()
+                                       "p", "48", fname)
     UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
-                                      "p", fname).lower()
+                                      "p", fname)
     UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
-                                       "parts", fname).lower()
+                                       "parts", fname)
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
-                                        "parts", "s", fname).lower()
+                                        "parts", "s", fname)
     #lint:enable
     #TODO: Why pass if fname exists? Is that line even needed?
     if os.path.exists(fname):
@@ -629,7 +629,8 @@ def locate(pattern):
             isPart = True
     else:
         print("Could not find file {0}".format(fname))
-
+    # Needs to return a proper file or the error handling for calls to this will try to use an uninitialized variable
+    # if the file is not found.
     return (fname, isPart)
 
 
