@@ -1,4 +1,4 @@
-    ###### BEGIN GPL LICENSE BLOCK #####
+###### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@ bl_info = {
     "warning": "Cycles support is incomplete",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
-                    #"soon",
+                #"soon",
     "category": "Import-Export"}
 
 import os
@@ -586,14 +586,14 @@ def locate(pattern):
 
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
-    
+
     # Standard Paths:
     ldrawPath = os.path.join(LDrawDir, fname)
     hiResPath = os.path.join(LDrawDir, "p", "48", fname)
     primitivesPath = os.path.join(LDrawDir, "p", fname)
     partsPath = os.path.join(LDrawDir, "parts", fname)
     partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
-    
+
     # Unoffical Paths:
     UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
     UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
@@ -632,10 +632,8 @@ def locate(pattern):
     else:
         debugPrint("Could not find file {0}".format(fname))
 
-        
-     
-    # TODO: Currently will return the inputted path, possibly causing any error checking to clear 
-    # until it tries to actually load parts.
+    # TODO: Currently will return the inputted path, possibly causing
+    # any error checking to clearuntil it tries to actually load parts.
     return (fname, isPart)
 
 
@@ -647,27 +645,31 @@ def create_model(self, scale, context):
 
     file_name = self.filepath
     debugPrint("Attempting to import {0}".format(file_name))
+
     if file_name.endswith(".ldr") or file_name.endswith(".dat") or file_name.endswith(".mpd"):
+
         try:
-    
+
             # Set the initial transformation matrix, set the scale factor to 0.05
             # and rotate -90 degrees around the x-axis, so the object is upright.
             mat = mathutils.Matrix(
                 ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
             mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
-    
+
             # If LDrawDir does not exist, stop the import
             if not os.path.isdir(LDrawDir):
-                debugPrint ("ERROR: Cannot find LDraw System of Tools installation at {0}".format(LDrawDir))
-                self.report({'ERROR'}, "Cannot find LDraw System of Tools installation at {0}".format(LDrawDir))
+                debugPrint(''''ERROR: Cannot find LDraw System of Tools
+                installation at {0}'''.format(LDrawDir))
+                self.report({'ERROR'}, '''Cannot find LDraw System of
+                Tools installation at {0}'''.format(LDrawDir))
                 return {'CANCELLED'}
-    
+
             colors = {}
             mat_list = {}
-    
+
             # Get material list from LDConfig
             scanLDConfig()
-    
+
             LDrawFile(context, file_name, mat)
             """
             Remove doubles and recalculate normals in each brick.
@@ -691,25 +693,33 @@ def create_model(self, scale, context):
                                                       type='EDGE_SPLIT')
                             m.split_angle = math.pi / 4
                     cur_obj.select = False
-    
+
             context.scene.update()
             objects = []
-    
+
             # Always reset 3D cursor to <0,0,0> after import
             bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
-    
+
             # Display success message
             debugPrint("{0} successfully imported!".format(file_name))
             return {'FINISHED'}
-    
+
         except Exception as e:
-            debugPrint("ERROR: "+type(e).__name__+"\n"+traceback.format_exc()+'\n')
-            debugPrint("ERROR: File not imported. Reason: "+type(e).__name__+".")
-            self.report({'ERROR'}, "File not imported ("+type(e).__name__+"). \nCheck the console logs for more information.")
+            debugPrint("ERROR: "+type(e).__name__+"\n" +
+                       traceback.format_exc()+'\n')
+
+            debugPrint("ERROR: File not imported. Reason: " +
+                       type(e).__name__ + ".")
+
+            self.report({'ERROR'}, "File not imported (" +
+                        type(e).__name__ +
+                        "). \nCheck the console logs for more information.")
             return {'CANCELLED'}
     else:
-        debugPrint("ERROR: File not imported. Reason: Invalid File Type (Must be a .dat, .ldr, or .mpd)")
-        self.report({'ERROR'}, "File not imported. Reason: Invalid File Type (Must be a .dat, .ldr, or .mpd)")
+        debugPrint("ERROR: File not imported. Reason: Invalid File Type" +
+                   "Must be a .dat, .ldr, or .mpd)")
+        self.report({'ERROR'}, "File not imported. Reason: " +
+                    "Invalid File Type (Must be a .dat, .ldr, or .mpd)")
         return {'CANCELLED'}
 
 
@@ -775,8 +785,9 @@ def getColorValue(line, value):
 
 def get_path(self, context):
     """Displays full file path of model being imported"""
-    
-    # FIXME: Currently prints the class information of the context object, not a path
+
+    # FIXME: Currently prints the class information of the
+    # context object, not a path
     debugPrint(context)
 
 
@@ -851,8 +862,9 @@ def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
+
 def debugPrint(string):
     print("[LDraw Importer] "+str(string)+" - "+strftime("%H:%M:%S"))
-    
+
 if __name__ == "__main__":
     register()
