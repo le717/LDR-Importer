@@ -1,4 +1,4 @@
-	###### BEGIN GPL LICENSE BLOCK #####
+###### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -51,7 +51,6 @@ WinLDrawDir = "C:\\LDraw"
 OSXLDrawDir = "/Applications/ldraw/"
 LinuxLDrawDir = "~/ldraw/"
 objects = []
-
 
 
 class LDrawFile(object):
