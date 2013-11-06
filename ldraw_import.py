@@ -17,7 +17,7 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender 2.6 LDraw Importer 1.1",
+    "name": "Blender 2.6 LDraw Importer",
     "description": "Import LDraw models in .dat, and .ldr format",
     "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce, Tribex",
     "version": (1, 1, 0),
@@ -167,22 +167,17 @@ class LDrawFile(object):
                 with open(filename, "rt") as f_in:
                     lines = f_in.readlines()
 
-                """
-                That didn't work, so attempt to open the required brick
-                using absolute path.
-                """
             else:
+                # Search for the brick in the various folders
                 fname, isPart = locate(filename)
 
+                # It exists, read it and get the data
                 if os.path.exists(fname):
                     with open(fname, "rt") as f_in:
                         lines = f_in.readlines()
+
+                # The brick does not exist
                 else:
-                    #TODO: URL
-                    """
-                    http://www.blender.org/documentation/blender_python_api_2_69_release/bpy.types.Operator.html?highlight=operator#bpy.types.Operator.report
-                    See 2.69\scripts\addons\io_scene_fbx\import_fbx.py
-                    """
                     debugPrint("File not found: {0}".format(fname))
                     return False
 
@@ -194,6 +189,7 @@ class LDrawFile(object):
                     tmpdate = retval.strip()
                     if tmpdate != '':
                         tmpdate = tmpdate.split()
+
                         # LDraw brick comments
                         if tmpdate[0] == "0":
                             if len(tmpdate) >= 3:
@@ -241,10 +237,10 @@ class LDrawFile(object):
 
 
 def getMaterial(colour):
-    """Get and apply each brick's material"""
+    """Get Blender Internal Material Values"""
     if colour in colors:
         if not (colour in mat_list):
-            mat = bpy.data.materials.new("Mat_" + colour + "_")
+            mat = bpy.data.materials.new("Mat_{0}_".format(colour))
             col = colors[colour]
 
             mat.diffuse_color = col["color"]
@@ -337,7 +333,8 @@ def getCyclesMaterial(colour):
 
         return mat_list[colour]
     else:
-        mat_list[colour] = getCyclesBase('Mat_' + colour + "_", (1, 1, 0), 1.0)
+        mat_list[colour] = getCyclesBase("Mat_{0}_".format(colour),
+                                         (1, 1, 0), 1.0)
         return mat_list[colour]
 
     return None
@@ -591,21 +588,38 @@ def locate(pattern):
 
     # Standard Paths:
     ldrawPath = os.path.join(LDrawDir, fname)
-    hiResPath = os.path.join(LDrawDir, "p", "48", fname)
-    primitivesPath = os.path.join(LDrawDir, "p", fname)
-    partsPath = os.path.join(LDrawDir, "parts", fname)
-    partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
+    hiResPath = os.path.join(LDrawDir, "p".lower(), "48".lower(), fname)
+    primitivesPath = os.path.join(LDrawDir, "p".lower(), fname)
+    partsPath = os.path.join(LDrawDir, "parts".lower(), fname)
+    partsSPath = os.path.join(LDrawDir, "parts".lower(), "s".lower(), fname)
 
     # Unoffical Paths:
-    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
-    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
-                                       "p", "48", fname)
-    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
-                                      "p", fname)
-    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
-                                       "parts", fname)
-    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
-                                        "parts", "s", fname)
+    UnofficialPath = os.path.join(LDrawDir, "unofficial".lower(), fname)
+    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial".lower(),
+                                       "p".lower(), "48".lower(), fname)
+    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial".lower(),
+                                      "p".lower(), fname)
+    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial".lower(),
+                                       "parts".lower(), fname)
+    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial".lower(),
+                                        "parts".lower(), "s".lower(), fname)
+    # Standard Paths:
+    #ldrawPath = os.path.join(LDrawDir, fname)
+    #hiResPath = os.path.join(LDrawDir, "p", "48", fname)
+    #primitivesPath = os.path.join(LDrawDir, "p", fname)
+    #partsPath = os.path.join(LDrawDir, "parts", fname)
+    #partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
+
+    # Unoffical Paths:
+    #UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
+    #UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
+                                       #"p", "48", fname)
+    #UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
+                                      #"p", fname)
+    #UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
+                                       #"parts", fname)
+    #UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
+                                        #"parts", "s", fname)
     #lint:enable
     if os.path.exists(ldrawPath):
         fname = ldrawPath
@@ -648,6 +662,7 @@ def create_model(self, scale, context):
     file_name = self.filepath
     debugPrint("Attempting to import {0}".format(file_name))
 
+    # Make sure the model ends with the proper extension
     if (
         file_name.endswith(".ldr")
         or file_name.endswith(".dat")
@@ -656,8 +671,12 @@ def create_model(self, scale, context):
 
         try:
 
-            # Set the initial transformation matrix, set the scale factor to 0.05
-            # and rotate -90 degrees around the x-axis, so the object is upright.
+            """
+            Set the initial transformation matrix,
+            set the scale factor to 0.05,
+            and rotate -90 degrees around the x-axis,
+            so the object is upright.
+            """
             mat = mathutils.Matrix(
                 ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
             mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
