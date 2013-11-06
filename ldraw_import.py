@@ -40,17 +40,24 @@ from struct import unpack
 import bpy
 import bpy.props
 from bpy_extras.io_utils import ImportHelper
-
+import collections
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       IntProperty,
+                       FloatProperty,
+                       CollectionProperty,
+                       )
 
 # Global variables
 mat_list = {}
 colors = {}
 scale = 1.0
+
 WinLDrawDir = "C:\\LDraw"
 OSXLDrawDir = "/Applications/ldraw/"
 LinuxLDrawDir = "~/ldraw/"
 objects = []
-
 
 class LDrawFile(object):
     """Scans LDraw files"""
@@ -343,7 +350,7 @@ def getCyclesMaterial(colour):
 
 
 def getCyclesBase(name, diff_color, alpha):
-
+    """Basic Plastic"""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -428,7 +435,7 @@ def getCyclesEmit(name, diff_color, alpha, luminance):
 
 
 def getCyclesChrome(name, diff_color):
-    """Set Cycles Chrome Material"""
+    """Cycles Chrome Material"""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -600,12 +607,9 @@ def locate(pattern):
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
                                         "parts", "s", fname).lower()
     #lint:enable
-    #TODO: Why pass if fname exists? Is that line even needed?
-    if os.path.exists(fname):
-        pass
-    elif os.path.exists(ldrawPath):
+    if os.path.exists(ldrawPath):
         fname = ldrawPath
-    elif os.path.exists(hiResPath) and not HighRes:  # lint:ok
+    elif os.path.exists(hiResPath) and HighRes:  # lint:ok
         fname = hiResPath
     elif os.path.exists(primitivesPath):
         fname = primitivesPath
@@ -669,6 +673,19 @@ ERROR: Cannot find LDraw System of Tools installation at
         The model is super high-poly without the cleanup.
         Cleanup can be disabled by user if wished.
         """
+        
+        # Standard cleanup actions
+        if (CleanUp or GameFix):
+            for cur_obj in objects:
+                cur_obj.select = True
+                bpy.context.scene.objects.active = cur_obj
+                if bpy.ops.object.mode_set.poll():
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.mesh.remove_doubles(threshold=0.01)
+                    bpy.ops.mesh.normals_make_consistent()
+        
+       # Model CleanUp-only actions      
         if CleanUp:
             for cur_obj in objects:
                 cur_obj.select = True
@@ -680,13 +697,37 @@ ERROR: Cannot find LDraw System of Tools installation at
                     bpy.ops.mesh.normals_make_consistent()
                     if bpy.ops.object.mode_set.poll():
                         bpy.ops.object.mode_set(mode='OBJECT')
+                        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
                         bpy.ops.object.shade_smooth()
                         bpy.ops.object.mode_set()
-                        m = cur_obj.modifiers.new("edge_split",
-                                                  type='EDGE_SPLIT')
-                        m.split_angle = math.pi / 4
-                cur_obj.select = False
+                        m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                        m.split_angle = 0.523599
 
+        # Game model import-only actions
+        if GameFix:
+            for cur_obj in objects:
+                cur_obj.select = True
+                bpy.context.scene.objects.active = cur_obj
+                bpy.ops.object.mode_set()
+                if bpy.ops.object.mode_set.poll():
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.mesh.remove_doubles(threshold=0.01)
+                    bpy.ops.mesh.normals_make_consistent()
+                if bpy.ops.object.mode_set.poll():
+                    bpy.ops.object.mode_set(mode='OBJECT')
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+                    bpy.ops.object.shade_smooth()
+                    bpy.ops.object.mode_set()
+                    m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
+                    m.ratio = 0.7
+                    m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                    m.split_angle = 0.802851
+                    
+        # Deselect the items
+        cur_obj.select = False
+
+        # Update the scene with the changes
         context.scene.update()
         objects = []
 
@@ -750,7 +791,7 @@ def scanLDConfig():
 
 
 def hasColorValue(line, value):
-
+    """Check if the color value is present"""
     return value in line
 
 
@@ -761,8 +802,8 @@ def getColorValue(line, value):
         return line[n + 1]
 
 
-def get_path(self, context):
-    """Displays full file path of model being imported"""
+def _get_path(self, context):
+    """Display full file path of model being imported"""
     print(context)
 
 
@@ -782,6 +823,11 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'UNDO', 'PRESET'}
+   
+    ## File type filter in file browser ## 
+   
+    filename_ext = ".dat"
+    filter_glob = StringProperty(default="*.dat;*.ldr;*.lcd", options={'HIDDEN'})
 
     ## Script Options ##
 
@@ -789,7 +835,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         name="LDraw Path",
         description="Folder path to your LDraw System of Tools installation",
         default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(
-            sys.platform, LinuxLDrawDir), update=get_path
+            sys.platform, LinuxLDrawDir), update=_get_path
     )
 
     scale = bpy.props.FloatProperty(
@@ -803,19 +849,26 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         description="Remove double vertices and make normals consistent",
         default=True
     )
+    
+    gameFix = bpy.props.BoolProperty(
+        name="Enable Game Optimisation",
+        description="A test by rioforce",
+        default=False
+    )
 
-    highresBricks = bpy.props.BoolProperty(
-        name="Do Not Use High-res bricks",
-        description="Do not use high-res bricks to import your model",
-        default=True
+    highResBricks = bpy.props.BoolProperty(
+        name="Use High-res bricks",
+        description="Import high-resolution bricks in your model",
+        default=False
     )
 
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUp, HighRes
+        global LDrawDir, CleanUp, GameFix, HighRes
         LDrawDir = str(self.ldrawPath)
         CleanUp = bool(self.cleanupModel)
-        HighRes = bool(self.highresBricks)
+        GameFix = bool(self.gameFix)
+        HighRes = bool(self.highResBricks)
 
         create_model(self, self.scale, context)
         return {'FINISHED'}
