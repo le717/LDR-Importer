@@ -34,3 +34,4 @@ The names of all who contribute get posted here for all to see! :smiley:
 * [@JrMasterModelBuilder](https://github.com/JrMasterModelBuilder)
 * [@Banbury](https://github.com/Banbury)
 * [@rioforce](https://github.com/rioforce)
+* [@Tribex](https://github.com/Tribex)

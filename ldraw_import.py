@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blender 2.6 LDraw Importer 1.1",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce",
+    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce, Tribex",
     "version": (1, 1, 0),
     "blender": (2, 63, 0),
     "api": 31236,
@@ -27,7 +27,7 @@ bl_info = {
     "warning": "Cycles support is incomplete",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
-                    #"soon",
+                #"soon",
     "category": "Import-Export"}
 
 import os
@@ -36,6 +36,7 @@ import math
 import mathutils
 import traceback
 from struct import unpack
+from time import strftime
 
 import bpy
 import bpy.props
@@ -183,7 +184,7 @@ class LDrawFile(object):
                     http://www.blender.org/documentation/blender_python_api_2_69_release/bpy.types.Operator.html?highlight=operator#bpy.types.Operator.report
                     See 2.69\scripts\addons\io_scene_fbx\import_fbx.py
                     """
-                    print("\nFile not found: {0}".format(fname))
+                    debugPrint("File not found: {0}".format(fname))
                     return False
 
             self.part_count += 1
@@ -588,20 +589,24 @@ def locate(pattern):
 
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
-    ldrawPath = os.path.join(LDrawDir, fname).lower()
-    hiResPath = os.path.join(LDrawDir, "p", "48", fname).lower()
-    primitivesPath = os.path.join(LDrawDir, "p", fname).lower()
-    partsPath = os.path.join(LDrawDir, "parts", fname).lower()
-    partsSPath = os.path.join(LDrawDir, "parts", "s", fname).lower()
-    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname).lower()
+
+    # Standard Paths:
+    ldrawPath = os.path.join(LDrawDir, fname)
+    hiResPath = os.path.join(LDrawDir, "p", "48", fname)
+    primitivesPath = os.path.join(LDrawDir, "p", fname)
+    partsPath = os.path.join(LDrawDir, "parts", fname)
+    partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
+
+    # Unoffical Paths:
+    UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
     UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
-                                       "p", "48", fname).lower()
+                                       "p", "48", fname)
     UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
-                                      "p", fname).lower()
+                                      "p", fname)
     UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
-                                       "parts", fname).lower()
+                                       "parts", fname)
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
-                                        "parts", "s", fname).lower()
+                                        "parts", "s", fname)
     #lint:enable
     if os.path.exists(ldrawPath):
         fname = ldrawPath
@@ -628,8 +633,10 @@ def locate(pattern):
         if not isSubpart:
             isPart = True
     else:
-        print("Could not find file {0}".format(fname))
+        debugPrint("Could not find file {0}".format(fname))
 
+    # TODO: Currently will return the inputted path, possibly causing
+    # any error checking to clearuntil it tries to actually load parts.
     return (fname, isPart)
 
 
@@ -640,103 +647,122 @@ def create_model(self, scale, context):
     global mat_list
 
     file_name = self.filepath
-    print("\n{0}".format(file_name))
-    try:
+    debugPrint("Attempting to import {0}".format(file_name))
 
-        # Set the initial transformation matrix, set the scale factor to 0.05
-        # and rotate -90 degrees around the x-axis, so the object is upright.
-        mat = mathutils.Matrix(
-            ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
-        mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
+    if file_name.endswith(".ldr") or file_name.endswith(".dat") or file_name.endswith(".mpd"):
 
-        # If LDrawDir does not exist, stop the import
-        if not os.path.isdir(LDrawDir):
-            print ('''
-ERROR: Cannot find LDraw System of Tools installation at
-{0}
-'''.format(LDrawDir))
-            return False
+        try:
 
-        colors = {}
-        mat_list = {}
+            # Set the initial transformation matrix, set the scale factor to 0.05
+            # and rotate -90 degrees around the x-axis, so the object is upright.
+            mat = mathutils.Matrix(
+                ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
+            mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
-        # Get material list from LDConfig
-        scanLDConfig()
+            # If LDrawDir does not exist, stop the import
+            if not os.path.isdir(LDrawDir):
+                debugPrint(''''ERROR: Cannot find LDraw System of Tools
+                installation at {0}'''.format(LDrawDir))
+                self.report({'ERROR'}, '''Cannot find LDraw System of
+                Tools installation at {0}'''.format(LDrawDir))
+                return {'CANCELLED'}
 
-        LDrawFile(context, file_name, mat)
-        """
-        Remove doubles and recalculate normals in each brick.
-        The model is super high-poly without the cleanup.
-        Cleanup can be disabled by user if wished.
-        """
+            colors = {}
+            mat_list = {}
 
-        # Standard cleanup actions
-        if (CleanUp or GameFix):  # lint:ok
-            # Select all the mesh
-            for cur_obj in objects:
-                cur_obj.select = True
-                bpy.context.scene.objects.active = cur_obj
-                if bpy.ops.object.mode_set.poll():
+            # Get material list from LDConfig
+            scanLDConfig()
 
-                    # Change to edit mode
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    bpy.ops.mesh.select_all(action='SELECT')
+            LDrawFile(context, file_name, mat)
 
-                    # Remove doubles, calculate normals
-                    bpy.ops.mesh.remove_doubles(threshold=0.01)
-                    bpy.ops.mesh.normals_make_consistent()
+            """
+            Remove doubles and recalculate normals in each brick.
+            The model is super high-poly without the cleanup.
+            Cleanup can be disabled by user if wished.
+            """
+
+            # Standard cleanup actions
+            if (CleanUp or GameFix):  # lint:ok
+                # Select all the mesh
+                for cur_obj in objects:
+                    cur_obj.select = True
+                    bpy.context.scene.objects.active = cur_obj
                     if bpy.ops.object.mode_set.poll():
 
-                        # Go back to object mode, set origin to geometry
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+                        # Change to edit mode
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_all(action='SELECT')
 
-                        # Set smooth shading
-                        bpy.ops.object.shade_smooth()
+                        # Remove doubles, calculate normals
+                        bpy.ops.mesh.remove_doubles(threshold=0.01)
+                        bpy.ops.mesh.normals_make_consistent()
+                        if bpy.ops.object.mode_set.poll():
 
-       # -------- Actions only for CleanUp option -------- #
+                            # Go back to object mode, set origin to geometry
+                            bpy.ops.object.mode_set(mode='OBJECT')
+                            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-        if CleanUp:  # lint:ok
-            # Add (do not apply!) 30 degree edge split to all bricks
-            for cur_obj in objects:
-                edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                edges.split_angle = 0.523599
+                            # Set smooth shading
+                            bpy.ops.object.shade_smooth()
 
-        # -------- Actions only for GameFix option -------- #
+           # -------- Actions only for CleanUp option -------- #
 
-        if GameFix:  # lint:ok
+            if CleanUp:  # lint:ok
+                # Add (do not apply!) 30 degree edge split to all bricks
+                for cur_obj in objects:
+                    edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                    edges.split_angle = 0.523599
+
+            # -------- Actions only for GameFix option -------- #
+
+            if GameFix:  # lint:ok
+                for cur_obj in objects:
+                    cur_obj.select = True
+                    bpy.context.scene.objects.active = cur_obj
+                    bpy.ops.object.mode_set()
+                    if bpy.ops.object.mode_set.poll():
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_all(action='SELECT')
+                        if bpy.ops.object.mode_set.poll():
+                            bpy.ops.object.mode_set()
+                            m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
+                            m.ratio = 0.7
+                            # Add (do not apply!) 45 degree edge split to all bricks
+                            edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                            edges.split_angle = 0.802851
+
+            # Select all the mesh now that import is complete
             for cur_obj in objects:
                 cur_obj.select = True
-                bpy.context.scene.objects.active = cur_obj
-                bpy.ops.object.mode_set()
-                if bpy.ops.object.mode_set.poll():
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    bpy.ops.mesh.select_all(action='SELECT')
-                    if bpy.ops.object.mode_set.poll():
-                        bpy.ops.object.mode_set()
-                        m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
-                        m.ratio = 0.7
-                        # Add (do not apply!) 45 degree edge split to all bricks
-                        edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                        edges.split_angle = 0.802851
 
-        # Select all the mesh now that import is complete
-        for cur_obj in objects:
-            cur_obj.select = True
+            # Update the scene with the changes
+            context.scene.update()
+            objects = []
 
-        # Update the scene with the changes
-        context.scene.update()
-        objects = []
+            # Always reset 3D cursor to <0,0,0> after import
+            bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
 
-        # Always reset 3D cursor to <0,0,0> after import
-        bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
+            # Display success message
+            debugPrint("{0} successfully imported!".format(file_name))
+            return {'FINISHED'}
 
-        # Display success message
-        print("{0} successfully imported!".format(file_name))
+        except Exception as e:
+            debugPrint("ERROR: " + type(e).__name__ + "\n" +
+                       traceback.format_exc() + "\n")
 
-    except Exception:
-        print(traceback.format_exc())
-        print("\nOops, something went wrong!")
+            debugPrint("ERROR: File not imported. Reason: " +
+                       type(e).__name__ + ".")
+
+            self.report({'ERROR'}, "File not imported (" +
+                        type(e).__name__ +
+                        "). \nCheck the console logs for more information.")
+            return {'CANCELLED'}
+    else:
+        debugPrint("ERROR: File not imported. Reason: Invalid File Type" +
+                   "Must be a .dat, .ldr, or .mpd)")
+        self.report({'ERROR'}, "File not imported. Reason: " +
+                    "Invalid File Type (Must be a .dat, .ldr, or .mpd)")
+        return {'CANCELLED'}
 
 
 def scanLDConfig():
@@ -806,8 +832,11 @@ def getColorValue(line, value):
 
 
 def _get_path(self, context):
-    """Display full file path of model being imported"""
-    print(context)
+    """Displays full file path of model being imported"""
+
+    # FIXME: Currently prints the class information of the
+    # context object, not a path
+    debugPrint(context)
 
 
 def hex_to_rgb(rgb_str):
@@ -893,6 +922,9 @@ def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
+
+def debugPrint(string):
+    print("[LDraw Importer] " + str(string) + " - " + strftime("%H:%M:%S"))
 
 if __name__ == "__main__":
     register()
