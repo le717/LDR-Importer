@@ -1,9 +1,9 @@
 Contributing
 ============
 
-There are a few guidelines that must be followed at all times when developing the **Blender 2.6 LDraw Importer**
+There are a few guidelines that must be followed at all times when developing **Blender 2.6 LDraw Importer**
 
-Thou Shalt Do the Dance
+Thou Shalt Do The Dance
 -----------------------
 
 * Fork the repository by clicking ![the Fork button](http://i81.servimg.com/u/f81/16/33/06/11/forkme12.png)
@@ -21,11 +21,12 @@ For Your Reading Pleasure
 ### Backward Compatibility ###
 
 This project is called **Blender 2.6 LDraw Importer** for a reason. Although the Blender 2.6 Python API is still in development,
-the goal is to support as many versions of Blender 2.6 as possible, and not just the newest stable release.
-The goal is to support from Blender 2.63 to the newest nightly build (we can worry about 2.7 later).
-Although this project is no longer in the personal possession of [Triangle717](https://github.com/le717) and is now open-source,
+the goal is to support as many versions of Blender 2.6 as possible, from Blender 2.63 to the newest nightly build
+(we can worry about 2.7 later), and not just the newest stable release.
+Although this project is no longer in the personal possession of [Triangle717](https://github.com/le717) but open-source,
 this backward compatibility process guideline is still being enforced.
-Therefore, this following guidelines have been laid out to help you support multiple Blender versions.
+Therefore, the following guidelines have been laid out to help you support multiple Blender versions and make
+**Blender 2.6 LDraw Importer** the best available LDraw script for Blender.
 
 
 ### Python Code Layout ###
@@ -36,13 +37,11 @@ check for errors.
 * The [Blender Python API style guidelines](http://www.blender.org/documentation/blender_python_api_2_69_0/info_best_practice.html),
 which is mainly a small extension of PEP 8.
 * Use double quotes `""` when possible.
-
-_Coming Soon._
-
+* Always trim whitespace from the end of lines, blank lines, and around operators.
 
 ### Separate Branches ###
 
-The project into is divided into two separate, distinct branches: master, unstable.
+The project into is divided into two separate, distinct branches, in addition to feature branches.
 
 * The **master** branch is where stable, complete, mostly bug-free code belongs. It is this script that will make up the next, official release. If someone
 wanted to download a prerelease version and not worry about it being broken, they would download this branch.
@@ -52,3 +51,5 @@ master branch does not contain error code. If someone wanted to download the new
 
 The **unstable** branch is never to be merged into the **master** branch. When the changes made in the unstable is to be added into the master, you need to
 manually merge them and commit it.
+
+* **Feature branches** are

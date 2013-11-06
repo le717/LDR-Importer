@@ -671,36 +671,40 @@ ERROR: Cannot find LDraw System of Tools installation at
         """
 
         # Standard cleanup actions
-        if (CleanUp or GameFix):
+        if (CleanUp or GameFix):  # lint:ok
+            # Select all the mesh
             for cur_obj in objects:
                 cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
                 if bpy.ops.object.mode_set.poll():
+
+                    # Change to edit mode
                     bpy.ops.object.mode_set(mode='EDIT')
                     bpy.ops.mesh.select_all(action='SELECT')
+
+                    # Remove doubles, calculate normals
                     bpy.ops.mesh.remove_doubles(threshold=0.01)
                     bpy.ops.mesh.normals_make_consistent()
                     if bpy.ops.object.mode_set.poll():
+
+                        # Go back to object mode, set origin to geometry
                         bpy.ops.object.mode_set(mode='OBJECT')
                         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+
+                        # Set smooth shading
                         bpy.ops.object.shade_smooth()
-                        bpy.ops.object.mode_set()
 
-       # Model CleanUp-only actions
-        if CleanUp:
+       # -------- Actions only for CleanUp option -------- #
+
+        if CleanUp:  # lint:ok
+            # Add (do not apply!) 30 degree edge split to all bricks
             for cur_obj in objects:
-                cur_obj.select = True
-                bpy.context.scene.objects.active = cur_obj
-                if bpy.ops.object.mode_set.poll():
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    bpy.ops.mesh.select_all(action='SELECT')
-                    if bpy.ops.object.mode_set.poll():
-                        bpy.ops.object.mode_set()
-                        m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                        m.split_angle = 0.523599
+                edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                edges.split_angle = 0.523599
 
-        # Game model import-only actions
-        if GameFix:
+        # -------- Actions only for GameFix option -------- #
+
+        if GameFix:  # lint:ok
             for cur_obj in objects:
                 cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
@@ -712,11 +716,13 @@ ERROR: Cannot find LDraw System of Tools installation at
                         bpy.ops.object.mode_set()
                         m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
                         m.ratio = 0.7
-                        m = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                        m.split_angle = 0.802851
+                        # Add (do not apply!) 45 degree edge split to all bricks
+                        edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
+                        edges.split_angle = 0.802851
 
-        # Deselect the items
-        cur_obj.select = False
+        # Select all the mesh now that import is complete
+        for cur_obj in objects:
+            cur_obj.select = True
 
         # Update the scene with the changes
         context.scene.update()
@@ -848,7 +854,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     )
 
     gameFix = bpy.props.BoolProperty(
-        name="Enable Game Optimisation",
+        name="Enable Game Optimization",
         description="A test by rioforce",
         default=False
     )
