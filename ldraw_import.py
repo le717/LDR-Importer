@@ -649,7 +649,11 @@ def create_model(self, scale, context):
     file_name = self.filepath
     debugPrint("Attempting to import {0}".format(file_name))
 
-    if file_name.endswith(".ldr") or file_name.endswith(".dat") or file_name.endswith(".mpd"):
+    if (
+        file_name.endswith(".ldr")
+        or file_name.endswith(".dat")
+        or file_name.endswith(".lcd")
+    ):
 
         try:
 
@@ -661,10 +665,10 @@ def create_model(self, scale, context):
 
             # If LDrawDir does not exist, stop the import
             if not os.path.isdir(LDrawDir):
-                debugPrint(''''ERROR: Cannot find LDraw System of Tools
-                installation at {0}'''.format(LDrawDir))
-                self.report({'ERROR'}, '''Cannot find LDraw System of
-                Tools installation at {0}'''.format(LDrawDir))
+                debugPrint(''''ERROR: Cannot find LDraw installation at
+{0}'''.format(LDrawDir))
+                self.report({'ERROR'}, '''Cannot find LDraw installation at
+{0}'''.format(LDrawDir))
                 return {'CANCELLED'}
 
             colors = {}
@@ -747,21 +751,20 @@ def create_model(self, scale, context):
             return {'FINISHED'}
 
         except Exception as e:
-            debugPrint("ERROR: " + type(e).__name__ + "\n" +
-                       traceback.format_exc() + "\n")
+            debugPrint("ERROR: {0}\n{1}\n".format(
+                       type(e).__name__, traceback.format_exc()))
 
-            debugPrint("ERROR: File not imported. Reason: " +
-                       type(e).__name__ + ".")
+            debugPrint("ERROR: File not imported. Reason: {0}.".format(
+                       type(e).__name__))
 
-            self.report({'ERROR'}, "File not imported (" +
-                        type(e).__name__ +
-                        "). \nCheck the console logs for more information.")
+            self.report({'ERROR'}, '''File not imported ("{0}").
+ Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
     else:
-        debugPrint("ERROR: File not imported. Reason: Invalid File Type" +
-                   "Must be a .dat, .ldr, or .mpd)")
-        self.report({'ERROR'}, "File not imported. Reason: " +
-                    "Invalid File Type (Must be a .dat, .ldr, or .mpd)")
+        debugPrint("ERROR: File not imported. Reason: Invalid File Type {0}"
+        .format("Must be a .dat, .ldr, or .lcd)"))
+        self.report({'ERROR'}, "File not imported. Reason: {0}".format(
+                    "Invalid File Type (Must be a .dat, .ldr, or .lcd)"))
         return {'CANCELLED'}
 
 
@@ -844,6 +847,11 @@ def hex_to_rgb(rgb_str):
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
 
+
+def debugPrint(string):
+    """Debug print with timestamp for identification"""
+    print("\n[LDraw Importer] {0} - {1}".format(string, strftime("%H:%M:%S")))
+
 # ------------ Operator ------------ #
 
 
@@ -859,7 +867,9 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     ## File type filter in file browser ##
 
     filename_ext = ".dat"
-    filter_glob = StringProperty(default="*.dat;*.ldr;*.lcd", options={'HIDDEN'})
+    filter_glob = StringProperty(
+        default="*.dat;*.ldr;*.lcd",
+        options={'HIDDEN'})
 
     ## Script Options ##
 
@@ -922,9 +932,6 @@ def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
-
-def debugPrint(string):
-    print("[LDraw Importer] " + str(string) + " - " + strftime("%H:%M:%S"))
 
 if __name__ == "__main__":
     register()

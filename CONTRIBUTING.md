@@ -36,7 +36,12 @@ Therefore, the following guidelines have been laid out to help you support multi
 check for errors.
 * The [Blender Python API style guidelines](http://www.blender.org/documentation/blender_python_api_2_69_0/info_best_practice.html),
 which is mainly a small extension of PEP 8.
-* Use double quotes `""` when possible.
+* Use double quotes (`""`) when possible. For multi-line strings, use triple quotes (`''' '''`, `""" """`).
+* [`str.format()`](http://docs.python.org/3/library/stdtypes.html#str.format) is the preferred way to join strings.
+It a single line string is more than 79 characters and does not need to be on a second line, `str.format()` to keep it on one line
+and wrap the extended string on the next physical  line.
+It is better than the [% operator](http://docs.python.org/3/tutorial/inputoutput.html#old-string-formatting),
+and using `+` (plus) signs is just bad practice. :wink:
 * Always trim whitespace from the end of lines, blank lines, and around operators.
 
 ### Separate Branches ###
