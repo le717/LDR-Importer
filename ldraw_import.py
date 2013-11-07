@@ -741,7 +741,7 @@ def create_model(self, scale, context):
            # -------- Actions only for CleanUp option -------- #
 
             if CleanUp:  # lint:ok
-                # Add (do not apply!) 30 degree edge split to all bricks
+                # Add 30 degree edge split modifier to all bricks
                 for cur_obj in objects:
                     edges = cur_obj.modifiers.new(
                         "Edge Split", type='EDGE_SPLIT')
@@ -751,17 +751,12 @@ def create_model(self, scale, context):
 
             if GameFix:  # lint:ok
                 for cur_obj in objects:
-                    cur_obj.select = True
-                    bpy.context.scene.objects.active = cur_obj
-                    bpy.ops.object.mode_set()
                     if bpy.ops.object.mode_set.poll():
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='SELECT')
                         if bpy.ops.object.mode_set.poll():
                             bpy.ops.object.mode_set()
                             m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
                             m.ratio = 0.7
-                            # Add (do not apply!) 45 degree edge split to all bricks
+                            # Add 45 degree edge split modifier to all bricks
                             edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
                             edges.split_angle = 0.802851
 
@@ -784,16 +779,16 @@ def create_model(self, scale, context):
             debugPrint("ERROR: {0}\n{1}\n".format(
                        type(e).__name__, traceback.format_exc()))
 
-            debugPrint("ERROR: File not imported. Reason: {0}.".format(
+            debugPrint("ERROR: Reason: {0}.".format(
                        type(e).__name__))
 
             self.report({'ERROR'}, '''File not imported ("{0}").
  Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
     else:
-        debugPrint("ERROR: File not imported. Reason: Invalid File Type {0}"
+        debugPrint("Error: Reason: Invalid File Type {0}"
                    .format("Must be a .dat, .ldr, or .lcd)"))
-        self.report({'ERROR'}, "File not imported. Reason: {0}".format(
+        self.report({'ERROR'}, "Error: {0}".format(
                     "Invalid File Type (Must be a .dat, .ldr, or .lcd)"))
         return {'CANCELLED'}
 
