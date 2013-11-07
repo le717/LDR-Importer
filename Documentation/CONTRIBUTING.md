@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to Blender 2.6 LDraw Importer
+==========================================
 
 There are a few guidelines that must be followed at all times when developing **Blender 2.6 LDraw Importer**
 

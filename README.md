@@ -22,7 +22,7 @@ License
 Contributing
 ============
 
-Guidelines to help you contribute to **Blender 2.6 LDraw Importer** can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
+Guidelines to help you contribute to **Blender 2.6 LDraw Importer** can be found in [CONTRIBUTING.md](Documentation/CONTRIBUTING.md)
 
 Contributors
 ============
