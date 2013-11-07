@@ -106,11 +106,31 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Added basic support for Cycles materials and switch to use them</li>
     <li>Fix string concentration errors</li>
     <li>Fix LEGO brick plastic IOR value</li>
-    <li>Fix some line length PEP 8 issues</li>
-    <li>Fix crash when trying to import a non-existent brick (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/11" target="_blank">Issue #11</a></li>
+    <li>Fix many PEP 8 line length issues</li>
+    <li>Fix crash when trying to import a non-existent brick (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/11" target="_blank">Issue #11</a>)</li>
     <li>Detect render engine and use proper materials for it rather than selecting a checkbox</li>
-    <li>Filter out non-LDraw files in file browser</li>
-    <li>Set mesh origin to geometry</li>
+    <li>Allow import on allow import on both case-sensitive and case-insensitive file systems - initial patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a></li>
+    <li>Set mesh origin to geometry - patch submitted via GitHub by <a href="https://github.com/rioforce" target="_blank">rioforce</a></li>
+    <li>Only display only LDraw models in import file browser - initial patch submitted via GitHub by <a href="https://github.com/rioforce" target="_blank">rioforce</a></li>
+    <li>Update import options localaization</li>
+    <li>Majorly updated Markdown documentation files</li>
+    <li>Fix possible bug with LDraw installation directory</li>
+    <li>New <code>debugPrint()</code> function for easier understanding of message origin ans exactly when it was displayed - patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a>
+    (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/pull/14" target="_blank">Issue #14</a>)</li>
+    <li>"Major error messages now display a small popup when called, notifying the user in Blender's UI,
+    <br>instead of silently closing the file select screen and only outputting to the console" - patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a>
+    (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/pull/14" target="_blank">Issue #14</a>)</li>
+    <li>"Major error messages now identify what type of error they were, and print the stack trace where necessary" - patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a>
+    (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/pull/14" target="_blank">Issue #14</a>)</li>
+    <li>"Importing files which do not have a .ldr, .dat, or .mpd extension is no longer allowed and will not be attempted,
+    <br>and will tell the user through a popup in Blender's UI" - patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a>
+    (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/pull/14" target="_blank">Issue #14</a>)</li>
+    <li>Conversion of single quotes to double quotes where possible</li>
+    <li>Reworked internal model cleanup process, now cleaner and better supports future improvements</li>
+    <li>More conversion of string consentration from <code>+</code> (plus) signs to <code>str.format()</code> method</li>
+    <li>New way of presenting import options, more easily understood and looks nicer too</li>
+    <li>Split check for subpart into separate function</li>
+    <li>Fixed <code>NameError</code> for <code>isPart</code> when importing from relative path (relative to model location)</li>
 </ul>
 
 <strong>1.0</strong><br>
@@ -118,19 +138,19 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
 (Released October 1, 2013)
 <ul>
     <li>Uploaded source code to <a href="https://github.com/Triangle717/Blender-2.6-LDraw-Importer" target="_blank">GitHub</a>. -Triangle717</li>
-    <li>Switched to plain text version of GPL V2.</li>
-    <li>Converted all whitespace to 4 spaces whitespace to conform to Python standards using Blender scripting scene.</li>
-    <li>Added most of <a href="http://sourceforge.net/u/mss02/profile/" target="_blank">Marc Schmitt's</a> Linux patch, with minor changes.</li>
+    <li>Switched to plain text version of GPL V2</li>
+    <li>Converted all whitespace to 4 spaces whitespace to conform to Python standards using Blender scripting scene</li>
+    <li>Added most of <a href="http://sourceforge.net/u/mss02/profile/" target="_blank">Marc Schmitt's</a> Linux patch, with minor changes</li>
     <li>Made LDraw folder paths case-insensitive</li>
     <li>Added ability to set LDraw System of Tools folder path from within Blender using code from <a href="https://github.com/impiaaa/blender-ldraw" target=
-    "_blank">Spencer Alves's Blender 2.6 LDraw Importer</a>.</li>
-    <li>Added ability to disable automatic model cleanup (remove doubles and recalculate normals). Doing so is <strong>not advised.</strong></li>
-    <li>Changed <code>dict()</code> to the proper <code>{}</code> syntax.</li>
-    <li>Script cleanup.</li>
-    <li>Updated Readme with new information.</li>
-    <li>Added OS X and Linux LDraw System of Tools default installation path.</li>
+    "_blank">Spencer Alves's Blender 2.6 LDraw Importer</a></li>
+    <li>Added ability to disable automatic model cleanup (remove doubles and recalculate normals). Doing so is <strong>not advised</strong></li>
+    <li>Changed <code>dict()</code> to the proper <code>{}</code> syntax</li>
+    <li>Script cleanup</li>
+    <li>Updated Readme with new information</li>
+    <li>Added OS X and Linux LDraw System of Tools default installation path</li>
     <li>Updated script options messages</li>
-    <li>Added ability to disable use of high-res bricks.</li>
+    <li>Added ability to disable use of high-res bricks</li>
     <li>Correctly construct quads in bricks - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
     <li>Correctly apply brick materials - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
     <li>Don't use high-quality bricks by default - patch submitted via GitHub by <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
@@ -156,7 +176,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Disable Blender tracker URL button in GUI</li>
     <li>Gracefully stop import if <code>LDrawDir</code> does not exist</li>
     <li>Swapped model cleanup switch from "Disable Cleanup" to "Enable Cleanup"</li>
-    <li>Removed <code>maxpath</code>limit in folder path to LDraw System of Tools field</li>
+    <li>Removed <code>maxpath</code> limit in folder path to LDraw System of Tools field</li>
     <li>3D cursor is always reset to &lt;0,0,0&gt; before importing</li>
     <li>Preserve LDraw System of Tools installation path using presets - patch submitted via GitHub by
     <a href="https://github.com/Banbury" target="_blank">Banbury</a></li>
@@ -192,7 +212,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li><code>ldraw_import.py</code> can be installed to the <span class="italic">scripts/startup</span> folder, eliminating a few installation
     steps. -Triangle717</li>
     <li>Added GPL Licence Block to <code>add_utils.py</code> (forgot to add it the first time). -Triangle717</li>
-    <li>Reverted back to </code>LDConfig.ldr</code> due to problems with script being unable to find <code>LDCfgalt.ldr</code></li>
+    <li>Reverted back to <code>LDConfig.ldr</code> due to problems with script being unable to find <code>LDCfgalt.ldr</code></li>
     <li>Updated menu register/unregister functions. -Triangle717</li>
     <li>Added script warning. -Triangle717</li>
     <li><span class="bold">NEW BUG:</span> Bricksmith LDR models do no properly import. -ProfessorBrickkeper</li>
@@ -243,7 +263,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Marked some comments with David Pluntze's name because they were his comments -Triangle717</li>
 </ul>
 
-<strong>0.6</strong>><br>
+<strong>0.6</strong><br>
 (Released October 19, 2012)<br><br>
 <ul>
     <li>Undocumented script correction - JrMasterModelBuilder</li>
