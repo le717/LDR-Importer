@@ -928,7 +928,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     )
 
     highResBricks = bpy.props.BoolProperty(
-        name="Use High-res bricks",
+        name="Use High-res bricks", 
         description="Import high-resolution bricks in your model",
         default=False
     )
@@ -943,11 +943,11 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
         """Display model cleanup options"""
         layout = self.layout
         box = layout.box()
-        box.label("Import Options:", icon='FILTER')
-        box.prop(self, "ldrawPath")
+        box.label("Import Options:", icon='SCRIPTWIN')
+        box.prop(self, "ldrawPath", icon="FILESEL")
         box.prop(self, "scale")
-        box.prop(self, "highResBricks")
-        box.label("Model Cleanup:", icon='MATERIAL')
+        box.prop(self, "highResBricks", icon="MOD_BUILD")
+        box.label("Model Cleanup:", icon='EDIT')
         box.prop(self, "cleanUpModel", expand=True)
 
     def execute(self, context):
