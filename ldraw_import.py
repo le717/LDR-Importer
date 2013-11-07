@@ -158,13 +158,19 @@ class LDrawFile(object):
         self.material_index.append(color)
 
     def parse(self, filename):
-
+        """Construct tri's in each brick"""
         subfiles = []
 
         while True:
-            # Attempt to open the required brick using relative path
+            isPart = False
             if os.path.exists(filename):
-                with open(filename, "rt") as f_in:
+
+                # Check if this is a main part or a subpart
+                if not isSubPart(filename):
+                    isPart = True
+
+                # Read the brick using relative path (to entire model)
+                with open(filename, "rt", encoding="utf-8") as f_in:
                     lines = f_in.readlines()
 
             else:
@@ -173,7 +179,7 @@ class LDrawFile(object):
 
                 # It exists, read it and get the data
                 if os.path.exists(fname):
-                    with open(fname, "rt") as f_in:
+                    with open(fname, "rt", encoding="utf-8") as f_in:
                         lines = f_in.readlines()
 
                 # The brick does not exist
@@ -569,6 +575,17 @@ def getCyclesMilkyWhite(name, diff_color):
     return mat
 
 
+def isSubPart(brick):
+    """Check if brick is a main part or a subpart"""
+
+    if str.lower(os.path.split(brick)[0]) == "s":
+        isSubpart = True
+    else:
+        isSubpart = False
+
+    return isSubpart
+
+
 def locate(pattern):
     """
     Locate all files matching supplied filename pattern in and below
@@ -578,10 +595,6 @@ def locate(pattern):
     """
     fname = pattern.replace("\\", os.path.sep)
     isPart = False
-    if str.lower(os.path.split(fname)[0]) == "s":
-        isSubpart = True
-    else:
-        isSubpart = False
 
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
@@ -603,23 +616,6 @@ def locate(pattern):
                                        "parts".lower(), fname)
     UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial".lower(),
                                         "parts".lower(), "s".lower(), fname)
-    # Standard Paths:
-    #ldrawPath = os.path.join(LDrawDir, fname)
-    #hiResPath = os.path.join(LDrawDir, "p", "48", fname)
-    #primitivesPath = os.path.join(LDrawDir, "p", fname)
-    #partsPath = os.path.join(LDrawDir, "parts", fname)
-    #partsSPath = os.path.join(LDrawDir, "parts", "s", fname)
-
-    # Unoffical Paths:
-    #UnofficialPath = os.path.join(LDrawDir, "unofficial", fname)
-    #UnofficialhiResPath = os.path.join(LDrawDir, "unofficial",
-                                       #"p", "48", fname)
-    #UnofficialPrimPath = os.path.join(LDrawDir, "unofficial",
-                                      #"p", fname)
-    #UnofficialPartsPath = os.path.join(LDrawDir, "unofficial",
-                                       #"parts", fname)
-    #UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial",
-                                        #"parts", "s", fname)
     #lint:enable
     if os.path.exists(ldrawPath):
         fname = ldrawPath
@@ -643,7 +639,7 @@ def locate(pattern):
         fname = UnofficialPartsSPath
 
         # Since this is not a subpart, mark it as a root part
-        if not isSubpart:
+        if not isSubPart(fname):
             isPart = True
     else:
         debugPrint("Could not find file {0}".format(fname))
