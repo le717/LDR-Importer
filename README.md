@@ -16,8 +16,9 @@ Releases will be tagged when the script is deemed to be in working order and con
 
 License
 =======
+<a target="_blank" href="http://www.ldraw.org/"><img src="Documentation/Official_LDraw_Logo.png" /></a>
 
-[GPLv2](http://www.gnu.org/licenses/gpl-2.0.html)
+This script is licensed under the [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html).
 
 Contributing
 ============
