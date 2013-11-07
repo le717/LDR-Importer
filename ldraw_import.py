@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blender 2.6 LDraw Importer",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, JrMasterModelBuilder, Triangle717, Banbury, rioforce, Tribex",
+    "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder", 
     "version": (1, 1, 0),
     "blender": (2, 63, 0),
     "api": 31236,
