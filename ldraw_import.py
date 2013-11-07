@@ -889,10 +889,9 @@ def debugPrint(string):
 # First option does not require any checks
 #TODO: Finish GameFix
 CLEANUP_OPTIONS = (
-    ("DoNothing", "Original LDraw Brick", "Do not perform any changes"),
-    ("CleanUp", "Model Cleanup",
-"Remove double vertices, make normals consistent, add 35 degree edge split"),
-    ("GameFix", "Game Optimization", "Optimize model for video game usage"),
+    ("CleanUp", "Basic Cleanup", "Removes double vertices, recalculate normals, add Edge Split modifier"),
+    ("GameFix", "Video Game Optimization", "Optimize model for video game usage (Decimate Modifier)"),
+    ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
 
