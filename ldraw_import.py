@@ -47,6 +47,7 @@ mat_list = {}
 colors = {}
 scale = 1.0
 
+# Default LDraw installation paths
 WinLDrawDir = "C:\\LDraw"
 OSXLDrawDir = "/Applications/ldraw/"
 LinuxLDrawDir = "~/ldraw/"
@@ -104,7 +105,7 @@ class LDrawFile(object):
             self.submodels.append(LDrawFile(context, i[0], i[1], i[2]))
 
     def parse_line(self, line):
-
+        "Harvest the information from each line"""
         verts = []
         color = line[1]
 
@@ -704,12 +705,12 @@ def create_model(self, scale, context):
             GameFix = False
 
             # The CleanUp option was selected
-            if CleanUpOpt == "CleanUp":
+            if CleanUpOpt == "CleanUp":  # lint:ok
                 CleanUp = True
                 debugPrint("CleanUp option selected")
 
             # The GameFix option was selected
-            elif CleanUpOpt == "GameFix":
+            elif CleanUpOpt == "GameFix":  # lint:ok
                 GameFix = True
                 debugPrint("GameFix option selected")
 
@@ -859,12 +860,27 @@ def getColorValue(line, value):
         return line[n + 1]
 
 
-def _get_path(self, context):
-    """Displays full file path of model being imported"""
+def findLDrawPath():
+    """Detect LDraw Installation Path on Windows"""
+    # First check at default installation (C:\\LDraw)
+    if os.path.isfile(os.path.join(WinLDrawDir, "LDConfig.ldr")):
+        install_path = WinLDrawDir
 
-    # FIXME: Currently prints the class information of the
-    # context object, not a path
-    debugPrint(context)
+    # If that failed, look in Program Files
+    elif os.path.isfile(os.path.join(
+                        "C:\\Program Files\\LDraw", "LDConfig.ldr")):
+        install_path = "C:\\Program Files\\LDraw"
+
+    # If it failed again, look in Program Files (x86)
+    elif os.path.isfile(os.path.join(
+                        "C:\\Program Files (x86)\\LDraw", "LDConfig.ldr")):
+        install_path = "C:\\Program Files (x86)\\LDraw"
+
+    # If all that failed, fall back to default
+    else:
+        install_path = WinLDrawDir
+
+    return install_path
 
 
 def hex_to_rgb(rgb_str):
@@ -912,8 +928,8 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
         description="Folder path to your LDraw System of Tools installation",
-        default={"win32": WinLDrawDir, "darwin": OSXLDrawDir}.get(
-            sys.platform, LinuxLDrawDir), update=_get_path
+        default={"win32": findLDrawPath(), "darwin": OSXLDrawDir}.get(
+            sys.platform, LinuxLDrawDir)
     )
 
     scale = bpy.props.FloatProperty(
