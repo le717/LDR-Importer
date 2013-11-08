@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blender 2.6 LDraw Importer",
     "description": "Import LDraw models in .dat, and .ldr format",
-    "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder", 
+    "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder",
     "version": (1, 1, 0),
     "blender": (2, 63, 0),
     "api": 31236,
@@ -923,7 +923,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     )
 
     highResBricks = bpy.props.BoolProperty(
-        name="Use High-res bricks", 
+        name="Use High-res bricks",
         description="Import high-resolution bricks in your model",
         default=False
     )
