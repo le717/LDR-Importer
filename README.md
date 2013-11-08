@@ -12,7 +12,6 @@ Releases
 
 All releases for version 1.0 onward are hosted using [GitHub Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
 All previous releases are hosted on Triangle717's personal [SourceForge.net account](http://sourceforge.net/projects/le717.u/files/Blender/Blender%202.6%20LDraw%20Importer/).
-Releases will be tagged when the script is deemed by the contributors to be in working order and contains good changes to release.
 
 License
 =======
