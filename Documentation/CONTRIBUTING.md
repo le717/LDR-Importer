@@ -43,6 +43,8 @@ and wrap the extended string on the next physical  line.
 It is better than the [% operator](http://docs.python.org/3/tutorial/inputoutput.html#old-string-formatting),
 and using `+` (plus) signs is just bad practice. :wink:
 * Always trim whitespace from the end of lines, blank lines, and around operators.
+* Please try to document your code as much as possible. It is understood you may not have the time to and others might need to do it,
+but if you do have the time do document, go right ahead and do it and perhaps whatever else may need it!
 
 ### Separate Branches ###
 

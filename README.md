@@ -4,15 +4,15 @@ Blender 2.6 LDraw Importer
 A [Blender 2.6](http://www.blender.org) Importer script for the [LDraw System of Tools's Brick Library.](http://www.ldraw.org)
 
 > LDraw&trade; is an open standard for LEGO CAD programs that allow the user to create virtual LEGO models and scenes. You can use it to document models
-> you have physically built, create building instructions just like LEGO, render 3D photo realistic images of your virtual models and even make animations.
-> The possibilities are endless. Unlike real LEGO bricks where you are limited by the number of parts and colors, in LDraw nothing is impossible.
+you have physically built, create building instructions just like LEGO, render 3D photo realistic images of your virtual models and even make animations.
+The possibilities are endless. Unlike real LEGO bricks where you are limited by the number of parts and colors, in LDraw nothing is impossible.
 
 Releases
 ========
 
-All releases for version 1.0 onward will be hosted using [GitHub Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
+All releases for version 1.0 onward are hosted using [GitHub Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
 All previous releases are hosted on Triangle717's personal [SourceForge.net account](http://sourceforge.net/projects/le717.u/files/Blender/Blender%202.6%20LDraw%20Importer/).
-Releases will be tagged when the script is deemed to be in working order and contains good changes to release.
+Releases will be tagged when the script is deemed by the contributors to be in working order and contains good changes to release.
 
 License
 =======
