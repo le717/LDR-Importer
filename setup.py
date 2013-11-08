@@ -35,6 +35,18 @@ archivesFolder = os.path.join(curDir, "Archives")
 tempFolder = os.path.join(archivesFolder, "tmp")
 blenderFolder = os.path.join(tempFolder, "io_scene_ldraw")
 
+# Ensure the stated version number is in the proper format [(int, int, int)],
+# and stop packaging if it is not.
+for number in __version__:
+    if type(number) != int:
+        print("\nERROR: Invalid version number")
+        print('''The version number defined in "__version__.py"
+is not in the proper format. Please consult "Documentation/CONTRIBUTING.md"
+for the proper format.''')
+
+        input("\nPress Enter to close.")
+        raise SystemExit(0)
+
 print("\nCreating required folders")
 # Create the Archives directory if it does not exist
 if not os.path.exists(archivesFolder):
@@ -49,7 +61,7 @@ if not os.path.exists(blenderFolder):
 finalVersion = "v{0}.{1}".format(__version__[0], __version__[1])
 
 # Check if this is a patch release and if so use it too
-if __version__[2] != 0:
+if __version__[2] > 0:
     finalVersion = "{0}.{1}".format(finalVersion, __version__[2])
 
 # Construct Zip archive filename using final version number
@@ -98,10 +110,11 @@ for root, dirnames, filenames in os.walk(curDir):
         shutil.make_archive(zipFileName, format="zip", root_dir=tempFolder)
 
 # Go back to the root directory, remove staging area
-print("Cleaning up")
+print("Cleaning up temporary files")
 os.chdir(curDir)
 distutils.dir_util.remove_tree(tempFolder)
-print("\nArchive saved to\n{0}\n".format(
-    os.path.join(archivesFolder, zipFileName)))
-input("Press Enter to close. :) ")
+print('''
+Blender 2.6 LDraw Importer {0} release packaged and saved to
+{1}.zip'''.format(finalVersion, os.path.join(archivesFolder, zipFileName)))
+input("\nPress Enter to close. :) ")
 raise SystemExit(0)

@@ -786,10 +786,10 @@ def create_model(self, scale, context):
  Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
     else:
-        debugPrint("Error: Reason: Invalid File Type {0}"
-                   .format("Must be a .dat, .ldr, or .lcd)"))
-        self.report({'ERROR'}, "Error: {0}".format(
-                    "Invalid File Type (Must be a .dat, .ldr, or .lcd)"))
+        debugPrint('''ERROR: Reason: Invalid File Type
+Must be a .dat, .ldr, or .lcd''')
+        self.report({'ERROR'}, '''Error: Invalid File Type
+Must be a .dat, .ldr, or .lcd''')
         return {'CANCELLED'}
 
 
