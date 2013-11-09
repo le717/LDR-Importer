@@ -914,7 +914,7 @@ CLEANUP_OPTIONS = (
 )
 
 
-class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
+class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     """LDraw Importer Operator"""
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
@@ -985,7 +985,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
 
 def menu_import(self, context):
     """Import menu listing label"""
-    self.layout.operator(IMPORT_OT_ldraw.bl_idname, text="LDraw (.ldr/.dat)")
+    self.layout.operator(LDrawImporterOp.bl_idname, text="LDraw (.ldr/.dat)")
 
 
 def register():
