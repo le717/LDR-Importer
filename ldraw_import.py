@@ -354,6 +354,8 @@ def getCyclesBase(name, diff_color, alpha):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
+    mat.diffuse_color = diff_color
+
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
