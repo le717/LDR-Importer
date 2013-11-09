@@ -752,14 +752,14 @@ def create_model(self, scale, context):
 
             if GameFix:  # lint:ok
                 for cur_obj in objects:
-                    if bpy.ops.object.mode_set.poll():
-                        if bpy.ops.object.mode_set.poll():
-                            bpy.ops.object.mode_set()
-                            m = cur_obj.modifiers.new("Decimate", type='DECIMATE')
-                            m.ratio = 0.7
-                            # Add 45 degree edge split modifier to all bricks
-                            edges = cur_obj.modifiers.new("Edge Split", type='EDGE_SPLIT')
-                            edges.split_angle = 0.802851
+                    # Add #FIXME: decimate modifier to all bricks
+                    deci = cur_obj.modifiers.new("Decimate", type='DECIMATE')
+                    deci.ratio = 0.7
+
+                    # Add 45 degree edge split modifier to all bricks
+                    edges = cur_obj.modifiers.new("Edge Split",
+                                                  type='EDGE_SPLIT')
+                    edges.split_angle = 0.802851
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
@@ -788,9 +788,9 @@ def create_model(self, scale, context):
             return {'CANCELLED'}
     else:
         debugPrint('''ERROR: Reason: Invalid File Type
-Must be a .dat, .ldr, or .lcd''')
+Must be a .ldr, .dat, or .lcd''')
         self.report({'ERROR'}, '''Error: Invalid File Type
-Must be a .dat, .ldr, or .lcd''')
+Must be a .ldr, .dat, or .lcd''')
         return {'CANCELLED'}
 
 
@@ -897,11 +897,12 @@ def debugPrint(string):
 # ------------ Operator ------------ #
 
 # Model cleanup options
-# First option does not require any checks
-#TODO: Finish GameFix
+# DoNothing option does not require any checks
 CLEANUP_OPTIONS = (
-    ("CleanUp", "Basic Cleanup", "Removes double vertices, recalculate normals, add Edge Split modifier"),
-    ("GameFix", "Video Game Optimization", "Optimize model for video game usage (Decimate Modifier)"),
+    ("CleanUp", "Basic Cleanup",
+     "Removes double vertices, recalculate normals, add Edge Split modifier"),
+    ("GameFix", "Video Game Optimization",
+     "Optimize model for video game usage (Decimate Modifier)"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
@@ -915,11 +916,10 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
     bl_region_type = "WINDOW"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    ## File type filter in file browser ##
-
-    filename_ext = ".dat"
+    # File type filter in file browser
+    filename_ext = ".ldr"
     filter_glob = bpy.props.StringProperty(
-        default="*.dat;*.ldr;*.lcd",
+        default="*.ldr;*.dat;*.lcd",
         options={'HIDDEN'}
     )
 
@@ -974,7 +974,7 @@ class IMPORT_OT_ldraw(bpy.types.Operator, ImportHelper):
 
 def menu_import(self, context):
     """Import menu listing label"""
-    self.layout.operator(IMPORT_OT_ldraw.bl_idname, text="LDraw (.dat/.ldr)")
+    self.layout.operator(IMPORT_OT_ldraw.bl_idname, text="LDraw (.ldr/.dat)")
 
 
 def register():
