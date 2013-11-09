@@ -716,7 +716,6 @@ Must be a .ldr, .dat, or .lcd''')
             # Default values for model cleanup options
             CleanUp = False
             GameFix = False
-            MovieFix = False
 
             # The CleanUp option was selected
             if CleanUpOpt == "CleanUp":  # lint:ok
@@ -728,13 +727,8 @@ Must be a .ldr, .dat, or .lcd''')
                 GameFix = True
                 debugPrint("GameFix option selected")
 
-            # The MovieFix option was selected
-            elif CleanUpOpt == "MovieFix":  # lint:ok
-                MovieFix = True
-                debugPrint("MovieFix option selected")
-
             # Standard cleanup actions
-            if (CleanUp or GameFix or MovieFix):  # lint:ok
+            if (CleanUp or GameFix):  # lint:ok
 
                 # Select all the mesh
                 for cur_obj in objects:
@@ -779,12 +773,6 @@ Must be a .ldr, .dat, or .lcd''')
                     edges = cur_obj.modifiers.new("Edge Split",
                                                   type='EDGE_SPLIT')
                     edges.split_angle = 0.802851
-
-            # -------- Actions only for MovieFix option -------- #
-
-            if MovieFix:  # lint:ok
-                #TODO: Write code
-                pass
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
@@ -917,14 +905,11 @@ def debugPrint(string):
 
 # Model cleanup options
 # DoNothing option does not require any checks
-#FIXME: messages for MovieFix
 CLEANUP_OPTIONS = (
     ("CleanUp", "Basic Cleanup",
      "Removes double vertices, recalculate normals, add Edge Split modifier"),
     ("GameFix", "Video Game Optimization",
      "Optimize model for video game usage (Decimate Modifier)"),
-    ("MovieFix", "Animation Optimization",
-     "Optimize model for animation usage (Decimate Modifier)"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
