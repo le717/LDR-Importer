@@ -16,6 +16,7 @@ All previous releases are hosted on Triangle717's personal [SourceForge.net acco
 License
 =======
 <a target="_blank" href="http://www.ldraw.org/"><img src="Documentation/Official_LDraw_Logo.png" /></a>
+
 LDraw™ is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed by the developers of The LDraw System of Parts.
 
 This script is licensed under the [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html).
