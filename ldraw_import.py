@@ -86,7 +86,7 @@ class LDrawFile(object):
                 else:
                     material = getMaterial(n)
 
-                if not material is None:
+                if material is not None:
                     if me.materials.get(material.name) is None:
                         me.materials.append(material)
 
