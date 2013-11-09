@@ -86,10 +86,11 @@ class LDrawFile(object):
                 else:
                     material = getMaterial(n)
 
-                if me.materials.get(material.name) is None:
-                    me.materials.append(material)
+                if not material is None:
+                    if me.materials.get(material.name) is None:
+                        me.materials.append(material)
 
-                f.material_index = me.materials.find(material.name)
+                    f.material_index = me.materials.find(material.name)
 
             self.ob = bpy.data.objects.new('LDrawObj', me)
             self.ob.name = os.path.basename(filename)
@@ -105,7 +106,7 @@ class LDrawFile(object):
             self.submodels.append(LDrawFile(context, i[0], i[1], i[2]))
 
     def parse_line(self, line):
-        "Harvest the information from each line"""
+        """Harvest the information from each line"""
         verts = []
         color = line[1]
 
@@ -296,7 +297,8 @@ def getMaterial(colour):
             mat_list[colour] = mat
 
         return mat_list[colour]
-    return mat_list["0"]
+
+    return None
 
 
 def getCyclesMaterial(colour):
