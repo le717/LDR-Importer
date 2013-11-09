@@ -25,6 +25,7 @@ import os
 import distutils.file_util
 import distutils.dir_util
 import shutil
+import fnmatch
 
 from __version__ import __version__
 
@@ -99,6 +100,13 @@ for root, dirnames, filenames in os.walk(curDir):
         filenames.remove("__version__.py")
     if "setup.py" in filenames:
         filenames.remove("setup.py")
+
+    # Remove .pyc files created by Python 2.x
+    # (2.x annoyingly does not create them in __pycache__,
+    # like 3.x thankfully does).
+    for f in filenames:
+        if fnmatch.fnmatch(f, '*.pyc'):
+            filenames.remove(f)
 
     for files in filenames:
         # Get the full path to the remaining files and copy them
