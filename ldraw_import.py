@@ -659,13 +659,21 @@ def create_model(self, scale, context):
     file_name = self.filepath
     debugPrint("Attempting to import {0}".format(file_name))
 
-    # Make sure the model ends with the proper extension
-    if (
+    # Make sure the model ends with the proper file extension
+    if not (
         file_name.endswith(".ldr")
         or file_name.endswith(".dat")
         or file_name.endswith(".lcd")
     ):
 
+        debugPrint('''ERROR: Reason: Invalid File Type
+Must be a .ldr, .dat, or .lcd''')
+        self.report({'ERROR'}, '''Error: Invalid File Type
+Must be a .ldr, .dat, or .lcd''')
+        return {'CANCELLED'}
+
+    # It has the proper file extension, continue with the import
+    else:
         try:
 
             """
@@ -786,12 +794,6 @@ def create_model(self, scale, context):
             self.report({'ERROR'}, '''File not imported ("{0}").
  Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
-    else:
-        debugPrint('''ERROR: Reason: Invalid File Type
-Must be a .ldr, .dat, or .lcd''')
-        self.report({'ERROR'}, '''Error: Invalid File Type
-Must be a .ldr, .dat, or .lcd''')
-        return {'CANCELLED'}
 
 
 def scanLDConfig():
