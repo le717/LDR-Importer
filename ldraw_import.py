@@ -57,7 +57,7 @@ UserLDrawDir = ""
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
 # Name and location of configuration file
-config_filename = os.path.join(addon_path, "config.py")
+config_filename = os.path.join(addon_path, "config.cfg")
 
 
 def debugPrint(string):
@@ -68,7 +68,13 @@ def debugPrint(string):
 
 # Attempt to read and uae the path in the config
 try:
+    #FIXME: Does not load file into Blender at runtime
     exec(compile(open(config_filename).read(), config_filename, 'exec'))
+
+# Suppress error when script is run the first time
+# and the cfg does not yet exist
+except FileNotFoundError:
+    pass
 
 # Except we had an error, dump the traceback
 except Exception as e:
@@ -962,7 +968,11 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     # On Windows, this means attempting to detect the installation
     else:
         FinalLDrawDir = {
-            "win32": findLDrawPath(),
+            # When it uses WinLDrawDir, the cfg is written
+            "win32": WinLDrawDir,
+            # When it detects, the cfg is not written
+            #FIXME: Detect path and write file
+            #"win32": findLDrawPath),
             "darwin": OSXLDrawDir}.get(
                 sys.platform, LinuxLDrawDir)
 
@@ -1021,9 +1031,9 @@ def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
-# Blender 2.6 LDraw Importer Configuration File #
+/ Blender 2.6 LDraw Importer Configuration File
 
-# Path to the LDraw Parts Library
+// Path to the LDraw Parts Library
 {0}"{1}"
 '''.format("ldraw_dir = ", self.ldrawPath)
 
