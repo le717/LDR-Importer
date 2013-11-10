@@ -1,7 +1,7 @@
 Blender LDraw Importer
 ==========================
 
-A [Blender 2.6](http://www.blender.org) Importer script for the [LDraw System of Tools's Brick Library.](http://www.ldraw.org)
+A [Blender 2.6](http://www.blender.org) Importer script for the [LDraw Parts Library](http://www.ldraw.org).
 
 > LDraw&trade; is an open standard for LEGO CAD programs that allow the user to create virtual LEGO models and scenes. You can use it to document models
 you have physically built, create building instructions just like LEGO, render 3D photo realistic images of your virtual models and even make animations.
@@ -17,7 +17,7 @@ License
 =======
 <a target="_blank" href="http://www.ldraw.org/"><img src="Documentation/Official_LDraw_Logo.png" /></a>
 
-LDraw™ is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed by the developers of The LDraw System of Parts.
+LDraw™ is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed by the developers of The LDraw System of Tools.
 
 This script is licensed under the [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html).
 
