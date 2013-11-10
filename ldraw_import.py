@@ -351,7 +351,7 @@ def getCyclesMaterial(colour):
 
 
 def getCyclesBase(name, diff_color, alpha):
-    """Basic Plastic"""
+    """Base Material, Mix shader and output node"""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -371,30 +371,29 @@ def getCyclesBase(name, diff_color, alpha):
     out.location = 290, 100
 
     if alpha == 1.0:
-        mix.inputs['Fac'].default_value = 0.25
+        mix.inputs['Fac'].default_value = 0.05
         node = nodes.new('ShaderNodeBsdfDiffuse')
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.1
-
+        node.inputs['Roughness'].default_value = 0.0
+        
     else:
         """
         The alpha transparency used by LDraw is too simplistic for Cycles,
         so I'm not using the value here. Other transparent colors
         like 'Milky White' will need special materials.
         """
-        mix.inputs['Fac'].default_value = 0.1
+        mix.inputs['Fac'].default_value = 0.05
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.01
+        node.inputs['Roughness'].default_value = 0.05
         # The IOR of LEGO brick plastic is 1.46
         node.inputs['IOR'].default_value = 1.46
 
-    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
+    aniso = nodes.new('ShaderNodeBsdfGlossy')
     aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.2
-    aniso.inputs['Anisotropy'].default_value = 0.02
+    aniso.inputs['Roughness'].default_value = 0.05
 
     links.new(mix.outputs[0], out.inputs[0])
     links.new(node.outputs[0], mix.inputs[1])
@@ -457,7 +456,7 @@ def getCyclesChrome(name, diff_color):
     glass = nodes.new('ShaderNodeBsdfGlossy')
     glass.location = -242, 154
     glass.inputs['Color'].default_value = diff_color + (1.0,)
-    glass.inputs['Roughness'].default_value = 0.1
+    glass.inputs['Roughness'].default_value = 0.05
 
     links.new(glass.outputs[0], out.inputs[0])
 
@@ -477,7 +476,7 @@ def getCyclesPearlMetal(name, diff_color, roughness):
 
     mix = nodes.new('ShaderNodeMixShader')
     mix.location = 0, 90
-    mix.inputs['Fac'].default_value = 0.5
+    mix.inputs['Fac'].default_value = 0.4
 
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
@@ -485,12 +484,11 @@ def getCyclesPearlMetal(name, diff_color, roughness):
     glossy = nodes.new('ShaderNodeBsdfGlossy')
     glossy.location = -242, 154
     glossy.inputs['Color'].default_value = diff_color + (1.0,)
-    glossy.inputs['Roughness'].default_value = roughness
+    glossy.inputs['Roughness'].default_value = 3.25
 
-    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
+    aniso = nodes.new('ShaderNodeBsdfDiffuse')
     aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.3
-    aniso.inputs['Anisotropy'].default_value = 0.02
+    aniso.inputs['Roughness'].default_value = 0.0
 
     links.new(mix.outputs[0], out.inputs[0])
     links.new(glossy.outputs[0], mix.inputs[1])
@@ -517,7 +515,7 @@ def getCyclesRubber(name, diff_color, alpha):
     out.location = 290, 100
 
     if alpha == 1.0:
-        mix.inputs['Fac'].default_value = 0.25
+        mix.inputs['Fac'].default_value = 0.05
         node = nodes.new('ShaderNodeBsdfDiffuse')
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
@@ -669,13 +667,12 @@ def create_model(self, scale, context):
     if not (
         file_name.endswith(".ldr")
         or file_name.endswith(".dat")
-        or file_name.endswith(".lcd")
     ):
 
         debugPrint('''ERROR: Reason: Invalid File Type
-Must be a .ldr, .dat, or .lcd''')
+Must be a .ldr, .dat''')
         self.report({'ERROR'}, '''Error: Invalid File Type
-Must be a .ldr, .dat, or .lcd''')
+Must be a .ldr, .dat''')
         return {'CANCELLED'}
 
     # It has the proper file extension, continue with the import
@@ -927,7 +924,7 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     # File type filter in file browser
     filename_ext = ".ldr"
     filter_glob = bpy.props.StringProperty(
-        default="*.ldr;*.dat;*.lcd",
+        default="*.ldr;*.dat",
         options={'HIDDEN'}
     )
 
