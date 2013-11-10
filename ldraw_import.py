@@ -68,15 +68,18 @@ def debugPrint(string):
 
 # Attempt to read and uae the path in the config
 try:
-    #FIXME: Does not load file into Blender at runtime
+    # A hacky trick that basically is: from config.cfg import *
     exec(compile(open(config_filename).read(), config_filename, 'exec'))
+    
+    # Set UserLDrawDir to the value that was in the file (ldraw_dir)
+    UserLDrawDir = ldraw_dir
 
 # Suppress error when script is run the first time
 # and the cfg does not yet exist
 except FileNotFoundError:
     pass
 
-# Except we had an error, dump the traceback
+# If we had an error, dump the traceback
 except Exception as e:
     debugPrint("ERROR: {0}\n{1}\n".format(
                type(e).__name__, traceback.format_exc()))
@@ -1031,9 +1034,9 @@ def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
-/ Blender 2.6 LDraw Importer Configuration File
+# Blender 2.6 LDraw Importer Configuration File #
 
-// Path to the LDraw Parts Library
+# Path to the LDraw Parts Library:
 {0}"{1}"
 '''.format("ldraw_dir = ", self.ldrawPath)
 
