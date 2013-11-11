@@ -54,6 +54,15 @@ OSXLDrawDir = "/Applications/ldraw/"
 LinuxLDrawDir = "~/ldraw/"
 UserLDrawDir = ""
 
+"""
+Default LDraw installation paths
+Index 0: Windows
+Index 1: Mac OS X
+Index 2: Linux
+Index 3: User defined
+"""
+LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", ""]
+
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
 # Name and location of configuration file
@@ -70,7 +79,7 @@ def debugPrint(string):
 try:
     # A hacky trick that basically is: from config.cfg import *
     exec(compile(open(config_filename).read(), config_filename, 'exec'))
-    
+
     # Set UserLDrawDir to the value that was in the file (ldraw_dir)
     UserLDrawDir = ldraw_dir
 
@@ -901,7 +910,7 @@ def getColorValue(line, value):
         return line[n + 1]
 
 
-def findLDrawPath():
+def findWinLDrawDir():
     """Detect LDraw Installation Path on Windows"""
     # First check at default installation (C:\\LDraw)
     if os.path.isfile(os.path.join(WinLDrawDir, "LDConfig.ldr")):
@@ -921,7 +930,8 @@ def findLDrawPath():
     else:
         install_path = WinLDrawDir
 
-    return install_path
+    # Update the list with the path
+    LDrawDirs[0] = install_path
 
 
 def RunMe(self, context):
@@ -934,8 +944,6 @@ def hex_to_rgb(rgb_str):
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
 
-# ------------ Operator ------------ #
-
 # Model cleanup options
 # DoNothing option does not require any checks
 CLEANUP_OPTIONS = (
@@ -945,6 +953,8 @@ CLEANUP_OPTIONS = (
      "Optimize model for video game usage (Decimate Modifier)"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
+
+# ------------ Operator ------------ #
 
 
 class LDrawImporterOp(bpy.types.Operator, ImportHelper):
@@ -970,14 +980,15 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     # The installation path was not defined, fall back to defaults
     # On Windows, this means attempting to detect the installation
     else:
+
+        if sys.platform == "win32":
+            debugPrint("OS is Windows")
+            findWinLDrawDir()
+
         FinalLDrawDir = {
             # When it uses WinLDrawDir, the cfg is written
-            "win32": WinLDrawDir,
-            # When it detects, the cfg is not written
-            #FIXME: Detect path and write file
-            #"win32": findLDrawPath),
-            "darwin": OSXLDrawDir}.get(
-                sys.platform, LinuxLDrawDir)
+            "win32": LDrawDirs[0],
+            "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir)
 
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
@@ -1026,6 +1037,9 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
         if HighRes:
             debugPrint("High resolution bricks option selected")
 
+        if sys.platform == "win32":
+            saveInstallPath(self)
+
         create_model(self, self.scale, context)
         return {'FINISHED'}
 
@@ -1040,6 +1054,7 @@ def saveInstallPath(self):
 {0}"{1}"
 '''.format("ldraw_dir = ", self.ldrawPath)
 
+    # Write the config file
     with open(config_filename, "wt") as f:
         f.write(config_contents)
 
