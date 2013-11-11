@@ -66,7 +66,7 @@ LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", ""]
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
 # Name and location of configuration file
-config_filename = os.path.join(addon_path, "config.cfg")
+config_filename = os.path.join(addon_path, "config.py")
 
 
 def debugPrint(string):
@@ -75,18 +75,18 @@ def debugPrint(string):
           string, strftime("%H:%M:%S")))
 
 
-# Attempt to read and uae the path in the config
+# Attempt to read and use the path in the config
 try:
-    # A hacky trick that basically is: from config.cfg import *
-    exec(compile(open(config_filename).read(), config_filename, 'exec'))
+    # Get path from configuration file
+    from config import ldraw_dir
 
     # Set UserLDrawDir to the value that was in the file (ldraw_dir)
     #UserLDrawDir = ldraw_dir
     LDrawDirs[4] = ldraw_dir
 
 # Suppress error when script is run the first time
-# and the cfg does not yet exist
-except FileNotFoundError:  # lint:ok
+# and the script does not yet exist
+except ImportError:
     pass
 
 # If we had an error, dump the traceback
@@ -1061,7 +1061,7 @@ def saveInstallPath(self):
     config_contents = '''# -*- coding: utf-8 -*-
 # Blender 2.6 LDraw Importer Configuration File #
 
-# Path to the LDraw Parts Library:
+# Path to the LDraw Parts Library
 {0}"{1}"
 '''.format("ldraw_dir = ", self.ldrawPath)
 
