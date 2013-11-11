@@ -48,11 +48,11 @@ mat_list = {}
 colors = {}
 scale = 1.0
 
-# Default LDraw installation paths
-WinLDrawDir = "C:\\LDraw"
-OSXLDrawDir = "/Applications/ldraw/"
-LinuxLDrawDir = "~/ldraw/"
-UserLDrawDir = ""
+## Default LDraw installation paths
+#WinLDrawDir = "C:\\LDraw"
+#OSXLDrawDir = "/Applications/ldraw/"
+#LinuxLDrawDir = "~/ldraw/"
+#UserLDrawDir = ""
 
 """
 Default LDraw installation paths
@@ -81,11 +81,12 @@ try:
     exec(compile(open(config_filename).read(), config_filename, 'exec'))
 
     # Set UserLDrawDir to the value that was in the file (ldraw_dir)
-    UserLDrawDir = ldraw_dir
+    #UserLDrawDir = ldraw_dir
+    LDrawDirs[4] = ldraw_dir
 
 # Suppress error when script is run the first time
 # and the cfg does not yet exist
-except FileNotFoundError:
+except FileNotFoundError:  # lint:ok
     pass
 
 # If we had an error, dump the traceback
@@ -913,8 +914,8 @@ def getColorValue(line, value):
 def findWinLDrawDir():
     """Detect LDraw Installation Path on Windows"""
     # First check at default installation (C:\\LDraw)
-    if os.path.isfile(os.path.join(WinLDrawDir, "LDConfig.ldr")):
-        install_path = WinLDrawDir
+    if os.path.isfile(os.path.join(LDrawDirs[0], "LDConfig.ldr")):
+        install_path = LDrawDirs[0]
 
     # If that failed, look in Program Files
     elif os.path.isfile(os.path.join(
@@ -928,7 +929,7 @@ def findWinLDrawDir():
 
     # If all that failed, fall back to default
     else:
-        install_path = WinLDrawDir
+        install_path = LDrawDirs[0]
 
     # Update the list with the path
     LDrawDirs[0] = install_path
@@ -974,26 +975,31 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     )
 
     # The installation path was defined, use it
-    if UserLDrawDir != "":
-        FinalLDrawDir = UserLDrawDir
+    #if UserLDrawDir != "":
+        #FinalLDrawDir = UserLDrawDir
+    if LDrawDirs[3] != "":
+        FinalLDrawDir = LDrawDirs[3]
 
     # The installation path was not defined, fall back to defaults
     # On Windows, this means attempting to detect the installation
     else:
 
+        # Run Windows installation path detection process
         if sys.platform == "win32":
-            debugPrint("OS is Windows")
             findWinLDrawDir()
 
         FinalLDrawDir = {
-            # When it uses WinLDrawDir, the cfg is written
             "win32": LDrawDirs[0],
-            "darwin": OSXLDrawDir}.get(sys.platform, LinuxLDrawDir)
+            #"darwin": OSXLDrawDir
+            "darwin": LDrawDirs[1]
+        #}.get(sys.platform, LinuxLDrawDir)
+        }.get(sys.platform, LDrawDirs[2])
 
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
         description="Path to the LDraw Parts Library",
-        default=FinalLDrawDir, update=RunMe
+        default=FinalLDrawDir,
+        update=RunMe
     )
 
     ## Import options ##
@@ -1037,6 +1043,11 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
         if HighRes:
             debugPrint("High resolution bricks option selected")
 
+        """
+        Blender for Windows does not like the 'update' key in ldrawPath{},
+        so force it to run. We can run the process directly,
+        rather than going through RunMe().
+        """
         if sys.platform == "win32":
             saveInstallPath(self)
 
