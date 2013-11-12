@@ -61,7 +61,7 @@ Index 1: Mac OS X
 Index 2: Linux
 Index 3: User defined
 """
-LDrawDirs = [r"C:\\LDraw", r"/Applications/ldraw/", r"~/ldraw/", r""]
+LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
 
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
@@ -83,11 +83,6 @@ def debugPrint(string):
 try:
     # Get path from configuration file
     from config import ldraw_dir
-
-    # Replace any slashes with os.path.sep, convert to raw string
-    if "\\" in ldraw_dir:
-        ldraw_dir = ldraw_dir.replace("\\", os.path.sep)
-    ldraw_dir = r"{0}".format(ldraw_dir)
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
     #UserLDrawDir = ldraw_dir
@@ -1074,20 +1069,13 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
 
 def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
-
-    # Replace any slashes with os.path.sep, convert to raw string
-    if "\\" in self.ldrawPath:
-        ldpath = self.ldrawPath.replace("\\", os.path.sep)
-
-    ldpath = r"{0}".format(ldpath)
-
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
 # Blender 2.6 LDraw Importer Configuration File #
 
 # Path to the LDraw Parts Library
 {0}"{1}"
-'''.format("ldraw_dir = ", ldpath)
+'''.format("ldraw_dir = r", self.ldrawPath)
 
     # Write the config file
     with open(config_filename, "wt") as f:
