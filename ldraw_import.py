@@ -48,10 +48,7 @@ mat_list = {}
 colors = {}
 scale = 1.0
 
-## Default LDraw installation paths
-#WinLDrawDir = "C:\\LDraw"
 #OSXLDrawDir = "/Applications/ldraw/"
-#LinuxLDrawDir = "~/ldraw/"
 #UserLDrawDir = ""
 
 """
@@ -59,7 +56,9 @@ Default LDraw installation paths
 Index 0: Windows
 Index 1: Mac OS X
 Index 2: Linux
-Index 3: User defined
+Index 3: User defined, raw string
+Storing the paths in a list prevents the creation of global variables
+if they are changed. Instead, simply update the proper index.
 """
 LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
 
@@ -1001,7 +1000,6 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
             "win32": LDrawDirs[0],
             #"darwin": OSXLDrawDir
             "darwin": LDrawDirs[1]
-        #}.get(sys.platform, LinuxLDrawDir)
         }.get(sys.platform, LDrawDirs[2])
 
     debugPrint('''The LDraw Parts Library installation path to be used is
