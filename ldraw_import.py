@@ -39,7 +39,12 @@ from struct import unpack
 from time import strftime
 
 import bpy
-import bpy.props
+from bpy.props import (StringProperty,
+                       FloatProperty,
+                       BoolProperty,
+                       EnumProperty
+                       )
+
 from bpy_extras.io_utils import ImportHelper
 
 # Global variables
@@ -973,11 +978,11 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     bl_label = "Import LDraw Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     # File type filter in file browser
     filename_ext = ".ldr"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob = StringProperty(
         default="*.ldr;*.dat;*.lcd",
         options={'HIDDEN'}
     )
@@ -1005,7 +1010,7 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     debugPrint('''The LDraw Parts Library installation path to be used is
 {0}'''.format(FinalLDrawDir))
 
-    ldrawPath = bpy.props.StringProperty(
+    ldrawPath = StringProperty(
         name="LDraw Path",
         description="Path to the LDraw Parts Library",
         default=FinalLDrawDir,
@@ -1013,19 +1018,19 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     )
 
     ## Import options ##
-    scale = bpy.props.FloatProperty(
+    scale = FloatProperty(
         name="Scale",
         description="Scale the model by this amount",
         default=0.05
     )
 
-    highResBricks = bpy.props.BoolProperty(
+    highResBricks = BoolProperty(
         name="Use High-res bricks",
         description="Import high-resolution bricks in your model",
         default=False
     )
 
-    cleanUpModel = bpy.props.EnumProperty(
+    cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         items=CLEANUP_OPTIONS,
         description="Model cleanup options"
