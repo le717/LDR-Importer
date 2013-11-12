@@ -71,6 +71,10 @@ config_filename = os.path.join(addon_path, "config.py")
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
+    # Check if it is a list or not
+    if type(string) == list:
+        string = " ".join(string)
+
     print("\n[LDraw Importer] {0} - {1}\n".format(
           string, strftime("%H:%M:%S")))
 
