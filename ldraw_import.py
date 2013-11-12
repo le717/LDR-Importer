@@ -61,7 +61,7 @@ Index 1: Mac OS X
 Index 2: Linux
 Index 3: User defined
 """
-LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", ""]
+LDrawDirs = [r"C:\\LDraw", r"/Applications/ldraw/", r"~/ldraw/", r""]
 
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
@@ -80,9 +80,14 @@ try:
     # Get path from configuration file
     from config import ldraw_dir
 
-    # Set UserLDrawDir to the value that was in the file (ldraw_dir)
+    # Replace any slashes with os.path.sep, convert to raw string
+    if "\\" in ldraw_dir:
+        ldraw_dir = ldraw_dir.replace("\\", os.path.sep)
+    ldraw_dir = r"{0}".format(ldraw_dir)
+
+    # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
     #UserLDrawDir = ldraw_dir
-    LDrawDirs[4] = ldraw_dir
+    LDrawDirs[3] = ldraw_dir
 
 # Suppress error when script is run the first time
 # and the script does not yet exist
@@ -431,6 +436,7 @@ def getCyclesBase(name, diff_color, alpha):
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
         node.inputs['Roughness'].default_value = 0.01
+
         # The IOR of LEGO brick plastic is 1.46
         node.inputs['IOR'].default_value = 1.46
 
@@ -913,25 +919,29 @@ def getColorValue(line, value):
 
 def findWinLDrawDir():
     """Detect LDraw Installation Path on Windows"""
-    # First check at default installation (C:\\LDraw)
-    if os.path.isfile(os.path.join(LDrawDirs[0], "LDConfig.ldr")):
+    # Use previously defined path if it exists
+    if LDrawDirs[3] != r"":
+        install_path = LDrawDirs[3]
+
+    # No previous path, so check at default installation (C:\\LDraw)
+    elif os.path.isfile(os.path.join(LDrawDirs[0], "LDConfig.ldr")):
         install_path = LDrawDirs[0]
 
-    # If that failed, look in Program Files
+    # If that fails, look in Program Files
     elif os.path.isfile(os.path.join(
                         "C:\\Program Files\\LDraw", "LDConfig.ldr")):
         install_path = "C:\\Program Files\\LDraw"
 
-    # If it failed again, look in Program Files (x86)
+    # If it fails again, look in Program Files (x86)
     elif os.path.isfile(os.path.join(
                         "C:\\Program Files (x86)\\LDraw", "LDConfig.ldr")):
         install_path = "C:\\Program Files (x86)\\LDraw"
 
-    # If all that failed, fall back to default
+    # If all that fails, fall back to default installation
     else:
         install_path = LDrawDirs[0]
 
-    # Update the list with the path
+    # Update the list with the path (avoids creating a global variable)
     LDrawDirs[0] = install_path
 
 
@@ -977,7 +987,7 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     # The installation path was defined, use it
     #if UserLDrawDir != "":
         #FinalLDrawDir = UserLDrawDir
-    if LDrawDirs[3] != "":
+    if LDrawDirs[3] != r"":
         FinalLDrawDir = LDrawDirs[3]
 
     # The installation path was not defined, fall back to defaults
@@ -994,6 +1004,9 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
             "darwin": LDrawDirs[1]
         #}.get(sys.platform, LinuxLDrawDir)
         }.get(sys.platform, LDrawDirs[2])
+
+    debugPrint('''The LDraw Parts Library installation path to be used is
+{0}'''.format(FinalLDrawDir))
 
     ldrawPath = bpy.props.StringProperty(
         name="LDraw Path",
@@ -1057,13 +1070,20 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
 
 def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
+
+    # Replace any slashes with os.path.sep, convert to raw string
+    if "\\" in self.ldrawPath:
+        ldpath = self.ldrawPath.replace("\\", os.path.sep)
+
+    ldpath = r"{0}".format(ldpath)
+
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
 # Blender 2.6 LDraw Importer Configuration File #
 
 # Path to the LDraw Parts Library
 {0}"{1}"
-'''.format("ldraw_dir = ", self.ldrawPath)
+'''.format("ldraw_dir = ", ldpath)
 
     # Write the config file
     with open(config_filename, "wt") as f:
