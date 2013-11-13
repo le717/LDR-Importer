@@ -13,19 +13,20 @@
         .subheaders { text-align:left; }
         .bold { font-weight:bold; }
         .italic { font-style:italic; }
-         p, .center, td { text-align:center; }
+         .center, td { text-align:center; }
          a { text-decoration:none; color:rgb(000,000,255); }
          a:hover { text-decoration:underline; }
          h1, h2, h3, h4, h5, h6 { font-family:sans-serif; }
-         #top { font-size:1.2em; }
+         #top { font-size:1.3em; }
     </style>
 </head>
 
 <body>
 <a name="ToC"></a><h1 class="center">LDR Importer</h1>
 <table>
-<thead>
     <th><strong>Table of Contents</strong></th>
+<thead>
+
 </thead>
 
 <tbody>
@@ -48,16 +49,16 @@
 </table>
 
 <br>
-<p>This is the readme for <span class="bold">LDR Importer</span> script licensed the
-<a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank" >General Public License Version 2.</p>
+<p class="center">This is the readme for <span class="bold">LDR Importer</span> script licensed the
+<a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank" >General Public License Version 2.</a></p>
 <a name="WhatsNeeded"></a>
 <br>
 
 <h3>System Requirements</h3>
 <ul>
     <li><a href="http://www.blender.org" target="_blank">Blender 2.67 or higher</a></li>
-    <li><code>import_ldraw.py</code> (included with this download)</li>
-    <li><a href="http://www.ldraw.org/help/getting-started.html" target="_blank">LDraw Library of Parts</a></li>
+    <li><code>import_ldraw.py</code> (included in this download)</li>
+    <li><a href="http://www.ldraw.org/help/getting-started.html" target="_blank">LDraw Parts Library</a></li>
     <li><a href="http://mlcad.lm-software.com/" target="_blank">MLCad</a>, <a href="http://www.leocad.org/trac" target="_blank">
     LeoCAD</a> (both optional)</li>
 </ul><a name="Install"></a>
@@ -67,21 +68,26 @@
 <h4>Windows, Mac OS X, Linux</h4>
 <ul>
     <li>Open Blender, and click <span class="italic">File &gt; User Preferences &gt; Addons &gt; Install from File...</span></li>
-    <li>Browse for <code>import_ldraw.py</code>, and open it.</li>
-    <li>Find the script name in the list of Addons (search for "LDR" if needed), and tick the check mark to activate it.</li>
-    <li>If you want to load the script at all times, click the <span class="italic">Save as Default</span> button.</li><a name="LDrawPath"></a>
+    <li>Browse for the Zip archive you downloaded and select it.</li>
+    <li>Find <span class="bold">LDR Importer</span> in the list of Addons (search for "LDR" if needed), and tick the check mark to activate it.</li>
+    <li>If you want to have the script activated at all times, click the <span class="italic">Save User Settings</span> button.<a name="LDrawPath"></a></li>
 </ul>
 
 <h3>Setting the LDraw Folder Path</h3>
 <ul>
-    <li>Open Blender, and click <span class="italic">File &gt; Import &gt; LDraw Model (.ldr/.dat)</span></li>
-    <li>In the bottom left corner of your screen, under the <span class="bold">Import LDraw Model</span> header, there is a small field with the title <span
-    class="bold">LDraw Path</span>. Modify the field with the proper folder path to your <span class="italic">LDraw Library of Parts</span> installation path.
-    </li>
-    <li>Click the <code>+</code> about the path and name the preset to save your installation path. You will select the present each time you open Blender to set your installation path to the LDraw System of Tools.</li>
+    <li>Click <span class="italic">File &gt; Import &gt; LDraw Model (.ldr/.dat)</span></li>
+    <li>In the bottom left corner of your screen, under the <span class="bold">Import Options:</span> header, there is a small field with the label
+    <span class="bold">LDraw Path</span>.
+    <br>Modify the field with the proper folder path to your <span class="italic">LDraw Parts Library</span> installation path.
+    <br>On Windows, it is attempted to detect the installation path in the most common locations, so you may not need to set it at all.</li>
+    <li>There are a few import options available, such as using high quality bricks and performing basic model optimization or using the original mesh.
+    <br>Select whatever options you desire, choose the model you want to import, and click the <span class="italic">Import LDraw Model</span> button.
+    <br>Your model will quickly be imported into the current scene using the desired options.</li>
+    <li style="font-size:1.1em;"><span class="bold italic">Note about materials:</span> Material colors are render engine dependant.
+    That is, if you are currently using the Cycles engine, it will uses Cycles node materials, and vice verse for Blender Internal.</li>
 </ul>
 <br>
-<p>That's it! You have successfully installed the <span class="bold">LDR Importer</span> script.</p>
+<p class="center">That's it! You have successfully installed <span class="bold">LDR Importer</span> and can now import your LDraw models!</p>
 <a name="Changes"></a>
 
 <h2>Change Log</h2>
@@ -145,6 +151,8 @@
     <li>Filter out configuration file made by script in <code>setup.py</code></li>
     <li>Updated minimum Blender version to 2.67 (see <a href="https://github.com/le717/LDR-Importer/issues/27" target="_blank">Issue #27</a>)</li>
     <li>Deselect objects in scene before importing (see <a href="https://github.com/le717/LDR-Importer/issues/29" target="_blank">Issue #29</a>)</li>
+    <li>Renamed script to <code>import_ldraw.py</code> to better match other Blender Addons</li>
+    <li>Major HTML Readme update</li>
 </ul>
 
 <strong>1.0</strong><br>
@@ -156,8 +164,7 @@
     <li>Converted all whitespace to 4 spaces whitespace to conform to Python standards using Blender scripting scene</li>
     <li>Added most of <a href="http://sourceforge.net/u/mss02/profile/" target="_blank">Marc Schmitt's</a> Linux patch, with minor changes</li>
     <li>Made LDraw folder paths case-insensitive</li>
-    <li>Added ability to set LDraw System of Tools folder path from within Blender using code from <a href="https://github.com/impiaaa/blender-ldraw" target=
-    "_blank">Spencer Alves's LDraw Importer</a></li>
+    <li>Added ability to set LDraw System of Tools folder path from within Blender using code from <a href="https://github.com/impiaaa/blender-ldraw" target="_blank">Spencer Alves's LDraw Importer</a></li>
     <li>Added ability to disable automatic model cleanup (remove doubles and recalculate normals). Doing so is <strong>not advised</strong></li>
     <li>Changed <code>dict()</code> to the proper <code>{}</code> syntax</li>
     <li>Script cleanup</li>
@@ -302,6 +309,6 @@ https://github.com/le717/LDR-Importer/releases</a></p>
 <br>
 <br>
 
-<a id="top" class="ToC" href="#ToC">Back to the top</a>
+<div id="top"><a class="ToC" href="#ToC">Back to the top</a></div>
 </body>
 </html>
