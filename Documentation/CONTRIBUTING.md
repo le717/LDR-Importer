@@ -1,33 +1,22 @@
-Contributing to Blender 2.6 LDraw Importer
-==========================================
+Contributing to LDR Importer
+============================
 
-There are a few guidelines that must be followed at all times when developing **Blender 2.6 LDraw Importer**
+There are a few guidelines that must be followed at all times when developing **LDR Importer**
 
 Thou Shalt Do The Dance
 -----------------------
 
 * Fork the repository by clicking ![the Fork button](http://i81.servimg.com/u/f81/16/33/06/11/forkme12.png)
-* Clone the script onto your computer by running ```git clone https://github.com/yourusername/PatchIt.git``` or if you are using a GUI client, however you clone repositories.
+* Clone the script onto your computer by running ```git clone https://github.com/yourusername/LDR-Importer.git``` or if you are using a GUI client, however you clone repositories.
 * Read up on the code and project layout and guidelines [below](#for-your-reading-pleasure)
-* Edit away! A list of stuff to do is in the [Issues](https://github.com/le717/Blender-2.6-LDraw-Importer/issues).
-* Once you finish your work, submit a [Pull Request](https://github.com/le717/Blender-2.6-LDraw-Importer/pulls) by clicking ![the Pull Request button](http://i81.servimg.com/u/f81/16/33/06/11/pullre10.png)
+* Edit away! A list of stuff to do is in the [Issues](https://github.com/le717/LDR-Importer/issues).
+* Once you finish your work, submit a [Pull Request](https://github.com/le717/LDR-Importer/pulls) by clicking ![the Pull Request button](http://i81.servimg.com/u/f81/16/33/06/11/pullre10.png)
 * If everything checks out, your changes will be merged! :grinning:
 * Don't forget to share the project with your friends and ![Star!](http://i81.servimg.com/u/f81/16/33/06/11/star11.png)
 
 
 For Your Reading Pleasure
 -------------------------
-
-### Backward Compatibility ###
-
-This project is called **Blender 2.6 LDraw Importer** for a reason. Although the Blender 2.6 Python API is still in development,
-the goal is to support as many versions of Blender 2.6 as possible, from Blender 2.63 to the newest nightly build
-(we can worry about 2.7 later), and not just the newest stable release.
-Although this project is no longer in the personal possession of [Triangle717](https://github.com/le717) but open-source,
-this backward compatibility process guideline is still being enforced.
-Therefore, the following guidelines have been laid out to help you support multiple Blender versions and make
-**Blender 2.6 LDraw Importer** the best available LDraw script for Blender.
-
 
 ### Python Code Layout ###
 
@@ -67,7 +56,7 @@ but it also gives freedom to experiment with new changes without polluting the c
 
 * Releases will be tagged when the script is deemed by the current contributors to be in working order and contains good changes to release.
 * Releases are created using `setup.py`, which automatically creates a Zip archive of the release and any additional files.
-* Releases will be tagged and and the Zip archive hosted using [GitHub Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
+* Releases will be tagged and and the Zip archive hosted using [GitHub Releases](https://github.com/le717/LDR-Importer/releases).
 [Semantic versioning](http://semver.org/) is used to denote both the script version and tag URL.
 * Normally a condensed change log highlighting notable new features, changes, and bug fixes is listed in the release notes.
 * When the version number is changed, _always_ remember to update the version in `__version.py__`, as it defines the version number

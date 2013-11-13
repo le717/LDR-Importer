@@ -1,5 +1,5 @@
-Blender LDraw Importer
-==========================
+LDR Importer
+============
 
 A [Blender 2.6](http://www.blender.org) Importer script for the [LDraw Parts Library](http://www.ldraw.org).
 
@@ -10,7 +10,7 @@ The possibilities are endless. Unlike real LEGO bricks where you are limited by 
 Releases
 ========
 
-All releases from version 1.0 onward are hosted using [GitHub Releases](https://github.com/le717/Blender-2.6-LDraw-Importer/releases).
+All releases from version 1.0 onward are hosted using [GitHub Releases](https://github.com/le717/LDR-Importer/releases).
 All previous releases are hosted on Triangle717's personal [SourceForge.net account](http://sourceforge.net/projects/le717.u/files/Blender/Blender%202.6%20LDraw%20Importer/). It is always recommended that you get the newest release.
 
 License
@@ -24,7 +24,7 @@ This script is licensed under the [GPLv2](http://www.gnu.org/licenses/gpl-2.0.ht
 Contributing
 ============
 
-Guidelines to help you contribute to **Blender 2.6 LDraw Importer** can be found in [CONTRIBUTING.md](Documentation/CONTRIBUTING.md)
+Guidelines to help you contribute to **LDR Importer** can be found in [CONTRIBUTING.md](Documentation/CONTRIBUTING.md)
 
 Contributors
 ============
