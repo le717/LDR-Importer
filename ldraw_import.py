@@ -22,7 +22,7 @@ bl_info = {
     "description": "Import LDraw models in .dat, and .ldr format",
     "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder",
     "version": (1, 1, 0),
-    "blender": (2, 63, 0),
+    "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
     "warning": "Cycles support is incomplete",
