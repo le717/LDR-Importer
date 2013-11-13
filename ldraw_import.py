@@ -40,19 +40,71 @@ from struct import unpack
 from time import strftime
 
 import bpy
-import bpy.props
+from bpy.props import (StringProperty,
+                       FloatProperty,
+                       BoolProperty,
+                       EnumProperty
+                       )
+
 from bpy_extras.io_utils import ImportHelper
 
 # Global variables
+objects = []
 mat_list = {}
 colors = {}
 scale = 1.0
 
-# Default LDraw installation paths
-WinLDrawDir = "C:\\LDraw"
-OSXLDrawDir = "/Applications/ldraw/"
-LinuxLDrawDir = "~/ldraw/"
-objects = []
+#OSXLDrawDir = "/Applications/ldraw/"
+#UserLDrawDir = ""
+
+"""
+Default LDraw installation paths
+Index 0: Windows
+Index 1: Mac OS X
+Index 2: Linux
+Index 3: User defined, raw string
+Storing the paths in a list prevents the creation of global variables
+if they are changed. Instead, simply update the proper index.
+"""
+LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
+
+# Location of addon script
+addon_path = os.path.abspath(os.path.dirname(__file__))
+# Name and location of configuration file
+config_filename = os.path.join(addon_path, "config.py")
+
+
+def debugPrint(string):
+    """Debug print with timestamp for identification"""
+    # Check if it is a list or not
+    if type(string) == list:
+        string = " ".join(string)
+
+    print("\n[LDraw Importer] {0} - {1}\n".format(
+          string, strftime("%H:%M:%S")))
+
+
+# Attempt to read and use the path in the config
+try:
+    # Get path from configuration file
+    from config import ldraw_dir
+
+    # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
+    #UserLDrawDir = ldraw_dir
+    LDrawDirs[3] = ldraw_dir
+
+# Suppress error when script is run the first time
+# and the script does not yet exist
+except ImportError:
+    pass
+
+# If we had an error, dump the traceback
+except Exception as e:
+    debugPrint("ERROR: {0}\n{1}\n".format(
+               type(e).__name__, traceback.format_exc()))
+
+    debugPrint("ERROR: Reason: {0}.".format(
+               type(e).__name__))
 
 
 class LDrawFile(object):
@@ -376,7 +428,7 @@ def getCyclesBase(name, diff_color, alpha):
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
         node.inputs['Roughness'].default_value = 0.0
-        
+
     else:
         """
         The alpha transparency used by LDraw is too simplistic for Cycles,
@@ -387,7 +439,8 @@ def getCyclesBase(name, diff_color, alpha):
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
         node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.05
+        node.inputs['Roughness'].default_value = 0.01
+
         # The IOR of LEGO brick plastic is 1.46
         node.inputs['IOR'].default_value = 1.46
 
@@ -865,41 +918,43 @@ def getColorValue(line, value):
         return line[n + 1]
 
 
-def findLDrawPath():
+def findWinLDrawDir():
     """Detect LDraw Installation Path on Windows"""
-    # First check at default installation (C:\\LDraw)
-    if os.path.isfile(os.path.join(WinLDrawDir, "LDConfig.ldr")):
-        install_path = WinLDrawDir
+    # Use previously defined path if it exists
+    if LDrawDirs[3] != r"":
+        install_path = LDrawDirs[3]
 
-    # If that failed, look in Program Files
+    # No previous path, so check at default installation (C:\\LDraw)
+    elif os.path.isfile(os.path.join(LDrawDirs[0], "LDConfig.ldr")):
+        install_path = LDrawDirs[0]
+
+    # If that fails, look in Program Files
     elif os.path.isfile(os.path.join(
                         "C:\\Program Files\\LDraw", "LDConfig.ldr")):
         install_path = "C:\\Program Files\\LDraw"
 
-    # If it failed again, look in Program Files (x86)
+    # If it fails again, look in Program Files (x86)
     elif os.path.isfile(os.path.join(
                         "C:\\Program Files (x86)\\LDraw", "LDConfig.ldr")):
         install_path = "C:\\Program Files (x86)\\LDraw"
 
-    # If all that failed, fall back to default
+    # If all that fails, fall back to default installation
     else:
-        install_path = WinLDrawDir
+        install_path = LDrawDirs[0]
 
-    return install_path
+    # Update the list with the path (avoids creating a global variable)
+    LDrawDirs[0] = install_path
+
+
+def RunMe(self, context):
+    """Run process to store the installation path"""
+    saveInstallPath(self)
 
 
 def hex_to_rgb(rgb_str):
     """Convert color hex value to RGB value"""
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
-
-
-def debugPrint(string):
-    """Debug print with timestamp for identification"""
-    print("\n[LDraw Importer] {0} - {1}\n".format(
-          string, strftime("%H:%M:%S")))
-
-# ------------ Operator ------------ #
 
 # Model cleanup options
 # DoNothing option does not require any checks
@@ -911,6 +966,8 @@ CLEANUP_OPTIONS = (
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
+# ------------ Operator ------------ #
+
 
 class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     """LDraw Importer Operator"""
@@ -919,37 +976,60 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     bl_label = "Import LDraw Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     # File type filter in file browser
     filename_ext = ".ldr"
-    filter_glob = bpy.props.StringProperty(
+
+    filter_glob = StringProperty(
         default="*.ldr;*.dat",
         options={'HIDDEN'}
     )
 
-    ## Import options ##
+    # The installation path was defined, use it
+    #if UserLDrawDir != "":
+        #FinalLDrawDir = UserLDrawDir
+    if LDrawDirs[3] != r"":
+        FinalLDrawDir = LDrawDirs[3]
 
-    ldrawPath = bpy.props.StringProperty(
+    # The installation path was not defined, fall back to defaults
+    # On Windows, this means attempting to detect the installation
+    else:
+
+        # Run Windows installation path detection process
+        if sys.platform == "win32":
+            findWinLDrawDir()
+
+        FinalLDrawDir = {
+            "win32": LDrawDirs[0],
+            #"darwin": OSXLDrawDir
+            "darwin": LDrawDirs[1]
+        }.get(sys.platform, LDrawDirs[2])
+
+    debugPrint('''The LDraw Parts Library installation path to be used is
+{0}'''.format(FinalLDrawDir))
+
+    ldrawPath = StringProperty(
         name="LDraw Path",
-        description="Folder path to your LDraw System of Tools installation",
-        default={"win32": findLDrawPath(), "darwin": OSXLDrawDir}.get(
-            sys.platform, LinuxLDrawDir)
+        description="Path to the LDraw Parts Library",
+        default=FinalLDrawDir,
+        update=RunMe
     )
 
-    scale = bpy.props.FloatProperty(
+    ## Import options ##
+    scale = FloatProperty(
         name="Scale",
         description="Scale the model by this amount",
         default=0.05
     )
 
-    highResBricks = bpy.props.BoolProperty(
+    highResBricks = BoolProperty(
         name="Use High-res bricks",
         description="Import high-resolution bricks in your model",
         default=False
     )
 
-    cleanUpModel = bpy.props.EnumProperty(
+    cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         items=CLEANUP_OPTIONS,
         description="Model cleanup options"
@@ -977,8 +1057,31 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
         if HighRes:
             debugPrint("High resolution bricks option selected")
 
+        """
+        Blender for Windows does not like the 'update' key in ldrawPath{},
+        so force it to run. We can run the process directly,
+        rather than going through RunMe().
+        """
+        if sys.platform == "win32":
+            saveInstallPath(self)
+
         create_model(self, self.scale, context)
         return {'FINISHED'}
+
+
+def saveInstallPath(self):
+    """Save the LDraw installation path for future use"""
+    # The contents of the configuration file
+    config_contents = '''# -*- coding: utf-8 -*-
+# Blender 2.6 LDraw Importer Configuration File #
+
+# Path to the LDraw Parts Library
+{0}"{1}"
+'''.format("ldraw_dir = r", self.ldrawPath)
+
+    # Write the config file
+    with open(config_filename, "wt") as f:
+        f.write(config_contents)
 
 
 def menu_import(self, context):

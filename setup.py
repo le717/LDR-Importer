@@ -100,6 +100,8 @@ for root, dirnames, filenames in os.walk(curDir):
         filenames.remove("__version__.py")
     if "setup.py" in filenames:
         filenames.remove("setup.py")
+    if "config.py" in filenames:
+        filenames.remove("config.py")
 
     # Remove .pyc files created by Python 2.x
     # (2.x annoyingly does not create them in __pycache__,
