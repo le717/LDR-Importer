@@ -99,6 +99,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
 <h2 class="center">Change Log</h2>
 
 <strong>1.1</strong><br>
+<em>The Working Quartet</em><br>
 (Released ?? ??, 2013)<br>
 <ul>
     <li>Added Blender Render material support for Chrome, Pearlescent, Rubber, and Metal colors</li>
@@ -112,7 +113,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Allow import on allow import on both case-sensitive and case-insensitive file systems - initial patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a></li>
     <li>Set mesh origin to geometry - patch submitted via GitHub by <a href="https://github.com/rioforce" target="_blank">rioforce</a></li>
     <li>Only display only LDraw models in import file browser - initial patch submitted via GitHub by <a href="https://github.com/rioforce" target="_blank">rioforce</a></li>
-    <li>Update import options localaization</li>
+    <li>Update import options localization</li>
     <li>Majorly updated Markdown documentation files</li>
     <li>Fix possible bug with LDraw installation directory</li>
     <li>New <code>debugPrint()</code> function for easier understanding of message origin ans exactly when it was displayed - patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a>
@@ -128,7 +129,7 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Conversion of single quotes to double quotes where possible</li>
     <li>Changed new messages from <code>.mpd</code> to <code>.lcd</code> (script does not support MPD models, see <a target="_blank" href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/7">Issue #7</a>)</li>
     <li>Reworked internal model cleanup process, now cleaner and better supports future improvements</li>
-    <li>More conversion of string consentration from <code>+</code> (plus) signs to <code>str.format()</code> method</li>
+    <li>More conversion of string concentration from <code>+</code> (plus) signs to <code>str.format()</code> method</li>
     <li>New way of presenting import options, more easily understood and looks nicer too</li>
     <li>Split check for subpart into separate function</li>
     <li>Fixed <code>NameError</code> for <code>isPart</code> when importing from relative path (relative to model location)</li>
@@ -137,17 +138,23 @@ http://Triangle717.wordpress.com" title="Triangle717" target="_blank">Triangle71
     <li>Finalized actions in <code>GameFix</code> import option, simplified error messages </li>
     <li>Created script (<code>setup.py</code>) to automatically package release for upload</li>
     <li>Ensure version number for <code>setup.py</code> is in proper format</li>
-    <li>Detect LDraw installation on Windows in commen locations (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/15" target="_blank">Issue #15</a>,
+    <li>Detect LDraw Library of Parts installation on Windows in common locations (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/15" target="_blank">Issue #15</a>,
     <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/16" target="_blank">#16</a>)</li>
     <li>Cleaned up <code>GameFix</code> import option code</li>
     <li>Set <code>.ldr</code> file extension as default (per <a target="_blank" href="http://www.ldraw.org/article/218.html#extension">http://www.ldraw.org/article/218.html#extension</a>)</li>
-    <li>Reversed condition when checking valid file extentions</li>
+    <li>Reversed condition when checking valid file extensions</li>
     <li>"Fixed loading error for models with invalid colors."</li>
     <li>"Make object color also be viewport color" (see <a href="https://github.com/le717/Blender-2.6-LDraw-Importer/issues/21" target="_blank">Issue #21</a>)</li>
     <li>Display message in console if high-res bricks are being used in the import</li>
     <li>Filter out <code>.pyc</code> files made by Python 2.x in <code>setup.py</code></li>
     <li>Display "This software uses the LDraw Parts Library" image in <code>README.md</code></li>
     <li>Set script encoding to UTF-8</li>
+    <li>Small basic materials updates</li>
+    <li>Remove <code>.lcd</code> from supported file types (incorrectly assumed to be a standard <code>.ldr</code> file)</li>
+    <li>Store defined LDraw Library of Parts installation path in configuration file, load upon Blender relaunch - initial patch submitted via GitHub by <a href="https://github.com/Tribex" target="_blank">Tribex</a></li>
+    <li>Connected LDraw Library of Parts installation detection to configuration file</li>
+    <li>Update <code>debugPrint()</code> function to support lists (for displaying multiple items at once)</li>
+    <li>Filter out configuration file made by script in <code>setup.py</code></li>
 </ul>
 
 <strong>1.0</strong><br>

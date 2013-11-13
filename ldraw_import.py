@@ -54,8 +54,6 @@ mat_list = {}
 colors = {}
 scale = 1.0
 
-#OSXLDrawDir = "/Applications/ldraw/"
-#UserLDrawDir = ""
 
 """
 Default LDraw installation paths
@@ -90,7 +88,6 @@ try:
     from config import ldraw_dir
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
-    #UserLDrawDir = ldraw_dir
     LDrawDirs[3] = ldraw_dir
 
 # Suppress error when script is run the first time
@@ -657,14 +654,14 @@ def locate(pattern):
     #lint:disable
     # Define all possible folders in the library, including unofficial bricks
 
-    # Standard Paths:
+    # Standard Paths
     ldrawPath = os.path.join(LDrawDir, fname)
     hiResPath = os.path.join(LDrawDir, "p".lower(), "48".lower(), fname)
     primitivesPath = os.path.join(LDrawDir, "p".lower(), fname)
     partsPath = os.path.join(LDrawDir, "parts".lower(), fname)
     partsSPath = os.path.join(LDrawDir, "parts".lower(), "s".lower(), fname)
 
-    # Unoffical Paths:
+    # Unoffical Paths
     UnofficialPath = os.path.join(LDrawDir, "unofficial".lower(), fname)
     UnofficialhiResPath = os.path.join(LDrawDir, "unofficial".lower(),
                                        "p".lower(), "48".lower(), fname)
@@ -987,8 +984,6 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     )
 
     # The installation path was defined, use it
-    #if UserLDrawDir != "":
-        #FinalLDrawDir = UserLDrawDir
     if LDrawDirs[3] != r"":
         FinalLDrawDir = LDrawDirs[3]
 
@@ -1002,7 +997,6 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
 
         FinalLDrawDir = {
             "win32": LDrawDirs[0],
-            #"darwin": OSXLDrawDir
             "darwin": LDrawDirs[1]
         }.get(sys.platform, LDrawDirs[2])
 
@@ -1017,6 +1011,7 @@ class LDrawImporterOp(bpy.types.Operator, ImportHelper):
     )
 
     ## Import options ##
+
     scale = FloatProperty(
         name="Scale",
         description="Scale the model by this amount",
