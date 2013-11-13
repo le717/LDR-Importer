@@ -18,14 +18,14 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender 2.6 LDraw Importer",
-    "description": "Import LDraw models in .dat, and .ldr format",
+    "name": "LDR Importer",
+    "description": "Import LDraw models in .ldr and .dat format",
     "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder",
     "version": (1, 1, 0),
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
-    "warning": "Cycles support is incomplete",
+    "warning": "Cycles support is incomplete, Bricksmith and MPD models are not supported",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
                 #"soon",
@@ -78,7 +78,7 @@ def debugPrint(string):
     if type(string) == list:
         string = " ".join(string)
 
-    print("\n[LDraw Importer] {0} - {1}\n".format(
+    print("\n[LDR Importer] {0} - {1}\n".format(
           string, strftime("%H:%M:%S")))
 
 
@@ -268,7 +268,8 @@ class LDrawFile(object):
                         # The brick content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
-                            x, y, z, a, b, c, d, e, f, g, h, i = map(float, tmpdate[2:14])
+                            x, y, z, a, b, c, d, e, f, g, h, i = map(
+                                float, tmpdate[2:14])
                             #mat_new = self.mat * mathutils.Matrix(
                                 #[[a, d, g, 0], [b, e, h, 0], [c, f, i, 0],
                                  #[x, y, z, 1]])
@@ -876,10 +877,12 @@ def scanLDConfig():
 
                 #if len(line_split) > 10 and line_split[9] == 'ALPHA':
                 if hasColorValue(line_split, "ALPHA"):
-                    color["alpha"] = int(getColorValue(line_split, "ALPHA")) / 256.0
+                    color["alpha"] = int(
+                        getColorValue(line_split, "ALPHA")) / 256.0
 
                 if hasColorValue(line_split, "LUMINANCE"):
-                    color["luminance"] = int(getColorValue(line_split, "LUMINANCE"))
+                    color["luminance"] = int(
+                        getColorValue(line_split, "LUMINANCE"))
 
                 if hasColorValue(line_split, "CHROME"):
                     color["material"] = "CHROME"
@@ -1072,7 +1075,7 @@ def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
-# Blender 2.6 LDraw Importer Configuration File #
+# LDR Importer Configuration File #
 
 # Path to the LDraw Parts Library
 {0}"{1}"

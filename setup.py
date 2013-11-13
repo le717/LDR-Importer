@@ -66,7 +66,7 @@ if __version__[2] > 0:
     finalVersion = "{0}.{1}".format(finalVersion, __version__[2])
 
 # Construct Zip archive filename using final version number
-zipFileName = "Blender-2.6-LDraw-Importer-{0}".format(finalVersion)
+zipFileName = "LDR-Importer-{0}".format(finalVersion)
 
 print("Filtering out unneeded files and folders")
 print("Compressing Zip archive")
@@ -124,7 +124,7 @@ print("Cleaning up temporary files")
 os.chdir(curDir)
 distutils.dir_util.remove_tree(tempFolder)
 print('''
-Blender 2.6 LDraw Importer {0} release packaged and saved to
+LDR Importer {0} release packaged and saved to
 {1}.zip'''.format(finalVersion, os.path.join(archivesFolder, zipFileName)))
 input("\nPress Enter to close. :) ")
 raise SystemExit(0)
