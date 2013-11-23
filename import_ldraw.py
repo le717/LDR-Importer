@@ -850,7 +850,7 @@ Must be a .ldr, .dat''')
                        type(e).__name__))
 
             self.report({'ERROR'}, '''File not imported ("{0}").
- Check the console logs for more information.'''.format(type(e).__name__))
+Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
 
 
