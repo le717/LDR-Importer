@@ -725,9 +725,9 @@ def create_model(self, scale, context):
     ):
 
         debugPrint('''ERROR: Reason: Invalid File Type
-Must be a .ldr, .dat''')
+Must be a .ldr or .dat''')
         self.report({'ERROR'}, '''Error: Invalid File Type
-Must be a .ldr, .dat''')
+Must be a .ldr or .dat''')
         return {'CANCELLED'}
 
     # It has the proper file extension, continue with the import
@@ -755,8 +755,8 @@ Must be a .ldr, .dat''')
             colors = {}
             mat_list = {}
 
-            # Get material list from LDConfig
-            scanLDConfig()
+            # Get material list from LDConfig.ldr
+            scanLDConfig(self)
 
             LDrawFile(context, file_name, mat)
 
@@ -854,8 +854,18 @@ Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
 
 
-def scanLDConfig():
+def scanLDConfig(self):
     """Scan LDConfig to get the material color info."""
+    # LDConfig.ldr does not exist for some reason
+    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):
+        self.report({'ERROR'}, '''Could not find LDConfig.ldr at
+{0}
+Check the console logs for more information.'''.format(LDrawDir))
+
+        debugPrint('''ERROR: Could not find LDConfig.ldr at
+{0}'''.format(LDrawDir))
+        return {'CANCELLED'}
+
     with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
         ldconfig_lines = ldconfig.readlines()
 
