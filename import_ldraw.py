@@ -84,7 +84,6 @@ def debugPrint(string):
     print("\n[LDR Importer] {0} - {1}\n".format(
           string, strftime("%H:%M:%S")))
 
-
 # Attempt to read and use the path in the config
 try:
     # A hacky trick that basically is: from config import *
@@ -94,7 +93,7 @@ try:
     exec(compile(lines, config_filename, 'exec'))
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
-    LDrawDirs[3] = ldraw_dir
+    LDrawDirs[3] = ldraw_dir  # lint:ok
 
 # Suppress error when script is run the first time
 # and config.py does not yet exist
@@ -989,8 +988,8 @@ CLEANUP_OPTIONS = (
 # ------------ Operator ------------ #
 
 
-class LDrawImporterOp(bpy.types.Operator, ImportHelper):
-    """LDraw Importer Operator"""
+class LDRImporterOps(bpy.types.Operator, ImportHelper):
+    """LDR Importer Operator"""
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
     bl_label = "Import LDraw Model"
@@ -1108,7 +1107,7 @@ def saveInstallPath(self):
 
 def menu_import(self, context):
     """Import menu listing label"""
-    self.layout.operator(LDrawImporterOp.bl_idname, text="LDraw (.ldr/.dat)")
+    self.layout.operator(LDRImporterOps.bl_idname, text="LDraw (.ldr/.dat)")
 
 
 def register():

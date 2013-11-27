@@ -114,9 +114,11 @@ for root, dirnames, filenames in os.walk(curDir):
     for files in filenames:
         # Get the full path to the remaining files and copy them
         myFile = os.path.join(root, files)
+
         # Copy all files but the script to a subfolder
         if files != scriptName:
             distutils.file_util.copy_file(myFile, blenderFolder)
+
         # Copy the script to the root of the Zip.
         # Blender does not detect the script when it is in the subfolder.
         else:
