@@ -69,7 +69,10 @@ LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
 # Location of addon script
 addon_path = os.path.abspath(os.path.dirname(__file__))
 # Name and location of configuration file
-config_filename = os.path.join(addon_path, "config.py")
+# `up` and `os.path.abspath` is used to break it out of core app files
+up = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+config_path = os.path.abspath(os.path.join(up, "presets", "io_import_ldraw"))
+config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
 
 def debugPrint(string):
@@ -85,14 +88,17 @@ def debugPrint(string):
 # Attempt to read and use the path in the config
 try:
     # Get path from configuration file
-    from config import ldraw_dir
+
+    # A hacky trick that basically is: from config import *
+    debugPrint("Configuration file found at\n{0}".format(config_filename))
+    exec(compile(open(config_filename).read(), config_filename, 'exec'))
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
     LDrawDirs[3] = ldraw_dir
 
 # Suppress error when script is run the first time
-# and the script does not yet exist
-except ImportError:
+# and config.py does not yet exist
+except FileNotFoundError:  # lint:ok
     pass
 
 # If we had an error, dump the traceback
@@ -1090,6 +1096,10 @@ def saveInstallPath(self):
 # Path to the LDraw Parts Library
 {0}"{1}"
 '''.format("ldraw_dir = r", self.ldrawPath)
+
+    # Create the config path if it does not exist
+    if not os.path.exists(config_path):
+        os.makedirs(config_path)
 
     # Write the config file
     with open(config_filename, "wt") as f:
