@@ -33,8 +33,9 @@ from __version__ import __version__
 # Various folders
 curDir = os.path.dirname(__file__)
 archivesFolder = os.path.join(curDir, "Archives")
-tempFolder = os.path.join(archivesFolder, "tmp")
-blenderFolder = os.path.join(tempFolder, "io_scene_ldraw")
+tmpFolder = os.path.join(archivesFolder, "tmp")
+blenderFolder = os.path.join(tmpFolder, "io_scene_ldraw")
+scriptName = "import_ldraw.py"
 
 # Ensure the stated version number is in the proper format [(int, int, int)],
 # and stop packaging if it is not.
@@ -98,8 +99,8 @@ for root, dirnames, filenames in os.walk(curDir):
         filenames.remove(".gitattributes")
     if "__version__.py" in filenames:
         filenames.remove("__version__.py")
-    if "setup.py" in filenames:
-        filenames.remove("setup.py")
+    if os.path.basename(__file__) in filenames:
+        filenames.remove(os.path.basename(__file__))
     if "config.py" in filenames:
         filenames.remove("config.py")
 
@@ -113,16 +114,23 @@ for root, dirnames, filenames in os.walk(curDir):
     for files in filenames:
         # Get the full path to the remaining files and copy them
         myFile = os.path.join(root, files)
-        distutils.file_util.copy_file(myFile, blenderFolder)
+        # Copy all files but the script to a subfolder
+        if files != scriptName:
+            distutils.file_util.copy_file(myFile, blenderFolder)
+        # Copy the script to the root of the Zip.
+        # Blender does not detect the script when it is in the subfolder.
+        else:
+            distutils.file_util.copy_file(os.path.join(root, scriptName),
+                                          tmpFolder)
 
         # Change the cwd to the Archives folder, create Zip archive
         os.chdir(archivesFolder)
-        shutil.make_archive(zipFileName, format="zip", root_dir=tempFolder)
+        shutil.make_archive(zipFileName, format="zip", root_dir=tmpFolder)
 
 # Go back to the root directory, remove staging area
 print("Cleaning up temporary files")
 os.chdir(curDir)
-distutils.dir_util.remove_tree(tempFolder)
+distutils.dir_util.remove_tree(tmpFolder)
 print('''
 LDR Importer {0} release packaged and saved to
 {1}.zip'''.format(finalVersion, os.path.join(archivesFolder, zipFileName)))

@@ -87,11 +87,11 @@ def debugPrint(string):
 
 # Attempt to read and use the path in the config
 try:
-    # Get path from configuration file
-
     # A hacky trick that basically is: from config import *
     debugPrint("Configuration file found at\n{0}".format(config_filename))
-    exec(compile(open(config_filename).read(), config_filename, 'exec'))
+    with open(config_filename, "rt") as f:
+        lines = f.read()
+    exec(compile(lines, config_filename, 'exec'))
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
     LDrawDirs[3] = ldraw_dir
