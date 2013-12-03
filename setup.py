@@ -21,6 +21,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import print_function
 import os
 import distutils.file_util
 import distutils.dir_util
