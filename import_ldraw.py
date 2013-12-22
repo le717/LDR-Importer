@@ -21,7 +21,7 @@ bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
     "author": "David Pluntze, Triangle717, Banbury, Tribex, rioforce, JrMasterModelBuilder",
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
@@ -88,7 +88,7 @@ def debugPrint(string):
 try:
     # A hacky trick that basically is: from config import *
     debugPrint("Configuration file found at\n{0}".format(config_filename))
-    with open(config_filename, "rt") as f:
+    with open(config_filename, "rt", encoding="utf_8") as f:
         lines = f.read()
     exec(compile(lines, config_filename, 'exec'))
 
@@ -107,6 +107,26 @@ except Exception as e:
 
     debugPrint("ERROR: Reason: {0}.".format(
                type(e).__name__))
+
+
+def checkEncoding(file_path):
+    """Check the encoding of a file for Endian encoding"""
+
+    # Open it, read just the area containing a possible byte mark
+    with open(file_path, "rb") as encode_check:
+        encoding = encode_check.readline(3)
+
+    # The file uses UCS-2 (UTF-16) Big Endian encoding
+    if encoding == b"\xfe\xff\x00":
+        return "utf_16_be"
+
+    # The file uses UCS-2 (UTF-16) Little Endian
+    elif encoding == b"\xff\xfe0":
+        return "utf_16_le"
+
+    # Use LDraw model stantard UTF-8
+    else:
+        return "utf_8"
 
 
 class LDrawFile(object):
@@ -226,21 +246,28 @@ class LDrawFile(object):
             isPart = False
             if os.path.exists(filename):
 
+                # Check encoding of `filename` for non UTF-8 compatibility
+                # GitHub Issue #37
+                file_encode = checkEncoding(filename)
+
                 # Check if this is a main part or a subpart
                 if not isSubPart(filename):
                     isPart = True
 
                 # Read the brick using relative path (to entire model)
-                with open(filename, "rt", encoding="utf-8") as f_in:
+                with open(filename, "rt", encoding=file_encode) as f_in:
                     lines = f_in.readlines()
 
             else:
                 # Search for the brick in the various folders
                 fname, isPart = locate(filename)
 
+                # Check encoding of `fname` too
+                file_encode = checkEncoding(fname)
+
                 # It exists, read it and get the data
                 if os.path.exists(fname):
-                    with open(fname, "rt", encoding="utf-8") as f_in:
+                    with open(fname, "rt", encoding=file_encode) as f_in:
                         lines = f_in.readlines()
 
                 # The brick does not exist
@@ -871,7 +898,8 @@ Check the console logs for more information.'''.format(LDrawDir))
 {0}'''.format(LDrawDir))
         return {'CANCELLED'}
 
-    with open(os.path.join(LDrawDir, "LDConfig.ldr"), "rt") as ldconfig:
+    with open(os.path.join(LDrawDir, "LDConfig.ldr"),
+              "rt", encoding="utf_8") as ldconfig:
         ldconfig_lines = ldconfig.readlines()
 
     for line in ldconfig_lines:
@@ -1101,7 +1129,7 @@ def saveInstallPath(self):
         os.makedirs(config_path)
 
     # Write the config file
-    with open(config_filename, "wt") as f:
+    with open(config_filename, "wt", encoding="utf_8") as f:
         f.write(config_contents)
 
 
