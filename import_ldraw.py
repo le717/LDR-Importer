@@ -814,22 +814,12 @@ Must be a .ldr or .dat''')
             Cleanup can be disabled by user if wished.
             """
 
-            # Default values for model cleanup options
-            CleanUp = False
-            GameFix = False
-
             # The CleanUp option was selected
             if CleanUpOpt == "CleanUp":  # lint:ok
                 CleanUp = True
+
+            if CleanUp:  # lint:ok
                 debugPrint("CleanUp option selected")
-
-            # The GameFix option was selected
-            elif CleanUpOpt == "GameFix":  # lint:ok
-                GameFix = True
-                debugPrint("GameFix option selected")
-
-            # Standard cleanup actions
-            if (CleanUp or GameFix):  # lint:ok
 
                 # Select all the mesh
                 for cur_obj in objects:
@@ -853,27 +843,11 @@ Must be a .ldr or .dat''')
                             # Set smooth shading
                             bpy.ops.object.shade_smooth()
 
-           # -------- Actions only for CleanUp option -------- #
-
-            if CleanUp:  # lint:ok
-                # Add 30 degree edge split modifier to all bricks
-                for cur_obj in objects:
-                    edges = cur_obj.modifiers.new(
-                        "Edge Split", type='EDGE_SPLIT')
-                    edges.split_angle = 0.523599
-
-            # -------- Actions only for GameFix option -------- #
-
-            if GameFix:  # lint:ok
-                for cur_obj in objects:
-                    # Add 0.7 ratio decimate modifier to all bricks
-                    deci = cur_obj.modifiers.new("Decimate", type='DECIMATE')
-                    deci.ratio = 0.7
-
-                    # Add 45 degree edge split modifier to all bricks
-                    edges = cur_obj.modifiers.new("Edge Split",
-                                                  type='EDGE_SPLIT')
-                    edges.split_angle = 0.802851
+                            # Add 30 degree edge split modifier to all bricks
+                            for cur_obj in objects:
+                                edges = cur_obj.modifiers.new(
+                                    "Edge Split", type='EDGE_SPLIT')
+                                edges.split_angle = 0.523599
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
@@ -1024,8 +998,6 @@ def hex_to_rgb(rgb_str):
 CLEANUP_OPTIONS = (
     ("CleanUp", "Basic Cleanup",
      "Removes double vertices, recalculate normals, add Edge Split modifier"),
-    ("GameFix", "Video Game Optimization",
-     "Optimize model for video game usage (Decimate Modifier)"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
