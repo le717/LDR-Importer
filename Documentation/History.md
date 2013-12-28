@@ -1,7 +1,6 @@
-History Lesson
-==============
+# History Lesson #
 
-Hi everybody, Triangle717 here, lead maintainer of **LDR Importer**.
+Hi everybody, Triangle717 here, lead developer of **LDR Importer**.
 It looks like you have come for the history of this project, and you are in the right place for that. :smiley:
 
 There are many LDraw importer scripts available for Blender 2.3, each one with its own errors and quirks, with some being lost over time due to dead links.
@@ -21,5 +20,4 @@ After putting off open-sourcing the script for anyone to improve, I finally uplo
 Since then, people have been kind enough to support the project by submitting patches and starring it,
 whichs gives me motivation to continue making **LDR Importer** the best available LDraw script for Blender.
 
-The End. :smiley:
------------------
+## The End. :smiley: ##
