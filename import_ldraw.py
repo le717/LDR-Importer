@@ -66,12 +66,28 @@ if they are changed. Instead, simply update the proper index.
 """
 LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
 
-# Location of addon script
-addon_path = os.path.abspath(os.path.dirname(__file__))
-# Name and location of configuration file
-# `up` and `os.path.abspath` is used to break it out of core app files
-up = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-config_path = os.path.abspath(os.path.join(up, "presets", "io_import_ldraw"))
+# Location of configuration file...
+# ...on Windows...
+if sys.platform == "win32":
+    # Get the location of the user's %AppData%
+    userAppData = os.path.expandvars(os.path.join(
+        "%AppData%", "Blender Foundation", "Blender"))
+
+    # Get the version of Blender being used
+    blVersion = bpy.app.version_string[:4]
+
+    # Set the final configuration path
+    config_path = os.path.join(userAppData, blVersion, "scripts",
+                               "presets", "io_import_ldraw")
+
+# ...and not on Windows...
+else:
+    # `up` and `os.path.abspath` is used to break it out of core app files
+    up = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    config_path = os.path.abspath(os.path.join(
+        up, "presets", "io_import_ldraw"))
+
+# Name of configuration file
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
 
