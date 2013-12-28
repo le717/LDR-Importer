@@ -816,9 +816,6 @@ Must be a .ldr or .dat''')
 
             # The CleanUp option was selected
             if CleanUpOpt == "CleanUp":  # lint:ok
-                CleanUp = True
-
-            if CleanUp:  # lint:ok
                 debugPrint("CleanUp option selected")
 
                 # Select all the mesh
@@ -1056,9 +1053,9 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         default=0.05
     )
 
-    highResBricks = BoolProperty(
-        name="Use High-res bricks",
-        description="Import high-resolution bricks in your model",
+    highResPrims = BoolProperty(
+        name="Use High-Res Primitives",
+        description="Replace all Primitives by Hi-Res (48ed) Primitives",
         default=False
     )
 
@@ -1075,7 +1072,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Import Options:", icon='SCRIPTWIN')
         box.prop(self, "ldrawPath", icon="FILESEL")
         box.prop(self, "scale")
-        box.prop(self, "highResBricks", icon="MOD_BUILD")
+        box.prop(self, "highResPrims", icon="MOD_BUILD")
         box.label("Model Cleanup:", icon='EDIT')
         box.prop(self, "cleanUpModel", expand=True)
 
@@ -1083,7 +1080,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         """Set import options and run the script"""
         global LDrawDir, CleanUp, GameFix, HighRes, CleanUpOpt
         LDrawDir = str(self.ldrawPath)
-        HighRes = bool(self.highResBricks)
+        HighRes = bool(self.highResPrims)
         CleanUpOpt = str(self.cleanUpModel)
 
         # Display message if HighRes bricks are to be used
