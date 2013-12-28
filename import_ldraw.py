@@ -73,13 +73,12 @@ if sys.platform == "win32":
     userAppData = os.path.expandvars(os.path.join(
         "%AppData%", "Blender Foundation", "Blender"))
 
-    # Get the newest version of Blender available
-    for folders in os.listdir(userAppData):
-        blInstalls = [folders]
+    # Get the version of Blender being used
+    blVersion = bpy.app.version_string[:4]
 
     # Set the final configuration path
-    config_path = os.path.join(userAppData, "".join(blInstalls),
-                               "scripts", "presets", "io_import_ldraw")
+    config_path = os.path.join(userAppData, blVersion, "scripts",
+                               "presets", "io_import_ldraw")
 
 # ...and not on Windows...
 else:
