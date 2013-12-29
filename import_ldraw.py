@@ -74,6 +74,8 @@ up = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 config_path = os.path.abspath(os.path.join(up, "presets", "io_import_ldraw"))
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
+#The ldraw file being loaded by the user. Placeholder until the script is rewritten.
+path_to_ldr_file = "";
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
@@ -686,68 +688,55 @@ def locate(pattern):
     can be imported, even unofficial ones.
     """
     fname = pattern.replace("\\", os.path.sep)
-    isPart = False
+    isPart = False # isSubPart(pattern) # TODO refactor! wrong logic. a file is a "part" only if its header states so.
 
-    #lint:disable
-    # Define all possible folders in the library, including unofficial bricks
+    # Attempt to get the directory the file came from and add it to the paths list
+    file_directory_split = path_to_ldr_file.split(os.path.sep);
 
-    # Standard Paths
-    ldrawPath = os.path.join(LDrawDir, fname)
-    hiResPath = os.path.join(LDrawDir, "p".lower(), "48".lower(), fname)
-    primitivesPath = os.path.join(LDrawDir, "p".lower(), fname)
-    partsPath = os.path.join(LDrawDir, "parts".lower(), fname)
-    partsSPath = os.path.join(LDrawDir, "parts".lower(), "s".lower(), fname)
+    # Remove the file from the directory path, leaving the directory alone. 
+    # Add a space to the beginning, allowing a / to be added on linux/osx.
+    file_directory = os.path.join(" ", *file_directory_split[:len(file_directory_split)-1])
 
-    # Unoffical Paths
-    UnofficialPath = os.path.join(LDrawDir, "unofficial".lower(), fname)
-    UnofficialhiResPath = os.path.join(LDrawDir, "unofficial".lower(),
-                                       "p".lower(), "48".lower(), fname)
-    UnofficialPrimPath = os.path.join(LDrawDir, "unofficial".lower(),
-                                      "p".lower(), fname)
-    UnofficialPartsPath = os.path.join(LDrawDir, "unofficial".lower(),
-                                       "parts".lower(), fname)
-    UnofficialPartsSPath = os.path.join(LDrawDir, "unofficial".lower(),
-                                        "parts".lower(), "s".lower(), fname)
-    #lint:enable
-    if os.path.exists(ldrawPath):
-        fname = ldrawPath
-    elif os.path.exists(hiResPath) and HighRes:  # lint:ok
-        fname = hiResPath
-    elif os.path.exists(primitivesPath):
-        fname = primitivesPath
-    elif os.path.exists(partsPath):
-        fname = partsPath
-    elif os.path.exists(partsSPath):
-        fname = partsSPath
-    elif os.path.exists(UnofficialPath):
-        fname = UnofficialPath
-    elif os.path.exists(UnofficialhiResPath):
-        fname = UnofficialhiResPath
-    elif os.path.exists(UnofficialPrimPath):
-        fname = UnofficialPrimPath
-    elif os.path.exists(UnofficialPartsPath):
-        fname = UnofficialPartsPath
-    elif os.path.exists(UnofficialPartsSPath):
-        fname = UnofficialPartsSPath
+    # Get rid of the space added above.
+    if file_directory.startswith(" "):
+        file_directory = file_directory.replace(file_directory[:1], '')
 
-        # Since this is not a subpart, mark it as a root part
-        if not isSubPart(fname):
-            isPart = True
+    paths = []
+    paths.append(file_directory)
+    paths.append(os.path.join(LDrawDir, "models"))
+    paths.append(os.path.join(LDrawDir, "parts"))
+    if HighRes:
+       paths.append(os.path.join(LDrawDir, "p", "48"))
+    paths.append(os.path.join(LDrawDir, "p"))
+    paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
+    if HighRes:
+       paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
     else:
-        debugPrint("Could not find file {0}".format(fname))
+       paths.append(os.path.join(LDrawDir, "p", "8"))
+    paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
-    # TODO: Currently will return the inputted path, possibly causing
-    # any error checking to clearuntil it tries to actually load parts.
-    return (fname, isPart)
+    for path in paths:
+       fname2 = os.path.join(path, fname)
+       if os.path.exists(fname2):
+          return (fname2, isPart)
+       else:
+           fname2 = os.path.join(path, fname.lower())
+           if os.path.exists(fname2):
+              return (fname2, isPart)
 
-
+    debugPrint("Could not find file {0}".format(fname))
+    return ("ERROR, FILE NOT FOUND", isPart) # TODO wrong! return error to caller, for example by returning an empty string!
+	
 def create_model(self, scale, context):
     """Create the actual model"""
     global objects
     global colors
     global mat_list
-
+    global path_to_ldr_file
+    
     file_name = self.filepath
+    path_to_ldr_file = file_name
+    
     debugPrint("Attempting to import {0}".format(file_name))
 
     # Make sure the model ends with the proper file extension
@@ -790,6 +779,7 @@ Must be a .ldr or .dat''')
             # Get material list from LDConfig.ldr
             scanLDConfig(self)
 
+            # TODO: REWRITE THIS PART
             LDrawFile(context, file_name, mat)
 
             """
