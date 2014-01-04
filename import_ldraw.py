@@ -90,8 +90,10 @@ else:
 # Name of configuration file
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
-#The ldraw file being loaded by the user. Placeholder until the script is rewritten.
-path_to_ldr_file = "";
+# The ldraw file being loaded by the user.
+# Placeholder until the script is rewritten.
+path_to_ldr_file = ""
+
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
@@ -704,14 +706,19 @@ def locate(pattern):
     can be imported, even unofficial ones.
     """
     fname = pattern.replace("\\", os.path.sep)
-    isPart = False # isSubPart(pattern) # TODO refactor! wrong logic. a file is a "part" only if its header states so.
+    isPart = False
+    #TODO: Refactor! wrong logic. a file is a "part" only
+    # if its header states so.
+    # isSubPart(pattern)
 
-    # Attempt to get the directory the file came from and add it to the paths list
-    file_directory_split = path_to_ldr_file.split(os.path.sep);
+    # Attempt to get the directory the file came from
+    # and add it to the paths list
+    file_directory_split = path_to_ldr_file.split(os.path.sep)
 
-    # Remove the file from the directory path, leaving the directory alone. 
+    # Remove the file from the directory path, leaving the directory alone.
     # Add a space to the beginning, allowing a / to be added on linux/osx.
-    file_directory = os.path.join(" ", *file_directory_split[:len(file_directory_split)-1])
+    file_directory = os.path.join(" ",
+        *file_directory_split[:len(file_directory_split) - 1])
 
     # Get rid of the space added above.
     if file_directory.startswith(" "):
@@ -722,37 +729,40 @@ def locate(pattern):
     paths.append(os.path.join(LDrawDir, "models"))
     paths.append(os.path.join(LDrawDir, "parts"))
     if HighRes:
-       paths.append(os.path.join(LDrawDir, "p", "48"))
+        paths.append(os.path.join(LDrawDir, "p", "48"))
     paths.append(os.path.join(LDrawDir, "p"))
     paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
     if HighRes:
-       paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
+        paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
     else:
-       paths.append(os.path.join(LDrawDir, "p", "8"))
+        paths.append(os.path.join(LDrawDir, "p", "8"))
     paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
     for path in paths:
-       fname2 = os.path.join(path, fname)
-       if os.path.exists(fname2):
-          return (fname2, isPart)
-       else:
-           fname2 = os.path.join(path, fname.lower())
-           if os.path.exists(fname2):
-              return (fname2, isPart)
+        fname2 = os.path.join(path, fname)
+        if os.path.exists(fname2):
+            return (fname2, isPart)
+        else:
+            fname2 = os.path.join(path, fname.lower())
+            if os.path.exists(fname2):
+                return (fname2, isPart)
 
     debugPrint("Could not find file {0}".format(fname))
-    return ("ERROR, FILE NOT FOUND", isPart) # TODO wrong! return error to caller, for example by returning an empty string!
-	
+    #TODO: Wrong! return error to caller,
+    # for example by returning an empty string!
+    return ("ERROR, FILE NOT FOUND", isPart)
+
+
 def create_model(self, scale, context):
     """Create the actual model"""
     global objects
     global colors
     global mat_list
     global path_to_ldr_file
-    
+
     file_name = self.filepath
     path_to_ldr_file = file_name
-    
+
     debugPrint("Attempting to import {0}".format(file_name))
 
     # Make sure the model ends with the proper file extension
@@ -795,7 +805,7 @@ Must be a .ldr or .dat''')
             # Get material list from LDConfig.ldr
             scanLDConfig(self)
 
-            # TODO: REWRITE THIS PART
+            #TODO: REWRITE THIS PART
             LDrawFile(context, file_name, mat)
 
             """
