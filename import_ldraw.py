@@ -697,6 +697,8 @@ def isSubPart(brick):
 
     return isSubpart
 
+paths = []
+
 
 def locate(pattern):
     """
@@ -724,19 +726,18 @@ def locate(pattern):
     if file_directory.startswith(" "):
         file_directory = file_directory.replace(file_directory[:1], '')
 
-    paths = []
     paths.append(file_directory)
     paths.append(os.path.join(LDrawDir, "models"))
-    paths.append(os.path.join(LDrawDir, "parts"))
-    if HighRes:
-        paths.append(os.path.join(LDrawDir, "p", "48"))
-    paths.append(os.path.join(LDrawDir, "p"))
     paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
     if HighRes:
         paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
     else:
         paths.append(os.path.join(LDrawDir, "p", "8"))
     paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+    paths.append(os.path.join(LDrawDir, "parts"))
+    if HighRes:
+        paths.append(os.path.join(LDrawDir, "p", "48"))
+    paths.append(os.path.join(LDrawDir, "p"))
 
     for path in paths:
         fname2 = os.path.join(path, fname)
