@@ -90,6 +90,11 @@ else:
 # Name of configuration file
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
+# The ldraw file being loaded by the user.
+# Placeholder until the script is rewritten.
+file_directory = ""
+
+
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
@@ -746,6 +751,7 @@ def create_model(self, scale, context):
     global objects
     global colors
     global mat_list
+    global file_name
 
     file_name = self.filepath
 
