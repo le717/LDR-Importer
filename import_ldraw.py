@@ -90,10 +90,6 @@ else:
 # Name of configuration file
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
-# The ldraw file being loaded by the user.
-# Placeholder until the script is rewritten.
-path_to_ldr_file = ""
-
 
 def debugPrint(string):
     """Debug print with timestamp for identification"""
@@ -715,16 +711,7 @@ def locate(pattern):
 
     # Attempt to get the directory the file came from
     # and add it to the paths list
-    file_directory_split = path_to_ldr_file.split(os.path.sep)
-
-    # Remove the file from the directory path, leaving the directory alone.
-    # Add a space to the beginning, allowing a / to be added on linux/osx.
-    file_directory = os.path.join(" ",
-        *file_directory_split[:len(file_directory_split) - 1])
-
-    # Get rid of the space added above.
-    if file_directory.startswith(" "):
-        file_directory = file_directory.replace(file_directory[:1], '')
+    file_directory = os.path.dirname(file_name)
 
     paths.append(file_directory)
     paths.append(os.path.join(LDrawDir, "models"))
@@ -759,10 +746,8 @@ def create_model(self, scale, context):
     global objects
     global colors
     global mat_list
-    global path_to_ldr_file
 
     file_name = self.filepath
-    path_to_ldr_file = file_name
 
     debugPrint("Attempting to import {0}".format(file_name))
 
