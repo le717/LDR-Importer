@@ -751,9 +751,9 @@ def create_model(self, scale, context):
     global objects
     global colors
     global mat_list
-    global file_name
+    global file_directory
 
-    file_name = self.filepath
+    file_directory = self.filepath
 
     debugPrint("Attempting to import {0}".format(file_name))
 
