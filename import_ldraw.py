@@ -990,18 +990,14 @@ def hex_to_rgb(rgb_str):
 # Model cleanup options
 # DoNothing option does not require an entry
 cleanupOptions = (
-    ("CleanUp", "Basic Cleanup",
-     "Removes double vertices, recalculate normals, add Edge Split modifier"),
+    ("CleanUp", "Basic Cleanup", "Remove double vertices, recalculate normals, add Edge Split modifier"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
 primsOptions = (
-    ("StandardRes", "Standard Primitives",
-        "Use standard-resolution primitives"),
-    ("HighRes", "High-Res Primitives",
-     "Replace all primitives by high-resolution primitives"),
-    ("LowRes", "Low-Res Primitives",
-        "Replace all primitives by low-resolution primitives")
+    ("StandardRes", "Standard Primitives", "Import primitives using standard resolution"),
+    ("HighRes", "High-Res Primitives", "Import primitives using high resolution"),
+    ("LowRes", "Low-Res Primitives", "Import primitives using low resolution")
 )
 
 # ------------ Operator ------------ #
@@ -1056,20 +1052,20 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     scale = FloatProperty(
         name="Scale",
-        description="Scale the model by this amount",
+        description="Use a Specific Scale for Each Brick",
         default=0.05
     )
 
     resPrims = EnumProperty(
         # Leave `name` blank for better display
-        name="",
-        description="Replace all primitives by low-resolution primitives",
+        name="Resolution of Brick Primitives",
+        description="Resolution of Brick Primitives",
         items=primsOptions
     )
 
     cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
-        description="Model cleanup options",
+        description="Model Cleanup Options",
         items=cleanupOptions
     )
 
@@ -1082,7 +1078,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "ldrawPath")
         box.prop(self, "scale")
         box.label("Primitives", icon='MOD_BUILD')
-        box.prop(self, "resPrims", expand=False)
+        box.prop(self, "resPrims", expand=True)
         box.label("Model Cleanup", icon='EDIT')
         box.prop(self, "cleanUpModel", expand=True)
 
