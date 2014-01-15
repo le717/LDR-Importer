@@ -719,16 +719,21 @@ def locate(pattern):
     file_directory = os.path.dirname(file_name)
 
     paths.append(file_directory)
+
     paths.append(os.path.join(LDrawDir, "models"))
+
     paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
     if HighRes:
         paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
-    else:
-        paths.append(os.path.join(LDrawDir, "p", "8"))
+    elif LowRes:
+        paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
     paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+
     paths.append(os.path.join(LDrawDir, "parts"))
     if HighRes:
         paths.append(os.path.join(LDrawDir, "p", "48"))
+    elif LowRes:
+        paths.append(os.path.join(LDrawDir, "p", "8"))
     paths.append(os.path.join(LDrawDir, "p"))
 
     for path in paths:
@@ -983,11 +988,20 @@ def hex_to_rgb(rgb_str):
     return tuple([val / 255 for val in int_tuple])
 
 # Model cleanup options
-# DoNothing option does not require any checks
-CLEANUP_OPTIONS = (
+# DoNothing option does not require an entry
+cleanupOptions = (
     ("CleanUp", "Basic Cleanup",
      "Removes double vertices, recalculate normals, add Edge Split modifier"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
+)
+
+primsOptions = (
+    ("StandardRes", "Standard Primitives",
+        "Use standard-resolution primitives"),
+    ("HighRes", "High-Res Primitives",
+     "Replace all primitives by high-resolution primitives"),
+    ("LowRes", "Low-Res Primitives",
+        "Replace all primitives by low-resolution primitives")
 )
 
 # ------------ Operator ------------ #
@@ -1031,7 +1045,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 {0}'''.format(FinalLDrawDir))
 
     ldrawPath = StringProperty(
-        name="LDraw Path",
+        # Leave `name` blank for better display
+        name="",
         description="Path to the LDraw Parts Library",
         default=FinalLDrawDir,
         update=RunMe
@@ -1045,39 +1060,49 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         default=0.05
     )
 
-    highResPrims = BoolProperty(
-        name="Use High-Res Primitives",
-        description="Replace all Primitives by Hi-Res (48ed) Primitives",
-        default=False
+    resPrims = EnumProperty(
+        # Leave `name` blank for better display
+        name="",
+        description="Replace all primitives by low-resolution primitives",
+        items=primsOptions
     )
 
     cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
-        items=CLEANUP_OPTIONS,
-        description="Model cleanup options"
+        description="Model cleanup options",
+        items=cleanupOptions
     )
 
     def draw(self, context):
         """Display model cleanup options"""
         layout = self.layout
         box = layout.box()
-        box.label("Import Options:", icon='SCRIPTWIN')
-        box.prop(self, "ldrawPath", icon="FILESEL")
+        box.label("Import Options", icon='SCRIPTWIN')
+        box.label("LDraw Path", icon='FILESEL')
+        box.prop(self, "ldrawPath")
         box.prop(self, "scale")
-        box.prop(self, "highResPrims", icon="MOD_BUILD")
-        box.label("Model Cleanup:", icon='EDIT')
+        box.label("Primitives", icon='MOD_BUILD')
+        box.prop(self, "resPrims", expand=False)
+        box.label("Model Cleanup", icon='EDIT')
         box.prop(self, "cleanUpModel", expand=True)
 
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUp, GameFix, HighRes, CleanUpOpt
+        global LDrawDir, HighRes, LowRes, CleanUpOpt  # WhatRes
         LDrawDir = str(self.ldrawPath)
-        HighRes = bool(self.highResPrims)
+        WhatRes = str(self.resPrims)
         CleanUpOpt = str(self.cleanUpModel)
 
-        # Display message if HighRes bricks are to be used
-        if HighRes:
-            debugPrint("High resolution bricks option selected")
+        if WhatRes == "HighRes":
+            HighRes = True
+            debugPrint("High-res primitives substitution has been selected")
+        elif WhatRes == "LowRes":
+            LowRes = True
+            debugPrint("Low-res primitives substitution has been selected")
+        else:
+            HighRes = False
+            LowRes = False
+            debugPrint("Standard-res primitives substitution has been selected")
 
         """
         Blender for Windows does not like the 'update' key in ldrawPath{},
