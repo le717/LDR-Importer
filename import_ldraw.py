@@ -25,7 +25,7 @@ bl_info = {
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
-    "warning": "Cycles support is incomplete, Bricksmith and MPD models are not supported",
+    "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     #"tracker_url": "maybe"
                 #"soon",
@@ -42,7 +42,6 @@ from time import strftime
 import bpy
 from bpy.props import (StringProperty,
                        FloatProperty,
-                       BoolProperty,
                        EnumProperty
                        )
 
@@ -93,7 +92,6 @@ config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 # The ldraw file being loaded by the user.
 # Placeholder until the script is rewritten.
 file_directory = ""
-
 
 
 def debugPrint(string):
@@ -152,6 +150,7 @@ def checkEncoding(file_path):
 
 class LDrawFile(object):
     """Scans LDraw files"""
+    #FIXME: v1.2 rewrite - Rewrite entire class (#35)
     def __init__(self, context, filename, mat, colour=None):
 
         engine = context.scene.render.engine
@@ -261,6 +260,7 @@ class LDrawFile(object):
 
     def parse(self, filename):
         """Construct tri's in each brick"""
+        #FIXME: v1.2 rewrite - Rework function (#35)
         subfiles = []
 
         while True:
@@ -293,6 +293,8 @@ class LDrawFile(object):
 
                 # The brick does not exist
                 else:
+                    #FIXME: v1.2 rewrite - Throw visible error message (#11)
+                    # (self.report)
                     debugPrint("File not found: {0}".format(fname))
                     return False
 
@@ -411,6 +413,7 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values"""
+    #TODO: Not all colors are accessible
     if colour in colors:
         if not (colour in mat_list):
             col = colors[colour]
@@ -690,7 +693,7 @@ def getCyclesMilkyWhite(name, diff_color):
 
 def isSubPart(brick):
     """Check if brick is a main part or a subpart"""
-
+    #FIXME: Remove this function
     if str.lower(os.path.split(brick)[0]) == "s":
         isSubpart = True
     else:
@@ -710,9 +713,7 @@ def locate(pattern):
     """
     fname = pattern.replace("\\", os.path.sep)
     isPart = False
-    #TODO: Refactor! wrong logic. a file is a "part" only
-    # if its header states so.
-    # isSubPart(pattern)
+    #TODO: A file is a "part" only if its header states so.
 
     # Attempt to get the directory the file came from
     # and add it to the paths list
@@ -746,20 +747,21 @@ def locate(pattern):
                 return (fname2, isPart)
 
     debugPrint("Could not find file {0}".format(fname))
-    #TODO: Wrong! return error to caller,
+    #FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
     # for example by returning an empty string!
     return ("ERROR, FILE NOT FOUND", isPart)
 
 
 def create_model(self, scale, context):
     """Create the actual model"""
+    #FIXME: v1.2 rewrite - Rewrite entire function (#35)
     global objects
     global colors
     global mat_list
+    global file_name
     global file_directory
 
-    file_directory = self.filepath
-
+    file_name = self.filepath
     debugPrint("Attempting to import {0}".format(file_name))
 
     # Make sure the model ends with the proper file extension
@@ -802,7 +804,6 @@ Must be a .ldr or .dat''')
             # Get material list from LDConfig.ldr
             scanLDConfig(self)
 
-            #TODO: REWRITE THIS PART
             LDrawFile(context, file_name, mat)
 
             """
@@ -811,6 +812,7 @@ Must be a .ldr or .dat''')
             Cleanup can be disabled by user if wished.
             """
 
+            #FIXME v1.2 Rewrite - Split into seperate function
             # The CleanUp option was selected
             if CleanUpOpt == "CleanUp":  # lint:ok
                 debugPrint("CleanUp option selected")
@@ -990,14 +992,18 @@ def hex_to_rgb(rgb_str):
 # Model cleanup options
 # DoNothing option does not require an entry
 cleanupOptions = (
-    ("CleanUp", "Basic Cleanup", "Remove double vertices, recalculate normals, add Edge Split modifier"),
+    ("CleanUp", "Basic Cleanup",
+        "Remove double vertices, recalculate normals, add Edge Split modifier"),
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
 primsOptions = (
-    ("StandardRes", "Standard Primitives", "Import primitives using standard resolution"),
-    ("HighRes", "High-Res Primitives", "Import primitives using high resolution"),
-    ("LowRes", "Low-Res Primitives", "Import primitives using low resolution")
+    ("StandardRes", "Standard Primitives",
+        "Import primitives using standard resolution"),
+    ("HighRes", "High-Res Primitives",
+        "Import primitives using high resolution"),
+    ("LowRes", "Low-Res Primitives",
+        "Import primitives using low resolution")
 )
 
 # ------------ Operator ------------ #
@@ -1052,14 +1058,14 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     scale = FloatProperty(
         name="Scale",
-        description="Use a Specific Scale for Each Brick",
+        description="Use a specific scale for each brick",
         default=0.05
     )
 
     resPrims = EnumProperty(
         # Leave `name` blank for better display
-        name="Resolution of Brick Primitives",
-        description="Resolution of Brick Primitives",
+        name="Resolution of part primitives",
+        description="Resolution of part primitives",
         items=primsOptions
     )
 
@@ -1091,14 +1097,14 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
         if WhatRes == "HighRes":
             HighRes = True
-            debugPrint("High-res primitives substitution has been selected")
+            debugPrint("High-res primitives substitution selected")
         elif WhatRes == "LowRes":
             LowRes = True
-            debugPrint("Low-res primitives substitution has been selected")
+            debugPrint("Low-res primitives substitution selected")
         else:
             HighRes = False
             LowRes = False
-            debugPrint("Standard-res primitives substitution has been selected")
+            debugPrint("Standard-res primitives substitution selected")
 
         """
         Blender for Windows does not like the 'update' key in ldrawPath{},
@@ -1114,6 +1120,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
 def saveInstallPath(self):
     """Save the LDraw installation path for future use"""
+    #OPTIMIZE: Expand for other settings (#42)
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
 # LDR Importer Configuration File #
