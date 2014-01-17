@@ -94,15 +94,13 @@ config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 file_directory = ""
 
 
-def debugPrint(message):
-    """Debug print with timestamp for identification"""
-    #FIXME: Lists are broken
-    # Check if it is a list or not
-    #if type(message) == list:
-        #message = " ".join(message)
+def debugPrint(*myInput):
+    """Debug print with identification timestamp"""
+    # Format the output like print() does
+    myOutput = [str(say) for say in myInput]
 
     print("\n[LDR Importer] {0} - {1}\n".format(
-          message, strftime("%H:%M:%S")))
+        " ".join(myOutput), strftime("%H:%M:%S")))
 
 # Attempt to read and use the path in the config
 try:
@@ -705,17 +703,20 @@ def isSubPart(brick):
 
 
 def locate(pattern):
-    """#FIXME: Rewrite doctype"""
-    fname = pattern.replace("\\", os.path.sep)
+    """Check if each part exists"""
+    #OPTIMIZE: Will fnmatch.fnmatch() work here?
+    partName = pattern.replace("\\", os.path.sep)
 
     for path in paths:
-        fname2 = os.path.join(path, fname)
-        if os.path.exists(fname2):
-            return (fname2, False)
+        # Perform a direct check
+        fname = os.path.join(path, partName)
+        if os.path.exists(fname):
+            return (fname, False)
         else:
-            fname2 = os.path.join(path, fname.lower())
-            if os.path.exists(fname2):
-                return (fname2, False)
+            # Perform a normalized check
+            fname = os.path.join(path, partName.lower())
+            if os.path.exists(fname):
+                return (fname, False)
 
     debugPrint("Could not find file {0}".format(fname))
     #FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
