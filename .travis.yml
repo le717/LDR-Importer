@@ -1,0 +1,9 @@
+language: python
+python:
+   - "3.3"
+# Command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install flake8
+script:
+  - flake8 import_ldraw.py
