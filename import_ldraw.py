@@ -52,7 +52,6 @@ objects = []
 paths = []
 mat_list = {}
 colors = {}
-scale = 1.0
 
 """
 Default LDraw installation paths
@@ -90,7 +89,7 @@ else:
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
 # The ldraw file being loaded by the user.
-# Placeholder until the script is rewritten.
+#FIXME: v1.2 rewrite - Placeholder until rewrite.
 file_directory = ""
 
 
@@ -694,6 +693,7 @@ def isSubPart(brick):
     """Check if brick is a main part or a subpart"""
     #FIXME: Remove this function
     #TODO: A file is a "part" only if its header states so.
+    # (#40#issuecomment-31279788)
     if str.lower(os.path.split(brick)[0]) == "s":
         isSubpart = True
     else:
@@ -704,7 +704,6 @@ def isSubPart(brick):
 
 def locate(pattern):
     """Check if each part exists"""
-    #OPTIMIZE: Will fnmatch.fnmatch() work here?
     partName = pattern.replace("\\", os.path.sep)
 
     for path in paths:
@@ -731,13 +730,11 @@ def create_model(self, scale, context):
     global colors
     global mat_list
     global file_name
-    global file_directory
 
     file_name = self.filepath
     # Attempt to get the directory the file came from
     # and add it to the `paths` list
     paths[0] = os.path.dirname(file_name)
-    debugPrint(paths)
     debugPrint("Attempting to import {0}".format(file_name))
 
     # Make sure the model ends with the proper file extension
