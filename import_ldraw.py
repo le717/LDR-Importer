@@ -812,11 +812,10 @@ Must be a .ldr or .dat''')
                             # Set smooth shading
                             bpy.ops.object.shade_smooth()
 
-                            # Add 30 degree edge split modifier to all bricks
-                            for cur_obj in objects:
-                                edges = cur_obj.modifiers.new(
-                                    "Edge Split", type='EDGE_SPLIT')
-                                edges.split_angle = 0.523599
+                    # Add 30 degree edge split modifier to all bricks
+                    edges = cur_obj.modifiers.new(
+                        "Edge Split", type='EDGE_SPLIT')
+                    edges.split_angle = 0.523599
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
