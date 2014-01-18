@@ -49,10 +49,9 @@ from bpy_extras.io_utils import ImportHelper
 
 # Global variables
 objects = []
+paths = []
 mat_list = {}
 colors = {}
-scale = 1.0
-
 
 """
 Default LDraw installation paths
@@ -90,18 +89,17 @@ else:
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
 # The ldraw file being loaded by the user.
-# Placeholder until the script is rewritten.
+#FIXME: v1.2 rewrite - Placeholder until rewrite.
 file_directory = ""
 
 
-def debugPrint(string):
-    """Debug print with timestamp for identification"""
-    # Check if it is a list or not
-    if type(string) == list:
-        string = " ".join(string)
+def debugPrint(*myInput):
+    """Debug print with identification timestamp"""
+    # Format the output like print() does
+    myOutput = [str(say) for say in myInput]
 
     print("\n[LDR Importer] {0} - {1}\n".format(
-          string, strftime("%H:%M:%S")))
+        " ".join(myOutput), strftime("%H:%M:%S")))
 
 # Attempt to read and use the path in the config
 try:
@@ -694,6 +692,8 @@ def getCyclesMilkyWhite(name, diff_color):
 def isSubPart(brick):
     """Check if brick is a main part or a subpart"""
     #FIXME: Remove this function
+    #TODO: A file is a "part" only if its header states so.
+    # (#40#issuecomment-31279788)
     if str.lower(os.path.split(brick)[0]) == "s":
         isSubpart = True
     else:
@@ -701,55 +701,26 @@ def isSubPart(brick):
 
     return isSubpart
 
-paths = []
-
 
 def locate(pattern):
-    """
-    Locate all files matching supplied filename pattern in and below
-    supplied root directory.
-    Check all available possible folders so every single brick
-    can be imported, even unofficial ones.
-    """
-    fname = pattern.replace("\\", os.path.sep)
-    isPart = False
-    #TODO: A file is a "part" only if its header states so.
-
-    # Attempt to get the directory the file came from
-    # and add it to the paths list
-    file_directory = os.path.dirname(file_name)
-
-    paths.append(file_directory)
-
-    paths.append(os.path.join(LDrawDir, "models"))
-
-    paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
-    if HighRes:
-        paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
-    elif LowRes:
-        paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
-    paths.append(os.path.join(LDrawDir, "unofficial", "p"))
-
-    paths.append(os.path.join(LDrawDir, "parts"))
-    if HighRes:
-        paths.append(os.path.join(LDrawDir, "p", "48"))
-    elif LowRes:
-        paths.append(os.path.join(LDrawDir, "p", "8"))
-    paths.append(os.path.join(LDrawDir, "p"))
+    """Check if each part exists"""
+    partName = pattern.replace("\\", os.path.sep)
 
     for path in paths:
-        fname2 = os.path.join(path, fname)
-        if os.path.exists(fname2):
-            return (fname2, isPart)
+        # Perform a direct check
+        fname = os.path.join(path, partName)
+        if os.path.exists(fname):
+            return (fname, False)
         else:
-            fname2 = os.path.join(path, fname.lower())
-            if os.path.exists(fname2):
-                return (fname2, isPart)
+            # Perform a normalized check
+            fname = os.path.join(path, partName.lower())
+            if os.path.exists(fname):
+                return (fname, False)
 
     debugPrint("Could not find file {0}".format(fname))
     #FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
     # for example by returning an empty string!
-    return ("ERROR, FILE NOT FOUND", isPart)
+    return ("ERROR, FILE NOT FOUND", False)
 
 
 def create_model(self, scale, context):
@@ -759,9 +730,11 @@ def create_model(self, scale, context):
     global colors
     global mat_list
     global file_name
-    global file_directory
 
     file_name = self.filepath
+    # Attempt to get the directory the file came from
+    # and add it to the `paths` list
+    paths[0] = os.path.dirname(file_name)
     debugPrint("Attempting to import {0}".format(file_name))
 
     # Make sure the model ends with the proper file extension
@@ -1090,21 +1063,57 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, HighRes, LowRes, CleanUpOpt  # WhatRes
+        global LDrawDir, CleanUpOpt
         LDrawDir = str(self.ldrawPath)
         WhatRes = str(self.resPrims)
         CleanUpOpt = str(self.cleanUpModel)
 
+        # Clear array before adding data if it contains data already
+        # Not doing so duplicates the indexes
+        try:
+            if paths[0]:
+                del paths[:]
+        except IndexError:
+            pass
+
+        # Create placeholder for index 0.
+        # It will be filled with the location of the model later.
+        paths.append("")
+
+        # Always search for parts in the `models` folder
+        paths.append(os.path.join(LDrawDir, "models"))
+
+        # The unofficial folder exists, search the standard folders
+        if os.path.exists(os.path.join(LDrawDir, "unofficial")):
+            paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
+            paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+
+            # The user wants to use high-res primitives
+            if WhatRes == "HighRes":
+                paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
+            # The user wants to use low-res primitives
+            elif WhatRes == "LowRes":
+                paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
+
+        # Always search for parts in the `parts` folder
+        paths.append(os.path.join(LDrawDir, "parts"))
+
+        # The user wants to use high-res primitives
         if WhatRes == "HighRes":
-            HighRes = True
+            paths.append(os.path.join(LDrawDir, "p", "48"))
             debugPrint("High-res primitives substitution selected")
+
+        # The user wants to use low-res primitives
         elif WhatRes == "LowRes":
-            LowRes = True
+            paths.append(os.path.join(LDrawDir, "p", "8"))
             debugPrint("Low-res primitives substitution selected")
+
+        # The user wants to use normal-res primitives
         else:
-            HighRes = False
-            LowRes = False
             debugPrint("Standard-res primitives substitution selected")
+
+        # Finally, search in the `p` folder
+        paths.append(os.path.join(LDrawDir, "p"))
 
         """
         Blender for Windows does not like the 'update' key in ldrawPath{},

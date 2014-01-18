@@ -15,7 +15,7 @@ All previous releases are hosted on Triangle717's personal [SourceForge.net acco
 
 <a target="_blank" href="http://www.ldraw.org/"><img src="Documentation/Official_LDraw_Logo.png" /></a>
 
-LDraw™ is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed by the developers of The LDraw System of Tools.
+LDraw&trade; is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed by the developers of The LDraw System of Tools.
 
 This script is licensed under the [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html).
 
@@ -28,9 +28,9 @@ Guidelines to help you contribute to **LDR Importer** can be found in [CONTRIBUT
 The names of all who contribute get posted here for all to see! :smiley:
 
 * David Pluntze
-* [Triangle717](https://github.com/le717)
-* [Banbury](https://github.com/Banbury)
-* [Tribex](https://github.com/Tribex)
-* [MinnieTheMoocher](https://github.com/MinnieTheMoocher)
-* [rioforce](https://github.com/rioforce)
-* [JrMasterModelBuilder](https://github.com/JrMasterModelBuilder)
+* [@le717](https://github.com/le717)
+* [@Banbury](https://github.com/Banbury)
+* [@Tribex](https://github.com/Tribex)
+* [@MinnieTheMoocher](https://github.com/MinnieTheMoocher)
+* [@rioforce](https://github.com/rioforce)
+* [@JrMasterModelBuilder](https://github.com/JrMasterModelBuilder)
