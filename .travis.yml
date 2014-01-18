@@ -2,4 +2,4 @@ language: python
 python:
   - 3.3
 install: pip install -r requirements.txt
-script: flake8 import_ldraw.py
+script: flake8 --max-complexity 10 import_ldraw.py

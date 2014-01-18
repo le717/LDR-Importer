@@ -102,8 +102,16 @@ for root, dirnames, filenames in os.walk(curDir):
         filenames.remove("__version__.py")
     if os.path.basename(__file__) in filenames:
         filenames.remove(os.path.basename(__file__))
+
+    # Remove development files
     if "config.py" in filenames:
         filenames.remove("config.py")
+    if "requirements.txt" in filenames:
+        filenames.remove("requirements.txt")
+    if "tox.ini" in filenames:
+        filenames.remove("tox.ini")
+    if ".travis.yml" in filenames:
+        filenames.remove(".travis.yml")
 
     # Remove .pyc files created by Python 2.x
     # (2.x annoyingly does not create them in __pycache__,

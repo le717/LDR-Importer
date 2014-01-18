@@ -21,7 +21,7 @@ bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
     "author": "David Pluntze, Triangle717, Banbury, Tribex, MinnieTheMoocher, rioforce, JrMasterModelBuilder",
-    "version": (1, 2, 0),
+    "version": (1, 1, 5),
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
@@ -110,11 +110,11 @@ try:
     exec(compile(lines, config_filename, 'exec'))
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
-    LDrawDirs[3] = ldraw_dir  # noqa # lint:ok
+    LDrawDirs[3] = ldraw_dir  # noqa
 
 # Suppress error when script is run the first time
 # and config.py does not yet exist
-except FileNotFoundError:  # noqa # lint:ok
+except FileNotFoundError:  # noqa
     pass
 
 # If we had an error, dump the traceback
@@ -764,11 +764,11 @@ Must be a .ldr or .dat''')
             mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
             # If LDrawDir does not exist, stop the import
-            if not os.path.isdir(LDrawDir):  # noqa # lint:ok
+            if not os.path.isdir(LDrawDir):  # noqa
                 debugPrint(''''ERROR: Cannot find LDraw installation at
-{0}'''.format(LDrawDir))  # noqa # lint:ok
+{0}'''.format(LDrawDir))  # noqa
                 self.report({'ERROR'}, '''Cannot find LDraw installation at
-{0}'''.format(LDrawDir))  # noqa # lint:ok
+{0}'''.format(LDrawDir))  # noqa
                 return {'CANCELLED'}
 
             colors = {}
@@ -787,7 +787,7 @@ Must be a .ldr or .dat''')
 
             #FIXME v1.2 Rewrite - Split into seperate function
             # The CleanUp option was selected
-            if CleanUpOpt == "CleanUp":  # noqa # lint:ok
+            if CleanUpOpt == "CleanUp":  # noqa
                 debugPrint("CleanUp option selected")
 
                 # Select all the mesh
@@ -847,16 +847,16 @@ Check the console logs for more information.'''.format(type(e).__name__))
 def scanLDConfig(self):
     """Scan LDConfig to get the material color info."""
     # LDConfig.ldr does not exist for some reason
-    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):  # noqa # lint:ok
+    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):  # noqa
         self.report({'ERROR'}, '''Could not find LDConfig.ldr at
 {0}
-Check the console logs for more information.'''.format(LDrawDir))  # noqa # lint:ok
+Check the console logs for more information.'''.format(LDrawDir))  # noqa
 
         debugPrint('''ERROR: Could not find LDConfig.ldr at
-{0}'''.format(LDrawDir))  # noqa # lint:ok
+{0}'''.format(LDrawDir))  # noqa
         return {'CANCELLED'}
 
-    with open(os.path.join(LDrawDir, "LDConfig.ldr"),  # noqa # lint:ok
+    with open(os.path.join(LDrawDir, "LDConfig.ldr"),  # noqa
               "rt", encoding="utf_8") as ldconfig:
         ldconfig_lines = ldconfig.readlines()
 
