@@ -1,5 +1,6 @@
 # LDR Importer #
 
+[![Build Status](https://travis-ci.org/le717/LDR-Importer.png?branch=master)](https://travis-ci.org/le717/LDR-Importer)
 A [Blender 2.6](http://www.blender.org) Importer script for the [LDraw Parts Library](http://www.ldraw.org).
 
 > LDraw&trade; is an open standard for LEGO CAD programs that allow the user to create virtual LEGO models and scenes. You can use it to document models

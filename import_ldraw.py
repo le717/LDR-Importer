@@ -110,11 +110,11 @@ try:
     exec(compile(lines, config_filename, 'exec'))
 
     # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
-    LDrawDirs[3] = ldraw_dir  # lint:ok
+    LDrawDirs[3] = ldraw_dir  # noqa # lint:ok
 
 # Suppress error when script is run the first time
 # and config.py does not yet exist
-except FileNotFoundError:  # lint:ok
+except FileNotFoundError:  # noqa # lint:ok
     pass
 
 # If we had an error, dump the traceback
@@ -764,11 +764,11 @@ Must be a .ldr or .dat''')
             mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
             # If LDrawDir does not exist, stop the import
-            if not os.path.isdir(LDrawDir):
+            if not os.path.isdir(LDrawDir):  # noqa # lint:ok
                 debugPrint(''''ERROR: Cannot find LDraw installation at
-{0}'''.format(LDrawDir))
+{0}'''.format(LDrawDir))  # noqa # lint:ok
                 self.report({'ERROR'}, '''Cannot find LDraw installation at
-{0}'''.format(LDrawDir))
+{0}'''.format(LDrawDir))  # noqa # lint:ok
                 return {'CANCELLED'}
 
             colors = {}
@@ -787,7 +787,7 @@ Must be a .ldr or .dat''')
 
             #FIXME v1.2 Rewrite - Split into seperate function
             # The CleanUp option was selected
-            if CleanUpOpt == "CleanUp":  # lint:ok
+            if CleanUpOpt == "CleanUp":  # noqa # lint:ok
                 debugPrint("CleanUp option selected")
 
                 # Select all the mesh
@@ -847,16 +847,16 @@ Check the console logs for more information.'''.format(type(e).__name__))
 def scanLDConfig(self):
     """Scan LDConfig to get the material color info."""
     # LDConfig.ldr does not exist for some reason
-    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):
+    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):  # noqa # lint:ok
         self.report({'ERROR'}, '''Could not find LDConfig.ldr at
 {0}
-Check the console logs for more information.'''.format(LDrawDir))
+Check the console logs for more information.'''.format(LDrawDir))  # noqa # lint:ok
 
         debugPrint('''ERROR: Could not find LDConfig.ldr at
-{0}'''.format(LDrawDir))
+{0}'''.format(LDrawDir))  # noqa # lint:ok
         return {'CANCELLED'}
 
-    with open(os.path.join(LDrawDir, "LDConfig.ldr"),
+    with open(os.path.join(LDrawDir, "LDConfig.ldr"),  # noqa # lint:ok
               "rt", encoding="utf_8") as ldconfig:
         ldconfig_lines = ldconfig.readlines()
 
