@@ -1085,14 +1085,16 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # The unofficial folder exists, search the standard folders
         if os.path.exists(os.path.join(LDrawDir, "unofficial")):
             paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
-            paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
-            # The user wants to use high-res primitives
+            # The user wants to use high-res unofficial primitives
             if WhatRes == "HighRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
-            # The user wants to use low-res primitives
+            # The user wants to use low-res unofficial primitives
             elif WhatRes == "LowRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
+
+            # Search in the `unofficial/p` folder
+            paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
         # Always search for parts in the `parts` folder
         paths.append(os.path.join(LDrawDir, "parts"))
