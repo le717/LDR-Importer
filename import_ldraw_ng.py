@@ -157,16 +157,20 @@ class LDrawParser:
         with open(filename, "r", encoding=...) as f:
             for lineno, line in enumerate(f, start=1):
                 split = [strip(item) for item in line.split()]
+                # BIG TODO: Error case handling.
+                # - Line has too many elements => warn user? Skip line?
+                # - Line has too few elements => skip line and warn user
+                # - Coordinates cannot be converted to float => skip line and warn user
+                # - (for subfiles) detect and skip circular references, including indirect ones...
                 if split[0] == "1":
                     # If we've found a subpart, append to subpart_info
                     # !!! We need to handle circular references here !!!
                     if len(split) < 15:
                         continue
-                        # TODO: Warn user
                     if len(split) > 15:
-                        pass # TODO: Warn user; also decide whether to skip line or parse it anyway...
+                        pass
                     # TODO: Handle colour
-                    x, y, z, a, b, c, d, e, f, g, h, i = line[2:14]
+                    x, y, z, a, b, c, d, e, f, g, h, i = map(float, line[2:14])
                     filename = line[14]
                     matrix = Matrix((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1))
 
@@ -174,22 +178,53 @@ class LDrawParser:
                 elif split[0] == "2":
                     # We've found a line! Nice and simple.
                     if len(split) < 8:
+                        continue
+                    x1, y1, z1, x2, y2, z2 = map(float, line[2:8])
+                    idx_1 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x1, y1, z1))
+                    idx_2 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x2, y2, z2))
+
+                    self.loaded_lines.append((idx_1, idx_2))
+                elif split[0] == "3":
+                    # Triangle!
+                    if len(split) < 11:
                         continue # Not enough data, TODO warn user
-                    x1, x2, y1, y2, z1, z2 = line[2:8] # TODO skip if too much data?
-                    point_a = Vector(x1, y1, z1)
-                    point_b = Vector(x2, y2, z2)
-                    idx_a = len(self.loaded_points)
-                    self.loaded_points.append(point_a)
-                    idx_b = len(self.loaded_points)
-                    self.loaded_points.append(point_b)
-                    self.loaded_lines.append((idx_a, idx_b))
+                    x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, line[2:11])
+                    idx_1 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x1, y1, z1))
+                    idx_2 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x2, y2, z2))
+                    idx_3 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x3, y3, z3))
+
+                    self.loaded_faces.append((idx_1, idx_2, idx_3))
+                elif split[0] == "4":
+                    # Quad!
+                    if len(split) < 11:
+                        continue # Not enough data, TODO warn user
+                    x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = map(float, line[2:14])
+                    idx_1 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x1, y1, z1))
+                    idx_2 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x2, y2, z2))
+                    idx_3 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x3, y3, z3))
+                    idx_4 = len(self.loaded_points)
+                    self.loaded_points.append(Vector(x4, y4, z4))
+
+                    self.loaded_faces.append((idx_1, idx_2, idx_3, idx_4))
+
                 # If we've found a primitive (line, tri, quad), add its points (Vector instances) to loaded_points
                 loaded_points.append(Vector(x, y, z))
                 #loaded_faces.append((indices, of, points))
-        loaded_mesh = bpy.data.meshes.new(filename)
-        loaded_mesh.from_pydata(loaded_points, loaded_lines, loaded_faces)
-        loaded_mesh.validate()
-        loaded_mesh.update()
+        if len(loaded_points) > 0:
+            loaded_mesh = bpy.data.meshes.new(filename)
+            loaded_mesh.from_pydata(loaded_points, loaded_lines, loaded_faces)
+            loaded_mesh.validate()
+            loaded_mesh.update()
+        else:
+            loaded_mesh = None
 
         # Create a new part class, put it in the cache, and return it.
         class LoadedPart(LDrawPart):
