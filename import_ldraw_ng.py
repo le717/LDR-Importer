@@ -42,7 +42,7 @@ from mathutils import Matrix, Vector
 
 class LDrawImportPreferences(AddonPreferences):
     bl_idname = __name__
-    ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH", default="/Users/linus/Downloads/ldraw/")
+    ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH")
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "ldraw_library_path")
