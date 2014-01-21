@@ -30,9 +30,11 @@ bl_info = {
     "category": "Import-Export"
 }
 
+import os
+
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty
+from bpy.props import StringProperty, FloatProperty
 from bpy_extras.io_utils import ImportHelper
 
 from mathutils import Matrix, Vector
@@ -40,7 +42,7 @@ from mathutils import Matrix, Vector
 
 class LDrawImportPreferences(AddonPreferences):
     bl_idname = __name__
-    ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH")
+    ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH", default="/Users/linus/Downloads/ldraw/")
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "ldraw_library_path")
@@ -101,13 +103,19 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             library_path = chosen_path
         else:
             self.report({"ERROR"}, 'Could not find parts library (looked in "{}"). Please check the addon preferences!'.format(chosen_path))
-            return {"CANCELLED"}
+            library_path = chosen_path
+            #return {"CANCELLED"}
         # Or should we do some guessing?
         #base_path_guesses = ["C:\\LDraw", "~/ldraw", "/Applications/ldraw"]
+        return [os.path.join(library_path, component) for component in ("parts",)]
 
     def execute(self, context):
-        search_paths = self.get_search_paths()
+        search_paths = self.get_search_paths(context)
         parser = LDrawParser(search_paths)
+
+        parser.search_paths.append(os.path.dirname(self.filepath))
+        parser.parse_part(self.filepath)()
+        return {"FINISHED"}
 
 
 
@@ -115,13 +123,14 @@ MAX_DEPTH = 64 # For ugly circular-reference protection
 
 class LDrawPart: # Base class for parts that should not be instantiated directly
     def __init__(self, parent=None, depth=0, transform=Matrix()):
-        self.obj = bpy.data.objects.new(name=self.part_name, data=self.mesh)
+        self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
         self.obj.parent = parent
         self.obj.matrix_local = transform
+        self.subparts = []
         if len(self.subpart_info) >= 1:
             if depth < MAX_DEPTH:
                 for subpart, subpart_matrix in self.subpart_info:
-                    self.subparts.append(subpart(parent=self.obj, depth=depth+1, matrix=subpart_matrix))
+                    self.subparts.append(subpart(parent=self.obj, depth=depth+1, transform=subpart_matrix))
             else:
                 self.report({'WARNING'}, "MAX_DEPTH exceeded; circular reference? Skipping subparts of {}".format(self.obj.name))
 
@@ -129,21 +138,21 @@ class LDrawPart: # Base class for parts that should not be instantiated directly
 
 
 class LDrawParser:
-    def __init__(self, searchpaths):
-        self.searchpaths = searchpaths
+    def __init__(self, search_paths):
+        self.search_paths = search_paths
         self.part_cache = {} # Keys = filenames, values = LDrawPart subclasses
 
     def find_and_parse_part(self, filename):
-        for testpath in self.searchpaths:
+        for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
                 return self.parse_part(path)
-        self.report({"WARNING"}, "Could not find part {}".format(filename))
+        print("Could not find part {}".format(filename))
         class NonFoundPart(LDrawPart):
             part_name = filename + ".NOTFOUND"
             mesh = None
             subpart_info = []
-        return LDrawPart # Fallback: Empty part
+        return NonFoundPart # Fallback: Empty part
 
     def parse_part(self, filename):
         if filename in self.part_cache:
@@ -152,72 +161,71 @@ class LDrawParser:
         loaded_points = [] # Points will be unique so we'll use an ordered dict (key = point, value = None)
         loaded_faces = [] # Groups of 3/4 indices
         loaded_lines = [] # Groups of 2 indices
-        subpart_info = [] # (LDrawPart subclass, Matrix instance) tuples
+        _subpart_info = [] # (LDrawPart subclass, Matrix instance) tuples
 
-        with open(filename, "r", encoding=...) as f:
+        with open(filename, "r", encoding="utf-8") as f: # TODO hack encoding
             for lineno, line in enumerate(f, start=1):
-                split = [strip(item) for item in line.split()]
+                split = [item.strip() for item in line.split()]
+                if len(split) == 0: continue
                 # BIG TODO: Error case handling.
                 # - Line has too many elements => warn user? Skip line?
                 # - Line has too few elements => skip line and warn user
                 # - Coordinates cannot be converted to float => skip line and warn user
                 # - (for subfiles) detect and skip circular references, including indirect ones...
                 if split[0] == "1":
-                    # If we've found a subpart, append to subpart_info
+                    # If we've found a subpart, append to _subpart_info
                     # !!! We need to handle circular references here !!!
                     if len(split) < 15:
                         continue
-                    if len(split) > 15:
-                        pass
                     # TODO: Handle colour
-                    x, y, z, a, b, c, d, e, f, g, h, i = map(float, line[2:14])
-                    filename = line[14]
-                    matrix = Matrix((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1))
+                    x, y, z, a, b, c, d, e, f, g, h, i = map(float, split[2:14])
+                    filename = split[14]
+                    matrix = Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
 
-                    subpart_info.append((self.find_and_parse_part(filename), matrix))
+                    _subpart_info.append((self.find_and_parse_part(filename), matrix))
+
                 elif split[0] == "2":
                     # We've found a line! Nice and simple.
                     if len(split) < 8:
                         continue
-                    x1, y1, z1, x2, y2, z2 = map(float, line[2:8])
-                    idx_1 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x1, y1, z1))
-                    idx_2 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x2, y2, z2))
+                    x1, y1, z1, x2, y2, z2 = map(float, split[2:8])
+                    idx_1 = len(loaded_points)
+                    loaded_points.append(Vector((x1, y1, z1)))
+                    idx_2 = len(loaded_points)
+                    loaded_points.append(Vector((x2, y2, z2)))
 
-                    self.loaded_lines.append((idx_1, idx_2))
+                    loaded_lines.append((idx_1, idx_2))
+
                 elif split[0] == "3":
                     # Triangle!
                     if len(split) < 11:
                         continue # Not enough data, TODO warn user
-                    x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, line[2:11])
-                    idx_1 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x1, y1, z1))
-                    idx_2 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x2, y2, z2))
-                    idx_3 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x3, y3, z3))
+                    x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, split[2:11])
+                    idx_1 = len(loaded_points)
+                    loaded_points.append(Vector((x1, y1, z1)))
+                    idx_2 = len(loaded_points)
+                    loaded_points.append(Vector((x2, y2, z2)))
+                    idx_3 = len(loaded_points)
+                    loaded_points.append(Vector((x3, y3, z3)))
 
-                    self.loaded_faces.append((idx_1, idx_2, idx_3))
+                    loaded_faces.append((idx_1, idx_2, idx_3))
+
                 elif split[0] == "4":
                     # Quad!
                     if len(split) < 11:
                         continue # Not enough data, TODO warn user
-                    x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = map(float, line[2:14])
-                    idx_1 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x1, y1, z1))
-                    idx_2 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x2, y2, z2))
-                    idx_3 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x3, y3, z3))
-                    idx_4 = len(self.loaded_points)
-                    self.loaded_points.append(Vector(x4, y4, z4))
+                    x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = map(float, split[2:14])
+                    idx_1 = len(loaded_points)
+                    loaded_points.append(Vector((x1, y1, z1)))
+                    idx_2 = len(loaded_points)
+                    loaded_points.append(Vector((x2, y2, z2)))
+                    idx_3 = len(loaded_points)
+                    loaded_points.append(Vector((x3, y3, z3)))
+                    idx_4 = len(loaded_points)
+                    loaded_points.append(Vector((x4, y4, z4)))
 
-                    self.loaded_faces.append((idx_1, idx_2, idx_3, idx_4))
+                    loaded_faces.append((idx_1, idx_2, idx_3, idx_4))
 
-                # If we've found a primitive (line, tri, quad), add its points (Vector instances) to loaded_points
-                loaded_points.append(Vector(x, y, z))
-                #loaded_faces.append((indices, of, points))
         if len(loaded_points) > 0:
             loaded_mesh = bpy.data.meshes.new(filename)
             loaded_mesh.from_pydata(loaded_points, loaded_lines, loaded_faces)
@@ -230,7 +238,7 @@ class LDrawParser:
         class LoadedPart(LDrawPart):
             mesh = loaded_mesh
             part_name = ".".join(filename.split(".")[:-1]) # Take off the .dat, .ldr, or whatever
-            subpart_info = subpart_info
+            subpart_info = _subpart_info
 
         self.part_cache[filename] = LoadedPart
         return LoadedPart
