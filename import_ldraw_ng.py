@@ -35,6 +35,8 @@ from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper
 
+from mathutils import Matrix, Vector
+
 
 class LDrawImportPreferences(AddonPreferences):
     bl_idname = __name__
@@ -153,10 +155,34 @@ class LDrawParser:
         subpart_info = [] # (LDrawPart subclass, Matrix instance) tuples
 
         with open(filename, "r", encoding=...) as f:
-            for line in f:
-                # If we've found a subpart, append to subpart_info
-                # !!! We need to handle circular references here !!!
-                subpart_info.append((self.find_and_parse_part(filename), Matrix(... transform data ...)))
+            for lineno, line in enumerate(f, start=1):
+                split = [strip(item) for item in line.split()]
+                if split[0] == "1":
+                    # If we've found a subpart, append to subpart_info
+                    # !!! We need to handle circular references here !!!
+                    if len(split) < 15:
+                        continue
+                        # TODO: Warn user
+                    if len(split) > 15:
+                        pass # TODO: Warn user; also decide whether to skip line or parse it anyway...
+                    # TODO: Handle colour
+                    x, y, z, a, b, c, d, e, f, g, h, i = line[2:14]
+                    filename = line[14]
+                    matrix = Matrix((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1))
+
+                    subpart_info.append((self.find_and_parse_part(filename), matrix))
+                elif split[0] == "2":
+                    # We've found a line! Nice and simple.
+                    if len(split) < 8:
+                        continue # Not enough data, TODO warn user
+                    x1, x2, y1, y2, z1, z2 = line[2:8] # TODO skip if too much data?
+                    point_a = Vector(x1, y1, z1)
+                    point_b = Vector(x2, y2, z2)
+                    idx_a = len(self.loaded_points)
+                    self.loaded_points.append(point_a)
+                    idx_b = len(self.loaded_points)
+                    self.loaded_points.append(point_b)
+                    self.loaded_lines.append((idx_a, idx_b))
                 # If we've found a primitive (line, tri, quad), add its points (Vector instances) to loaded_points
                 loaded_points.append(Vector(x, y, z))
                 #loaded_faces.append((indices, of, points))
