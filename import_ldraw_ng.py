@@ -19,7 +19,8 @@
 
 bl_info = {
     "name": "LDraw Importer NG",
-    "author": "David Pluntze, Triangle717, Banbury, Tribex, MinnieTheMoocher, rioforce, JrMasterModelBuilder, Linus Heckemann",
+    "author": ("David Pluntze, Triangle717, Banbury, Tribex, MinnieTheMoocher,"
+               " rioforce, JrMasterModelBuilder, Linus Heckemann"),
     "version": (0, 1),
     "blender": (2, 69, 0),
     "location": "File > Import",
@@ -93,9 +94,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
-    def get_search_paths(self, context): # TODO: Extend behaviour (look in appropriate LoD folders, maybe guess paths?)
-        search_paths = []
-
+    def get_search_paths(self, context):
+        # TODO: Look in LoD folders
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
         chosen_path = addon_prefs.ldraw_library_path
@@ -124,28 +124,37 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             if not library_path:
                 return
             library_path = chosen_path
-        return [os.path.join(library_path, component) for component in ("parts",)] # TODO add other path components, as appropriate considering LoD
+
+        return [os.path.join(library_path, component) for component in
+                (
+                    "parts",
+                    # ...
+                )]
 
     def execute(self, context):
         self.complete = True
         self.search_paths = self.get_search_paths(context)
-        self.part_cache = {} # Keys = filenames, values = LDrawPart subclasses
+        # Part cache - keys = filenames, values = LDrawPart subclasses
+        self.part_cache = {}
 
         self.search_paths = self.get_search_paths(context)
         if not self.search_paths:
-            self.report({"ERROR"}, 'Could not find parts library after looking in various common locations. Please check the addon preferences!')
+            self.report({"ERROR"}, ('Could not find parts library after'
+                                    'looking in various common locations.'
+                                    ' Please check the addon preferences!'))
             return {"CANCELLED"}
 
         self.search_paths.append(os.path.dirname(self.filepath))
         self.parse_part(self.filepath)().obj.matrix_world = Matrix((
-            ( 1.0,  0.0,  0.0,  0.0),
-            ( 0.0,  0.0, -1.0,  0.0),
-            ( 0.0, -1.0,  0.0,  0.0),
-            ( 0.0,  0.0,  0.0,  1.0)
+            ( 1.0,  0.0,  0.0,  0.0), # noqa
+            ( 0.0,  0.0, -1.0,  0.0), # noqa
+            ( 0.0, -1.0,  0.0,  0.0), # noqa
+            ( 0.0,  0.0,  0.0,  1.0)  # noqa
         )) * self.scale
 
         if not self.complete:
-            self.report({"WARNING"}, "Not all parts could be found. Check the console for a list.")
+            self.report({"WARNING"}, ("Not all parts could be found. "
+                                      "Check the console for a list."))
 
         return {"FINISHED"}
 
@@ -158,6 +167,7 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
 
         self.report({"WARNING"}, "Could not find part {}".format(filename))
         self.complete = False
+
         class NonFoundPart(LDrawPart):
             part_name = filename + ".NOTFOUND"
             mesh = None
@@ -169,7 +179,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         if filename in self.part_cache:
             return self.part_cache[filename]
 
-        loaded_points = [] # Points will be unique so we'll use an ordered dict (key = point, value = None)
+        loaded_points = [] # Points will be unique so we'll use an ordered dict
+                           # (key = point, value = None)
         loaded_faces = [] # Groups of 3/4 indices
         loaded_lines = [] # Groups of 2 indices
         _subpart_info = [] # (LDrawPart subclass, Matrix instance) tuples
@@ -177,23 +188,35 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         with open(filename, "r", encoding="utf-8") as f: # TODO hack encoding
             for lineno, line in enumerate(f, start=1):
                 split = [item.strip() for item in line.split()]
-                if len(split) == 0: continue
+                if len(split) == 0:
+                    continue
                 # BIG TODO: Error case handling.
                 # - Line has too many elements => warn user? Skip line?
                 # - Line has too few elements => skip line and warn user
-                # - Coordinates cannot be converted to float => skip line and warn user
-                # - (for subfiles) detect and skip circular references, including indirect ones...
+                # - Coordinates cannot be converted to float => skip line
+                #     and warn user
+                # - (for subfiles) detect and skip circular references,
+                #     including indirect ones...
                 if split[0] == "1":
                     # If we've found a subpart, append to _subpart_info
                     # !!! We need to handle circular references here !!!
                     if len(split) < 15:
                         continue
                     # TODO: Handle colour
-                    x, y, z, a, b, c, d, e, f, g, h, i = map(float, split[2:14])
-                    filename = split[14]
-                    matrix = Matrix(((a, b, c, x), (d, e, f, y), (g, h, i, z), (0, 0, 0, 1)))
 
-                    _subpart_info.append((self.find_and_parse_part(filename), matrix))
+                    # Load the matrix...
+                    translation = Vector(map(float, split[2:5]))
+
+                    m_row1 = [float(s) for s in split[5:8]]
+                    m_row2 = [float(s) for s in split[8:11]]
+                    m_row3 = [float(s) for s in split[11:14]]
+                    matrix = Matrix((m_row1, m_row2, m_row3)).to_4x4()
+                    matrix.translation = translation
+
+                    filename = split[14]
+                    part_class = self.find_and_parse_part(filename)
+
+                    _subpart_info.append((part_class, matrix))
 
                 elif split[0] == "2":
                     # We've found a line! Nice and simple.
