@@ -99,59 +99,70 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
         chosen_path = addon_prefs.ldraw_library_path
+        library_path = ""
         if os.path.isdir(chosen_path):
-            library_path = chosen_path
+            if os.path.isfile(os.path.join(chosen_path, "LDConfig.ldr")):
+                library_path = chosen_path
+            else:
+                self.report({"ERROR"}, 'Specified path ')
         else:
-            self.report({"ERROR"}, 'Could not find parts library (looked in "{}"). Please check the addon preferences!'.format(chosen_path))
+            path_guesses = [
+                r"C:\LDraw",
+                r"C:\Program Files\LDraw",
+                r"C:\Program Files (x86)\LDraw",
+                os.path.expanduser("~/ldraw"),
+                os.path.expanduser("~/LDraw"),
+                "/usr/local/share/ldraw",
+                "/opt/ldraw",
+                "/Applications/LDraw",
+                "/Applications/ldraw",
+            ]
+            for guess in path_guesses:
+                if os.path.isfile(os.path.join(guess, "LDConfig.ldr")):
+                    library_path = guess
+                    break
+            if not library_path:
+                return
             library_path = chosen_path
-            #return {"CANCELLED"}
-        # Or should we do some guessing?
-        #base_path_guesses = ["C:\\LDraw", "~/ldraw", "/Applications/ldraw"]
-        return [os.path.join(library_path, component) for component in ("parts",)]
+        return [os.path.join(library_path, component) for component in ("parts",)] # TODO add other path components, as appropriate considering LoD
 
     def execute(self, context):
-        search_paths = self.get_search_paths(context)
-        parser = LDrawParser(search_paths)
-
-        parser.search_paths.append(os.path.dirname(self.filepath))
-        parser.parse_part(self.filepath)()
-        return {"FINISHED"}
-
-
-
-MAX_DEPTH = 64 # For ugly circular-reference protection
-
-class LDrawPart: # Base class for parts that should not be instantiated directly
-    def __init__(self, parent=None, depth=0, transform=Matrix()):
-        self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
-        self.obj.parent = parent
-        self.obj.matrix_local = transform
-        self.subparts = []
-        if len(self.subpart_info) >= 1:
-            if depth < MAX_DEPTH:
-                for subpart, subpart_matrix in self.subpart_info:
-                    self.subparts.append(subpart(parent=self.obj, depth=depth+1, transform=subpart_matrix))
-            else:
-                self.report({'WARNING'}, "MAX_DEPTH exceeded; circular reference? Skipping subparts of {}".format(self.obj.name))
-
-        bpy.context.scene.objects.link(self.obj)
-
-
-class LDrawParser:
-    def __init__(self, search_paths):
-        self.search_paths = search_paths
+        self.complete = True
+        self.search_paths = self.get_search_paths(context)
         self.part_cache = {} # Keys = filenames, values = LDrawPart subclasses
 
+        self.search_paths = self.get_search_paths(context)
+        if not self.search_paths:
+            self.report({"ERROR"}, 'Could not find parts library after looking in various common locations. Please check the addon preferences!')
+            return {"CANCELLED"}
+
+        self.search_paths.append(os.path.dirname(self.filepath))
+        self.parse_part(self.filepath)().obj.matrix_world = Matrix((
+            ( 1.0,  0.0,  0.0,  0.0),
+            ( 0.0,  0.0, -1.0,  0.0),
+            ( 0.0, -1.0,  0.0,  0.0),
+            ( 0.0,  0.0,  0.0,  1.0)
+        )) * self.scale
+
+        if not self.complete:
+            self.report({"WARNING"}, "Not all parts could be found. Check the console for a list.")
+
+        return {"FINISHED"}
+
     def find_and_parse_part(self, filename):
+        filename = filename.replace("\\", os.pathsep)
         for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
                 return self.parse_part(path)
-        print("Could not find part {}".format(filename))
+
+        self.report({"WARNING"}, "Could not find part {}".format(filename))
+        self.complete = False
         class NonFoundPart(LDrawPart):
             part_name = filename + ".NOTFOUND"
             mesh = None
             subpart_info = []
+        self.part_cache[filename] = NonFoundPart
         return NonFoundPart # Fallback: Empty part
 
     def parse_part(self, filename):
@@ -243,6 +254,17 @@ class LDrawParser:
         self.part_cache[filename] = LoadedPart
         return LoadedPart
 
+class LDrawPart: # Base class for parts that should not be instantiated directly
+    def __init__(self, parent=None, depth=0, transform=Matrix()):
+        self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
+        self.obj.parent = parent
+        self.obj.matrix_local = transform
+        self.subparts = []
+        if len(self.subpart_info) >= 1:
+            for subpart, subpart_matrix in self.subpart_info:
+                self.subparts.append(subpart(parent=self.obj, depth=depth+1, transform=subpart_matrix))
+
+        bpy.context.scene.objects.link(self.obj)
 
 def menu_import(self, context):
     """Import menu listing label"""
