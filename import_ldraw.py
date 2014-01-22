@@ -27,8 +27,7 @@ bl_info = {
     "location": "File > Import",
     "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
-    #"tracker_url": "maybe"
-                #"soon",
+    "tracker_url": "https://github.com/le717/LDR-Importer/issues",
     "category": "Import-Export"}
 
 import os
@@ -42,7 +41,8 @@ from time import strftime
 import bpy
 from bpy.props import (StringProperty,
                        FloatProperty,
-                       EnumProperty
+                       EnumProperty,
+                       BoolProperty
                        )
 
 from bpy_extras.io_utils import ImportHelper
@@ -785,7 +785,7 @@ Must be a .ldr or .dat''')
             Cleanup can be disabled by user if wished.
             """
 
-            #FIXME v1.2 Rewrite - Split into seperate function
+            #FIXME v1.2 Rewrite - Split into separate function
             # The CleanUp option was selected
             if CleanUpOpt == "CleanUp":  # noqa
                 debugPrint("CleanUp option selected")
@@ -816,6 +816,26 @@ Must be a .ldr or .dat''')
                     edges = cur_obj.modifiers.new(
                         "Edge Split", type='EDGE_SPLIT')
                     edges.split_angle = 0.523599
+                    
+            #Gaps
+            if GapsOpt:
+                debugPrint("Gaps option selected")
+                
+                # Select all the mesh
+                for cur_obj in objects:
+                    cur_obj.select = True
+                    bpy.context.scene.objects.active = cur_obj
+                    if bpy.ops.object.mode_set.poll():
+
+                        # Change to edit mode
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_all(action='SELECT')
+                        #Adds Gaps Between Bricks
+                        bpy.ops.transform.resize(value=(0.99, 0.99, 0.99))
+                        if bpy.ops.object.mode_set.poll():
+
+                            # Go back to object mode
+                            bpy.ops.object.mode_set(mode='OBJECT')
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
@@ -969,6 +989,10 @@ cleanupOptions = (
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
+# GapsOption = (
+    # ("AddGaps", "Additional Options", "Add small spaces between each brick")
+# )
+
 primsOptions = (
     ("StandardRes", "Standard Primitives",
         "Import primitives using standard resolution"),
@@ -1046,6 +1070,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Model Cleanup Options",
         items=cleanupOptions
     )
+    
+    addGaps = BoolProperty(
+        name="Spaces Between Bricks",
+        description="Add small spaces between each brick",
+        default=False
+    )
 
     def draw(self, context):
         """Display model cleanup options"""
@@ -1059,13 +1089,16 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "resPrims", expand=True)
         box.label("Model Cleanup", icon='EDIT')
         box.prop(self, "cleanUpModel", expand=True)
+        box.label("Additional Options", icon='PREFERENCES')
+        box.prop(self, "addGaps")
 
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUpOpt
+        global LDrawDir, CleanUpOpt, GapsOpt
         LDrawDir = str(self.ldrawPath)
         WhatRes = str(self.resPrims)
         CleanUpOpt = str(self.cleanUpModel)
+        GapsOpt = bool(self.addGaps)
 
         # Clear array before adding data if it contains data already
         # Not doing so duplicates the indexes
