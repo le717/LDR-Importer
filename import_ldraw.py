@@ -20,7 +20,7 @@
 bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
-    "author": "David Pluntze, Triangle717, Banbury, Tribex, MinnieTheMoocher, rioforce, JrMasterModelBuilder",
+    "author": "The LDR Importer Developers and Contributors",
     "version": (1, 1, 5),
     "blender": (2, 67, 0),
     "api": 31236,
@@ -786,7 +786,7 @@ Must be a .ldr or .dat''')
             """
 
             #FIXME v1.2 Rewrite - Split into separate function
-            # The CleanUp option was selected
+            # The CleanUp import option was selected
             if CleanUpOpt == "CleanUp":  # noqa
                 debugPrint("CleanUp option selected")
 
@@ -816,11 +816,11 @@ Must be a .ldr or .dat''')
                     edges = cur_obj.modifiers.new(
                         "Edge Split", type='EDGE_SPLIT')
                     edges.split_angle = 0.523599
-                    
-            #Gaps
-            if GapsOpt:
+
+            # The Gaps import option was selected
+            if GapsOpt:  # noqa
                 debugPrint("Gaps option selected")
-                
+
                 # Select all the mesh
                 for cur_obj in objects:
                     cur_obj.select = True
@@ -830,7 +830,8 @@ Must be a .ldr or .dat''')
                         # Change to edit mode
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_all(action='SELECT')
-                        #Adds Gaps Between Bricks
+
+                        # Add small gaps between each brick
                         bpy.ops.transform.resize(value=(0.99, 0.99, 0.99))
                         if bpy.ops.object.mode_set.poll():
 
@@ -989,10 +990,7 @@ cleanupOptions = (
     ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
 )
 
-# GapsOption = (
-    # ("AddGaps", "Additional Options", "Add small spaces between each brick")
-# )
-
+# Primitives import options
 primsOptions = (
     ("StandardRes", "Standard Primitives",
         "Import primitives using standard resolution"),
@@ -1059,7 +1057,6 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     )
 
     resPrims = EnumProperty(
-        # Leave `name` blank for better display
         name="Resolution of part primitives",
         description="Resolution of part primitives",
         items=primsOptions
@@ -1070,7 +1067,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Model Cleanup Options",
         items=cleanupOptions
     )
-    
+
     addGaps = BoolProperty(
         name="Spaces Between Bricks",
         description="Add small spaces between each brick",

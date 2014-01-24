@@ -27,12 +27,12 @@ Guidelines to help you contribute to **LDR Importer** can be found in [CONTRIBUT
 
 # Contributors #
 
-The names of all who contribute get posted here for all to see! :smiley:
+The names of all who contribute are posted here for all to see! :smiley:
 
 * David Pluntze
 * [@le717](https://github.com/le717)
+* [@JrMasterModelBuilder](https://github.com/JrMasterModelBuilder)
+* [@rioforce](https://github.com/rioforce)
 * [@Banbury](https://github.com/Banbury)
 * [@Tribex](https://github.com/Tribex)
 * [@MinnieTheMoocher](https://github.com/MinnieTheMoocher)
-* [@rioforce](https://github.com/rioforce)
-* [@JrMasterModelBuilder](https://github.com/JrMasterModelBuilder)
