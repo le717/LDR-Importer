@@ -36,3 +36,7 @@ The names of all who contribute are posted here for all to see! :smiley:
 * [@Banbury](https://github.com/Banbury)
 * [@Tribex](https://github.com/Tribex)
 * [@MinnieTheMoocher](https://github.com/MinnieTheMoocher)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/le717/ldr-importer/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
