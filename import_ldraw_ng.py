@@ -35,7 +35,7 @@ import os
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, FloatProperty
+from bpy.props import StringProperty, FloatProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper
 
 from mathutils import Matrix, Vector
@@ -44,6 +44,7 @@ from mathutils import Matrix, Vector
 class LDrawImportPreferences(AddonPreferences):
     bl_idname = __name__
     ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH")
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "ldraw_library_path")
@@ -71,12 +72,19 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         default=0.05
     )
 
-    """resPrims = EnumProperty(
+    resPrims = EnumProperty(
         # Leave `name` blank for better display
         name="Resolution of part primitives",
         description="Resolution of part primitives",
-        items=primsOptions
-    )"""
+        items=(
+            ("", "Standard primitives",
+                "Import primitives using standard resolution"),
+            ("48", "High resolution primitives",
+                "Import primitives using high resolution"),
+            ("8", "Low resolution primitives",
+                "Import primitives using low resolution")
+        )
+    )
 
     """cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
@@ -90,22 +98,22 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         box = layout.box()
         box.label("Import Options", icon='SCRIPTWIN')
         box.prop(self, "scale")
-        #box.label("Primitives", icon='MOD_BUILD')
-        #box.prop(self, "resPrims", expand=True)
+        box.label("Primitives", icon='MOD_BUILD')
+        box.prop(self, "resPrims", expand=True)
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
     def get_search_paths(self, context):
-        # TODO: Look in LoD folders
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
         chosen_path = addon_prefs.ldraw_library_path
         library_path = ""
-        if os.path.isdir(chosen_path):
+        if chosen_path.strip() != "":
             if os.path.isfile(os.path.join(chosen_path, "LDConfig.ldr")):
                 library_path = chosen_path
             else:
-                self.report({"ERROR"}, 'Specified path ')
+                self.report({"ERROR"}, 'Specified path {} does not exist'.format(chosen_path))
+                return
         else:
             path_guesses = [
                 r"C:\LDraw",
@@ -124,18 +132,21 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                     break
             if not library_path:
                 return
-            library_path = chosen_path
 
-        return [os.path.join(library_path, component) for component in
-                (
-                    "parts",
-                    # ...
-                )]
+        subdirs = ["models", "parts", "p"]
+        unofficial_path = os.path.join(library_path, "unofficial")
+        if os.path.isdir(unofficial_path):
+            subdirs.append(os.path.join("unofficial", "parts"))
+            subdirs.append(os.path.join("unofficial", "p"))
+            subdirs.append(os.path.join("unofficial", "p", str(self.resPrims)))
+
+        subdirs.append(os.path.join("p", str(self.resPrims)))
+
+        return [os.path.join(library_path, component) for component in subdirs]
 
     def execute(self, context):
         self.complete = True
         self.no_mesh_errors = True
-        self.search_paths = self.get_search_paths(context)
         # Part cache - keys = filenames, values = LDrawPart subclasses
         self.part_cache = {}
 
@@ -145,8 +156,9 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                                     'looking in various common locations.'
                                     ' Please check the addon preferences!'))
             return {"CANCELLED"}
+        self.report({"INFO"}, "Search paths are {}".format(self.search_paths))
 
-        self.search_paths.append(os.path.dirname(self.filepath))
+        self.search_paths.insert(0, os.path.dirname(self.filepath))
         self.parse_part(self.filepath)().obj.matrix_world = Matrix((
             ( 1.0,  0.0,  0.0,  0.0), # noqa
             ( 0.0,  0.0, -1.0,  0.0), # noqa
@@ -161,7 +173,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         return {"FINISHED"}
 
     def find_and_parse_part(self, filename):
-        filename = filename.replace("\\", os.pathsep)
+        filename = filename.replace("\\", os.sep)
+        filename = filename.replace(":", os.sep)
         for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
