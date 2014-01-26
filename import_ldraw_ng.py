@@ -87,6 +87,20 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         )
     )
 
+    mergeParts = EnumProperty(
+        # Leave `name` blank for better display
+        name="Merge parts",
+        description="Merge the models from the subfiles into one mesh",
+        items=(
+            ("NO_MERGE", "No merge",
+                "Do not merge any meshes"),
+            ("MERGE_TOPLEVEL_PARTS", "Merge top-level parts",
+                "Merge the children of the base model with all their children"),
+            ("MERGE_EVERYTHING", "Merge everything",
+                "Merge the whole model into one mesh")
+        )
+    )
+
     """cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
@@ -101,6 +115,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         box.prop(self, "scale")
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
+        box.label("Merge parts", icon='MOD_BOOLEAN')
+        box.prop(self, "mergeParts", expand=True)
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
@@ -173,6 +189,47 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         if not self.complete:
             self.report({"WARNING"}, ("Not all parts could be found. "
                                       "Check the console for a list."))
+        if not self.no_mesh_errors:
+            self.report({"WARNING"}, "Some of the meshes loaded contained errors.")
+
+        if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
+            for part in model.obj.children:
+                if part.type == "EMPTY":
+                    name = part.name
+                    empty_mesh = bpy.data.meshes.new(name=part.name)
+                    part_replacement = bpy.data.objects.new(name=part.name, object_data=empty_mesh)
+                    part_replacement.parent = part.parent
+                    part_replacement.matrix_local = part.matrix_local
+                    bpy.context.scene.objects.link(part_replacement)
+                    for child in part.children:
+                        child.parent = part_replacement
+                    bpy.context.scene.objects.unlink(part)
+                    part = part_replacement
+                    part.name = name
+                    part.parent = model.obj
+
+                bpy.context.scene.objects.active = part
+                bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
+                part.select = True
+                bpy.ops.object.join()
+        elif str(self.mergeParts) == "MERGE_EVERYTHING":
+            if model.obj.type == "EMPTY":
+                name = model.obj.name
+                empty_mesh = bpy.data.meshes.new(name=model.obj.name)
+                model.obj_replacement = bpy.data.objects.new(name=model.obj.name, object_data=empty_mesh)
+                model.obj_replacement.parent = model.obj.parent
+                model.obj_replacement.matrix_local = model.obj.matrix_local
+                bpy.context.scene.objects.link(model.obj_replacement)
+                for child in model.obj.children:
+                    child.parent = model.obj_replacement
+                bpy.context.scene.objects.unlink(model.obj)
+                model.obj = model.obj_replacement
+                model.obj.name = name
+
+            bpy.context.scene.objects.active = model.obj
+            bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
+            model.obj.select = True
+            bpy.ops.object.join()
 
         return {"FINISHED"}
 
