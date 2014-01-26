@@ -48,6 +48,7 @@ class LDrawImportPreferences(AddonPreferences):
         layout = self.layout
         layout.prop(self, "ldraw_library_path")
 
+
 class LDrawImportOperator(bpy.types.Operator, ImportHelper):
     """LDraw part import operator"""
     bl_idname = "import_scene.ldraw"
@@ -133,6 +134,7 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         self.complete = True
+        self.no_mesh_errors = True
         self.search_paths = self.get_search_paths(context)
         # Part cache - keys = filenames, values = LDrawPart subclasses
         self.part_cache = {}
@@ -165,6 +167,12 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             if os.path.isfile(path):
                 return self.parse_part(path)
 
+        # If we haven't returned by now, the part hasn't been found.
+        # We will therefore send a warning, create a class for the missing part,
+        # put it in the cache, and return it.
+        #
+        # The object created by this class will be an empty, because its mesh
+        # attribute is set to None.
         self.report({"WARNING"}, "Could not find part {}".format(filename))
         self.complete = False
 
@@ -173,21 +181,25 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             mesh = None
             subpart_info = []
         self.part_cache[filename] = NonFoundPart
-        return NonFoundPart # Fallback: Empty part
+        return NonFoundPart
 
     def parse_part(self, filename):
         if filename in self.part_cache:
             return self.part_cache[filename]
 
-        loaded_points = [] # Points will be unique so we'll use an ordered dict
-                           # (key = point, value = None)
-        loaded_faces = [] # Groups of 3/4 indices
-        loaded_lines = [] # Groups of 2 indices
-        _subpart_info = [] # (LDrawPart subclass, Matrix instance) tuples
+        # Points are Vector instances
+        # Faces are tuples of 3/4 point indices
+        # Lines are tuples of 2 point indices
+        # Subpart info contains tuples of the form (LDrawPart subclass, Matrix instance)
+        loaded_points = []
+        loaded_faces = []
+        loaded_lines = []
+        _subpart_info = []
 
-        with open(filename, "r", encoding="utf-8") as f: # TODO hack encoding
+        with open(filename, "r", encoding="utf-8") as f:  # TODO hack encoding
             for lineno, line in enumerate(f, start=1):
                 split = [item.strip() for item in line.split()]
+                # Skip blank lines
                 if len(split) == 0:
                     continue
                 # BIG TODO: Error case handling.
@@ -197,6 +209,18 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                 #     and warn user
                 # - (for subfiles) detect and skip circular references,
                 #     including indirect ones...
+
+                def element_from_points(length, values):
+                    indices = []
+                    values = [float(s) for s in values]
+                    if len(values) < length * 3:
+                        raise ValueError("Not enough values for {} points".format(length))
+                    for point_n in range(length):
+                        x, y, z = values[point_n * 3:point_n * 3 + 3]
+                        indices.append(len(loaded_points))
+                        loaded_points.append(Vector((x, y, z)))
+                    return indices
+
                 if split[0] == "1":
                     # If we've found a subpart, append to _subpart_info
                     # !!! We need to handle circular references here !!!
@@ -205,8 +229,9 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                     # TODO: Handle colour
 
                     # Load the matrix...
-                    translation = Vector(map(float, split[2:5]))
-
+                    # Line structure is translation(3), first row(3), second row(3), third row(3)
+                    # We can convert this into a homogeneous matrix, thanks blender!
+                    translation = Vector([float(s) for s in split[2:5]])
                     m_row1 = [float(s) for s in split[5:8]]
                     m_row2 = [float(s) for s in split[8:11]]
                     m_row3 = [float(s) for s in split[11:14]]
@@ -219,46 +244,28 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                     _subpart_info.append((part_class, matrix))
 
                 elif split[0] == "2":
-                    # We've found a line! Nice and simple.
-                    if len(split) < 8:
+                    try:
+                        line = element_from_points(2, split[2:8])
+                    except ValueError:
+                        self.no_mesh_errors = False
                         continue
-                    x1, y1, z1, x2, y2, z2 = map(float, split[2:8])
-                    idx_1 = len(loaded_points)
-                    loaded_points.append(Vector((x1, y1, z1)))
-                    idx_2 = len(loaded_points)
-                    loaded_points.append(Vector((x2, y2, z2)))
-
-                    loaded_lines.append((idx_1, idx_2))
+                    loaded_lines.append(line)
 
                 elif split[0] == "3":
-                    # Triangle!
-                    if len(split) < 11:
-                        continue # Not enough data, TODO warn user
-                    x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, split[2:11])
-                    idx_1 = len(loaded_points)
-                    loaded_points.append(Vector((x1, y1, z1)))
-                    idx_2 = len(loaded_points)
-                    loaded_points.append(Vector((x2, y2, z2)))
-                    idx_3 = len(loaded_points)
-                    loaded_points.append(Vector((x3, y3, z3)))
-
-                    loaded_faces.append((idx_1, idx_2, idx_3))
+                    try:
+                        tri = element_from_points(3, split[2:11])
+                    except ValueError:
+                        self.no_mesh_errors = False
+                        continue
+                    loaded_faces.append(tri)
 
                 elif split[0] == "4":
-                    # Quad!
-                    if len(split) < 11:
-                        continue # Not enough data, TODO warn user
-                    x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = map(float, split[2:14])
-                    idx_1 = len(loaded_points)
-                    loaded_points.append(Vector((x1, y1, z1)))
-                    idx_2 = len(loaded_points)
-                    loaded_points.append(Vector((x2, y2, z2)))
-                    idx_3 = len(loaded_points)
-                    loaded_points.append(Vector((x3, y3, z3)))
-                    idx_4 = len(loaded_points)
-                    loaded_points.append(Vector((x4, y4, z4)))
-
-                    loaded_faces.append((idx_1, idx_2, idx_3, idx_4))
+                    try:
+                        quad = element_from_points(4, split[2:14])
+                    except ValueError:
+                        self.no_mesh_errors = False
+                        continue
+                    loaded_faces.append(quad)
 
         if len(loaded_points) > 0:
             loaded_mesh = bpy.data.meshes.new(filename)
@@ -271,13 +278,15 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         # Create a new part class, put it in the cache, and return it.
         class LoadedPart(LDrawPart):
             mesh = loaded_mesh
-            part_name = ".".join(filename.split(".")[:-1]) # Take off the .dat, .ldr, or whatever
+            part_name = ".".join(filename.split(".")[:-1])   # Take off the file extensions
             subpart_info = _subpart_info
 
         self.part_cache[filename] = LoadedPart
         return LoadedPart
 
-class LDrawPart: # Base class for parts that should not be instantiated directly
+
+class LDrawPart:
+    """Base class for parts/models/subfiles. Should not be instantiated directly!"""
     def __init__(self, parent=None, depth=0, transform=Matrix()):
         self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
         self.obj.parent = parent
@@ -285,18 +294,21 @@ class LDrawPart: # Base class for parts that should not be instantiated directly
         self.subparts = []
         if len(self.subpart_info) >= 1:
             for subpart, subpart_matrix in self.subpart_info:
-                self.subparts.append(subpart(parent=self.obj, depth=depth+1, transform=subpart_matrix))
+                self.subparts.append(subpart(parent=self.obj, depth=depth + 1, transform=subpart_matrix))
 
         bpy.context.scene.objects.link(self.obj)
+
 
 def menu_import(self, context):
     """Import menu listing label"""
     self.layout.operator(LDrawImportOperator.bl_idname, text="LDraw (.ldr/.dat)")
 
+
 def register():
     """Register Menu Listing"""
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_import)
+
 
 def unregister():
     """Unregister Menu Listing"""
