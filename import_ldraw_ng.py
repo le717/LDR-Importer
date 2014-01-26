@@ -43,7 +43,8 @@ from mathutils import Matrix, Vector
 
 class LDrawImportPreferences(AddonPreferences):
     bl_idname = __name__
-    ldraw_library_path = StringProperty(name="LDraw Library path", subtype="DIR_PATH")
+    ldraw_library_path = StringProperty(name="LDraw Library path",
+                                        subtype="DIR_PATH")
 
     def draw(self, context):
         layout = self.layout
@@ -112,7 +113,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             if os.path.isfile(os.path.join(chosen_path, "LDConfig.ldr")):
                 library_path = chosen_path
             else:
-                self.report({"ERROR"}, 'Specified path {} does not exist'.format(chosen_path))
+                self.report({"ERROR"},
+                            'Specified path %s does not exist' % chosen_path)
                 return
         else:
             path_guesses = [
@@ -159,7 +161,9 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         self.report({"INFO"}, "Search paths are {}".format(self.search_paths))
 
         self.search_paths.insert(0, os.path.dirname(self.filepath))
-        self.parse_part(self.filepath)().obj.matrix_world = Matrix((
+        model = self.parse_part(self.filepath)()
+
+        model.obj.matrix_world = Matrix((
             ( 1.0,  0.0,  0.0,  0.0), # noqa
             ( 0.0,  0.0, -1.0,  0.0), # noqa
             ( 0.0, -1.0,  0.0,  0.0), # noqa
@@ -175,14 +179,18 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
     def find_and_parse_part(self, filename):
         filename = filename.replace("\\", os.sep)
         filename = filename.replace(":", os.sep)
+        if filename in self.part_cache:
+            return self.part_cache[filename]
         for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
-                return self.parse_part(path)
+                LoadedPart = self.parse_part(path)
+                self.part_cache[filename] = LoadedPart
+                return LoadedPart
 
         # If we haven't returned by now, the part hasn't been found.
-        # We will therefore send a warning, create a class for the missing part,
-        # put it in the cache, and return it.
+        # We will therefore send a warning, create a class for the missing
+        # part, put it in the cache, and return it.
         #
         # The object created by this class will be an empty, because its mesh
         # attribute is set to None.
@@ -203,7 +211,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         # Points are Vector instances
         # Faces are tuples of 3/4 point indices
         # Lines are tuples of 2 point indices
-        # Subpart info contains tuples of the form (LDrawPart subclass, Matrix instance)
+        # Subpart info contains tuples of the form
+        #    (LDrawPart subclass, Matrix instance)
         loaded_points = []
         loaded_faces = []
         loaded_lines = []
@@ -294,7 +303,6 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             part_name = ".".join(filename.split(".")[:-1])   # Take off the file extensions
             subpart_info = _subpart_info
 
-        self.part_cache[filename] = LoadedPart
         return LoadedPart
 
 
