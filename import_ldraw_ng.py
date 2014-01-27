@@ -18,16 +18,16 @@
 ###### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "LDraw Importer NG",
-    "author": ("David Pluntze, Triangle717, Banbury, Tribex, MinnieTheMoocher,"
-               " rioforce, JrMasterModelBuilder, Linus Heckemann"),
+    "name": "LDR Importer NG",
+    "description": "Import LDraw models in .ldr and .dat format",
+    "author": "The LDR Importer Developers and Contributors",
     "version": (0, 1),
     "blender": (2, 69, 0),
+    #"api": 31236,
     "location": "File > Import",
-    "description": "Imports LDraw parts",
     "warning": "No materials!",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",  # noqa
+    "tracker_url": "https://github.com/le717/LDR-Importer/issues",
     "category": "Import-Export"
 }
 
@@ -52,10 +52,10 @@ class LDrawImportPreferences(AddonPreferences):
 
 
 class LDrawImportOperator(bpy.types.Operator, ImportHelper):
-    """LDraw part import operator"""
-    bl_idname = "import_scene.ldraw"
+    """LDR Importer Operator"""
+    bl_idname = "import_scene.ldraw_ng"
     bl_description = "Import an LDraw model (.ldr/.dat)"
-    bl_label = "Import LDraw Model"
+    bl_label = "Import LDraw Model - NG"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'REGISTER', 'UNDO'}
@@ -164,10 +164,10 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         model = self.parse_part(self.filepath)()
 
         model.obj.matrix_world = Matrix((
-            ( 1.0,  0.0,  0.0,  0.0), # noqa
-            ( 0.0,  0.0, -1.0,  0.0), # noqa
-            ( 0.0, -1.0,  0.0,  0.0), # noqa
-            ( 0.0,  0.0,  0.0,  1.0)  # noqa
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0)
         )) * self.scale
 
         if not self.complete:
@@ -236,7 +236,7 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                     indices = []
                     values = [float(s) for s in values]
                     if len(values) < length * 3:
-                        raise ValueError("Not enough values for {} points".format(length))
+                        raise ValueError("Not enough values for {0} points".format(length))
                     for point_n in range(length):
                         x, y, z = values[point_n * 3:point_n * 3 + 3]
                         indices.append(len(loaded_points))
@@ -300,14 +300,17 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         # Create a new part class, put it in the cache, and return it.
         class LoadedPart(LDrawPart):
             mesh = loaded_mesh
-            part_name = ".".join(filename.split(".")[:-1])   # Take off the file extensions
+            # Take off the file extensions
+            part_name = ".".join(filename.split(".")[:-1])
             subpart_info = _subpart_info
 
         return LoadedPart
 
 
 class LDrawPart:
-    """Base class for parts/models/subfiles. Should not be instantiated directly!"""
+    """
+    Base class for parts/models/subfiles. Should not be instantiated directly!
+    """
     def __init__(self, parent=None, depth=0, transform=Matrix()):
         self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
         self.obj.parent = parent
@@ -322,7 +325,8 @@ class LDrawPart:
 
 def menu_import(self, context):
     """Import menu listing label"""
-    self.layout.operator(LDrawImportOperator.bl_idname, text="LDraw (.ldr/.dat)")
+    self.layout.operator(LDrawImportOperator.bl_idname,
+                         text="LDraw - NG (.ldr/.dat)")
 
 
 def register():
