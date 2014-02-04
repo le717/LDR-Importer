@@ -32,6 +32,7 @@ bl_info = {
 }
 
 import os
+from time import strftime
 
 import bpy
 from bpy.types import AddonPreferences
@@ -41,17 +42,27 @@ from bpy_extras.io_utils import ImportHelper
 from mathutils import Matrix, Vector
 
 
-class LDrawImportPreferences(AddonPreferences):
+def debugPrint(*myInput):
+    """Debug print with identification timestamp"""
+    myOutput = [str(say) for say in myInput]
+
+    print("\n[LDR Importer] {0} - {1}\n".format(
+        " ".join(myOutput), strftime("%H:%M:%S")))
+
+
+class LDRImporterPreferences(AddonPreferences):
+    """LDR Importer Preferences"""
     bl_idname = __name__
     ldraw_library_path = StringProperty(name="LDraw Library path",
-                                        subtype="DIR_PATH")
+                                        subtype="DIR_PATH"
+                                        )
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "ldraw_library_path")
 
 
-class LDrawImportOperator(bpy.types.Operator, ImportHelper):
+class LDRImporterOperator(bpy.types.Operator, ImportHelper):
     """LDR Importer Operator"""
     bl_idname = "import_scene.ldraw_ng"
     bl_description = "Import an LDraw model (.ldr/.dat)"
@@ -74,7 +85,6 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
     )
 
     resPrims = EnumProperty(
-        # Leave `name` blank for better display
         name="Resolution of part primitives",
         description="Resolution of part primitives",
         items=(
@@ -104,7 +114,11 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
-    def get_search_paths(self, context):
+    def findLDrawDir(self, context):
+        """
+        Attempt to detect Parts Library location
+        and populate set proper part search folders.
+        """
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
         chosen_path = addon_prefs.ldraw_library_path
@@ -114,7 +128,8 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                 library_path = chosen_path
             else:
                 self.report({"ERROR"},
-                            'Specified path %s does not exist' % chosen_path)
+                            "Specified path {0} does not exist".format(
+                                chosen_path))
                 return
         else:
             path_guesses = [
@@ -152,22 +167,22 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         # Part cache - keys = filenames, values = LDrawPart subclasses
         self.part_cache = {}
 
-        self.search_paths = self.get_search_paths(context)
+        self.search_paths = self.findLDrawDir(context)
         if not self.search_paths:
-            self.report({"ERROR"}, ('Could not find parts library after'
-                                    'looking in various common locations.'
-                                    ' Please check the addon preferences!'))
+            self.report({"ERROR"}, ("Could not find LDraw Parts Library"
+                                    " after looking in common locations."
+                                    " Please check the addon preferences!"))
             return {"CANCELLED"}
-        self.report({"INFO"}, "Search paths are {}".format(self.search_paths))
+        self.report({"INFO"}, "Search paths are {0}".format(self.search_paths))
 
         self.search_paths.insert(0, os.path.dirname(self.filepath))
         model = self.parse_part(self.filepath)()
 
         model.obj.matrix_world = Matrix((
-            (1.0, 0.0, 0.0, 0.0),
-            (0.0, 0.0, -1.0, 0.0),
-            (0.0, -1.0, 0.0, 0.0),
-            (0.0, 0.0, 0.0, 1.0)
+            (1.0,  0.0,  0.0,  0.0),  # noqa
+            (0.0,  0.0, -1.0,  0.0),  # noqa
+            (0.0, -1.0,  0.0,  0.0),  # noqa
+            (0.0,  0.0,  0.0,  1.0)   # noqa
         )) * self.scale
 
         if not self.complete:
@@ -188,13 +203,15 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                 self.part_cache[filename] = LoadedPart
                 return LoadedPart
 
-        # If we haven't returned by now, the part hasn't been found.
-        # We will therefore send a warning, create a class for the missing
-        # part, put it in the cache, and return it.
-        #
-        # The object created by this class will be an empty, because its mesh
-        # attribute is set to None.
-        self.report({"WARNING"}, "Could not find part {}".format(filename))
+        """
+        If we haven't returned by now, the part hasn't been found.
+        We will therefore send a warning, create a class for the missing
+        part, put it in the cache, and return it.
+
+        The object created by this class will be an empty, because its mesh
+        attribute is set to None.
+        """
+        self.report({"WARNING"}, "Could not find part {0}".format(filename))
         self.complete = False
 
         class NonFoundPart(LDrawPart):
@@ -309,34 +326,40 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
 
 class LDrawPart:
     """
-    Base class for parts/models/subfiles. Should not be instantiated directly!
+    Base class for parts/models/subfiles.
+    Should not be instantiated directly!
     """
     def __init__(self, parent=None, depth=0, transform=Matrix()):
-        self.obj = bpy.data.objects.new(name=self.part_name, object_data=self.mesh)
+        self.obj = bpy.data.objects.new(name=self.part_name,
+                                        object_data=self.mesh
+                                        )
         self.obj.parent = parent
         self.obj.matrix_local = transform
         self.subparts = []
         if len(self.subpart_info) >= 1:
             for subpart, subpart_matrix in self.subpart_info:
-                self.subparts.append(subpart(parent=self.obj, depth=depth + 1, transform=subpart_matrix))
+                self.subparts.append(subpart(
+                    parent=self.obj,
+                    depth=depth + 1,
+                    transform=subpart_matrix))
 
         bpy.context.scene.objects.link(self.obj)
 
 
 def menu_import(self, context):
-    """Import menu listing label"""
-    self.layout.operator(LDrawImportOperator.bl_idname,
+    """Import menu listing"""
+    self.layout.operator(LDRImporterOperator.bl_idname,
                          text="LDraw - NG (.ldr/.dat)")
 
 
 def register():
-    """Register Menu Listing"""
+    """Register menu misting"""
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_import)
 
 
 def unregister():
-    """Unregister Menu Listing"""
+    """Unregister menu listing"""
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
