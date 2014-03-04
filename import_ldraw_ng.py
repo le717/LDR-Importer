@@ -178,11 +178,12 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         self.search_paths.insert(0, os.path.dirname(self.filepath))
         model = self.parse_part(self.filepath)()
 
+        # Rotate model to proper LDraw orientation
         model.obj.matrix_world = Matrix((
-            (1.0,  0.0,  0.0,  0.0),  # noqa
-            (0.0,  0.0, -1.0,  0.0),  # noqa
-            (0.0, -1.0,  0.0,  0.0),  # noqa
-            (0.0,  0.0,  0.0,  1.0)   # noqa
+            (1.0,  0.0, 0.0, 0.0),  # noqa
+            (0.0,  0.0, 1.0, 0.0),  # noqa
+            (0.0, -1.0, 0.0, 0.0),
+            (0.0,  0.0, 0.0, 1.0)   # noqa
         )) * self.scale
 
         if not self.complete:
@@ -191,9 +192,16 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
 
         return {"FINISHED"}
 
-    def find_and_parse_part(self, filename):
-        filename = filename.replace("\\", os.sep)
-        filename = filename.replace(":", os.sep)
+    def findParsePart(self, filename):
+
+        # Use OS native path separators
+        if "\\" in filename:
+            filename = filename.replace("\\", os.path.sep)
+
+        # Remove possible colons in filenames
+        #TODO: Expand to use a regex search for all illegal characters on Windows
+        if ":" in filename:
+            filename = filename.replace(":", os.path.sep)
         if filename in self.part_cache:
             return self.part_cache[filename]
         for testpath in self.search_paths:
@@ -235,13 +243,13 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         loaded_lines = []
         _subpart_info = []
 
-        with open(filename, "r", encoding="utf-8") as f:  # TODO hack encoding
+        with open(filename, "r", encoding="utf-8") as f:  #FIXME: hack encoding
             for lineno, line in enumerate(f, start=1):
                 split = [item.strip() for item in line.split()]
                 # Skip blank lines
                 if len(split) == 0:
                     continue
-                # BIG TODO: Error case handling.
+                #TODO: BIG: Error case handling.
                 # - Line has too many elements => warn user? Skip line?
                 # - Line has too few elements => skip line and warn user
                 # - Coordinates cannot be converted to float => skip line
@@ -265,7 +273,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                     # !!! We need to handle circular references here !!!
                     if len(split) < 15:
                         continue
-                    # TODO: Handle colour
+                    #TODO: Handle colour
 
                     # Load the matrix...
                     # Line structure is translation(3), first row(3), second row(3), third row(3)
@@ -278,7 +286,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                     matrix.translation = translation
 
                     filename = split[14]
-                    part_class = self.find_and_parse_part(filename)
+                    part_class = self.findParsePart(filename)
 
                     _subpart_info.append((part_class, matrix))
 
@@ -314,8 +322,8 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         else:
             loaded_mesh = None
 
-        # Create a new part class, put it in the cache, and return it.
         class LoadedPart(LDrawPart):
+            """Create a new part class, put it in the cache, and return it."""
             mesh = loaded_mesh
             # Take off the file extensions
             part_name = ".".join(filename.split(".")[:-1])
