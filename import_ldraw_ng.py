@@ -271,7 +271,6 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
         #    (LDrawPart subclass, Matrix instance)
         loaded_points = []
         loaded_faces = []
-        loaded_lines = []
         _subpart_info = []
 
         with open(filename, "r", encoding="utf-8") as f:  # TODO hack encoding
@@ -321,14 +320,6 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
 
                     _subpart_info.append((part_class, matrix))
 
-                elif split[0] == "2":
-                    try:
-                        line = element_from_points(2, split[2:8])
-                    except ValueError:
-                        self.no_mesh_errors = False
-                        continue
-                    loaded_lines.append(line)
-
                 elif split[0] == "3":
                     try:
                         tri = element_from_points(3, split[2:11])
@@ -345,21 +336,24 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
                         continue
                     loaded_faces.append(quad)
 
-        if len(loaded_points) > 0:
+        if len(loaded_faces) > 0:
             loaded_mesh = bpy.data.meshes.new(filename)
-            loaded_mesh.from_pydata(loaded_points, loaded_lines, loaded_faces)
+            loaded_mesh.from_pydata(loaded_points, [], loaded_faces)
             loaded_mesh.validate()
             loaded_mesh.update()
         else:
             loaded_mesh = None
 
-        # Create a new part class, put it in the cache, and return it.
-        class LoadedPart(LDrawPart):
-            mesh = loaded_mesh
-            part_name = ".".join(filename.split(".")[:-1])   # Take off the file extensions
-            subpart_info = _subpart_info
+        if len(_subpart_info) > 0 or loaded_mesh:
+            # Create a new part class and return it.
+            class LoadedPart(LDrawPart):
+                mesh = loaded_mesh
+                part_name = ".".join(filename.split(".")[:-1])   # Take off the file extensions
+                subpart_info = _subpart_info
 
-        return LoadedPart
+            return LoadedPart
+        else:
+            return NullPart
 
 
 class LDrawPart:
@@ -374,6 +368,12 @@ class LDrawPart:
                 self.subparts.append(subpart(parent=self.obj, depth=depth + 1, transform=subpart_matrix))
 
         bpy.context.scene.objects.link(self.obj)
+
+
+class NullPart(LDrawPart):
+    """Empty part, used for parts containing no tris, no quads and no subfiles"""
+    def __init__(self, parent=None, depth=0, transform=Matrix()):
+        pass
 
 
 def menu_import(self, context):
