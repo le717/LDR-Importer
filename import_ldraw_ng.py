@@ -62,6 +62,38 @@ class LDRImporterPreferences(AddonPreferences):
         layout.prop(self, "ldraw_library_path")
 
 
+def emptyToMesh(obj, empty_mesh):
+    if obj.type == "EMPTY":
+        name = obj.name
+        obj_replacement = bpy.data.objects.new(name=name, object_data=empty_mesh)
+        obj_replacement.matrix_local = obj.matrix_local
+        obj_replacement.parent = obj.parent
+        bpy.context.scene.objects.link(obj_replacement)
+        for child in obj.children:
+            child.parent = obj_replacement
+        bpy.context.scene.objects.unlink(obj)
+        obj = obj_replacement
+        obj.name = name
+    return obj
+
+
+def flattenHierarchy(root):
+    empty_mesh = bpy.data.meshes.new(name=root.name)
+    bpy.context.scene.objects.active = root
+    bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
+    to_merge = bpy.context.selected_objects
+    if root.type == "EMPTY":
+        root = emptyToMesh(root, empty_mesh)
+    for obj in to_merge:
+        if obj.type == "EMPTY":
+            obj = emptyToMesh(obj, empty_mesh)
+        obj.select = True
+
+    bpy.context.scene.objects.active = root
+    root.select = True
+    bpy.ops.object.join()
+
+
 class LDRImporterOperator(bpy.types.Operator, ImportHelper):
     """LDR Importer Operator"""
     bl_idname = "import_scene.ldraw_ng"
@@ -97,6 +129,20 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         )
     )
 
+    mergeParts = EnumProperty(
+        # Leave `name` blank for better display
+        name="Merge parts",
+        description="Merge the models from the subfiles into one mesh",
+        items=(
+            ("NO_MERGE", "No merge",
+                "Do not merge any meshes"),
+            ("MERGE_TOPLEVEL_PARTS", "Merge top-level parts",
+                "Merge the children of the base model with all their children"),
+            ("MERGE_EVERYTHING", "Merge everything",
+                "Merge the whole model into one mesh")
+        )
+    )
+
     """cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
@@ -111,6 +157,8 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         box.prop(self, "scale")
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
+        box.label("Merge parts", icon='MOD_BOOLEAN')
+        box.prop(self, "mergeParts", expand=True)
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
@@ -189,6 +237,14 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         if not self.complete:
             self.report({"WARNING"}, ("Not all parts could be found. "
                                       "Check the console for a list."))
+        if not self.no_mesh_errors:
+            self.report({"WARNING"}, "Some of the meshes loaded contained errors.")
+
+        if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
+            for child in model.obj.children:
+                flattenHierarchy(child)
+        elif str(self.mergeParts) == "MERGE_EVERYTHING":
+            flattenHierarchy(model.obj)
 
         return {"FINISHED"}
 
@@ -240,7 +296,6 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         #    (LDrawPart subclass, Matrix instance)
         loaded_points = []
         loaded_faces = []
-        loaded_lines = []
         _subpart_info = []
 
         with open(filename, "r", encoding="utf-8") as f:  #FIXME: hack encoding
@@ -290,14 +345,6 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
 
                     _subpart_info.append((part_class, matrix))
 
-                elif split[0] == "2":
-                    try:
-                        line = element_from_points(2, split[2:8])
-                    except ValueError:
-                        self.no_mesh_errors = False
-                        continue
-                    loaded_lines.append(line)
-
                 elif split[0] == "3":
                     try:
                         tri = element_from_points(3, split[2:11])
@@ -314,22 +361,26 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                         continue
                     loaded_faces.append(quad)
 
-        if len(loaded_points) > 0:
+        if len(loaded_faces) > 0:
             loaded_mesh = bpy.data.meshes.new(filename)
-            loaded_mesh.from_pydata(loaded_points, loaded_lines, loaded_faces)
+            loaded_mesh.from_pydata(loaded_points, [], loaded_faces)
             loaded_mesh.validate()
             loaded_mesh.update()
         else:
             loaded_mesh = None
 
-        class LoadedPart(LDrawPart):
-            """Create a new part class, put it in the cache, and return it."""
-            mesh = loaded_mesh
-            # Take off the file extensions
-            part_name = ".".join(filename.split(".")[:-1])
-            subpart_info = _subpart_info
+        if len(_subpart_info) > 0 or loaded_mesh:
+            # Create a new part class and return it.
+            class LoadedPart(LDrawPart):
+                """Create a new part class, put it in the cache, and return it."""
+                mesh = loaded_mesh
+                # Take off the file extensions
+                part_name = ".".join(filename.split(".")[:-1])
+                subpart_info = _subpart_info
 
-        return LoadedPart
+            return LoadedPart
+        else:
+            return NullPart
 
 
 class LDrawPart:
@@ -352,6 +403,12 @@ class LDrawPart:
                     transform=subpart_matrix))
 
         bpy.context.scene.objects.link(self.obj)
+
+
+class NullPart(LDrawPart):
+    """Empty part, used for parts containing no tris, no quads and no subfiles"""
+    def __init__(self, parent=None, depth=0, transform=Matrix()):
+        pass
 
 
 def menu_import(self, context):
