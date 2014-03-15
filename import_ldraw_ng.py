@@ -51,6 +51,38 @@ class LDrawImportPreferences(AddonPreferences):
         layout.prop(self, "ldraw_library_path")
 
 
+def emptyToMesh(obj, empty_mesh):
+    if obj.type == "EMPTY":
+        name = obj.name
+        obj_replacement = bpy.data.objects.new(name=name, object_data=empty_mesh)
+        obj_replacement.matrix_local = obj.matrix_local
+        obj_replacement.parent = obj.parent
+        bpy.context.scene.objects.link(obj_replacement)
+        for child in obj.children:
+            child.parent = obj_replacement
+        bpy.context.scene.objects.unlink(obj)
+        obj = obj_replacement
+        obj.name = name
+    return obj
+
+
+def flattenHierarchy(root):
+    empty_mesh = bpy.data.meshes.new(name=root.name)
+    bpy.context.scene.objects.active = root
+    bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
+    to_merge = bpy.context.selected_objects
+    if root.type == "EMPTY":
+        root = emptyToMesh(root, empty_mesh)
+    for obj in to_merge:
+        if obj.type == "EMPTY":
+            obj = emptyToMesh(obj, empty_mesh)
+        obj.select = True
+
+    bpy.context.scene.objects.active = root
+    root.select = True
+    bpy.ops.object.join()
+
+
 class LDrawImportOperator(bpy.types.Operator, ImportHelper):
     """LDraw part import operator"""
     bl_idname = "import_scene.ldraw"
@@ -193,43 +225,10 @@ class LDrawImportOperator(bpy.types.Operator, ImportHelper):
             self.report({"WARNING"}, "Some of the meshes loaded contained errors.")
 
         if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
-            for part in model.obj.children:
-                if part.type == "EMPTY":
-                    name = part.name
-                    empty_mesh = bpy.data.meshes.new(name=part.name)
-                    part_replacement = bpy.data.objects.new(name=part.name, object_data=empty_mesh)
-                    part_replacement.parent = part.parent
-                    part_replacement.matrix_local = part.matrix_local
-                    bpy.context.scene.objects.link(part_replacement)
-                    for child in part.children:
-                        child.parent = part_replacement
-                    bpy.context.scene.objects.unlink(part)
-                    part = part_replacement
-                    part.name = name
-                    part.parent = model.obj
-
-                bpy.context.scene.objects.active = part
-                bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
-                part.select = True
-                bpy.ops.object.join()
+            for child in model.obj.children:
+                flattenHierarchy(child)
         elif str(self.mergeParts) == "MERGE_EVERYTHING":
-            if model.obj.type == "EMPTY":
-                name = model.obj.name
-                empty_mesh = bpy.data.meshes.new(name=model.obj.name)
-                model.obj_replacement = bpy.data.objects.new(name=model.obj.name, object_data=empty_mesh)
-                model.obj_replacement.parent = model.obj.parent
-                model.obj_replacement.matrix_local = model.obj.matrix_local
-                bpy.context.scene.objects.link(model.obj_replacement)
-                for child in model.obj.children:
-                    child.parent = model.obj_replacement
-                bpy.context.scene.objects.unlink(model.obj)
-                model.obj = model.obj_replacement
-                model.obj.name = name
-
-            bpy.context.scene.objects.active = model.obj
-            bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
-            model.obj.select = True
-            bpy.ops.object.join()
+            flattenHierarchy(model.obj)
 
         return {"FINISHED"}
 
