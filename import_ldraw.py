@@ -1010,7 +1010,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     bl_label = "Import LDraw Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # File type filter in file browser
     filename_ext = ".ldr"
