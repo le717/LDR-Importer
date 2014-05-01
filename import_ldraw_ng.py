@@ -50,6 +50,27 @@ def debugPrint(*myInput):
         " ".join(myOutput), strftime("%H:%M:%S")))
 
 
+def checkEncoding(filePath):
+    """Check the encoding of a file"""
+
+    # Open it, read just the area containing a possible byte mark
+    with open(filePath, "rb") as encodeCheck:
+        fileEncoding = encodeCheck.readline(3)
+
+    # The file uses UCS-2 (UTF-16) Big Endian encoding
+    if fileEncoding == b"\xfe\xff\x00":
+        return "utf_16_be"
+
+    # The file uses UCS-2 (UTF-16) Little Endian
+    # There seem to be two variants of UCS-2LE that must be checked for
+    elif fileEncoding in (b"\xff\xfe0", b"\xff\xfe/"):
+        return "utf_16_le"
+
+    # Use LDraw model standard UTF-8
+    else:
+        return "utf_8"
+
+
 class LDRImporterPreferences(AddonPreferences):
     """LDR Importer Preferences"""
     bl_idname = __name__
@@ -258,8 +279,10 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         #TODO: Expand to use a regex search for all illegal characters on Windows
         if ":" in filename:
             filename = filename.replace(":", os.path.sep)
+
         if filename in self.part_cache:
             return self.part_cache[filename]
+
         for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
@@ -298,7 +321,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         loaded_faces = []
         _subpart_info = []
 
-        with open(filename, "r", encoding="utf-8") as f:  #FIXME: hack encoding
+        with open(filename, "rt", encoding=checkEncoding(filename)) as f:
             for lineno, line in enumerate(f, start=1):
                 split = [item.strip() for item in line.split()]
                 # Skip blank lines
@@ -328,7 +351,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                     # !!! We need to handle circular references here !!!
                     if len(split) < 15:
                         continue
-                    #TODO: Handle colour
+                    #TODO: Handle color here
 
                     # Load the matrix...
                     # Line structure is translation(3), first row(3), second row(3), third row(3)
@@ -411,7 +434,7 @@ class NullPart(LDrawPart):
         pass
 
 
-def menu_import(self, context):
+def menuItem(self, context):
     """Import menu listing"""
     self.layout.operator(LDRImporterOperator.bl_idname,
                          text="LDraw - NG (.ldr/.dat)")
@@ -420,13 +443,13 @@ def menu_import(self, context):
 def register():
     """Register menu misting"""
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_import)
+    bpy.types.INFO_MT_file_import.append(menuItem)
 
 
 def unregister():
     """Unregister menu listing"""
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_import)
+    bpy.types.INFO_MT_file_import.remove(menuItem)
 
 if __name__ == "__main__":
     register()
