@@ -795,8 +795,8 @@ Must be a .ldr or .dat''')
                 for cur_obj in objects:
                     cur_obj.select = True
                     bpy.context.scene.objects.active = cur_obj
-                    if bpy.ops.object.mode_set.poll():
 
+                    if bpy.ops.object.mode_set.poll():
                         # Change to edit mode
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_all(action='SELECT')
@@ -804,8 +804,8 @@ Must be a .ldr or .dat''')
                         # Remove doubles, calculate normals
                         bpy.ops.mesh.remove_doubles(threshold=0.01)
                         bpy.ops.mesh.normals_make_consistent()
-                        if bpy.ops.object.mode_set.poll():
 
+                        if bpy.ops.object.mode_set.poll():
                             # Go back to object mode, set origin to geometry
                             bpy.ops.object.mode_set(mode='OBJECT')
                             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
@@ -813,7 +813,8 @@ Must be a .ldr or .dat''')
                             # Set smooth shading
                             bpy.ops.object.shade_smooth()
 
-                    # Add 30 degree edge split modifier to all bricks
+                # Add 30 degree edge split modifier to all bricks
+                for cur_obj in objects:
                     edges = cur_obj.modifiers.new(
                         "Edge Split", type='EDGE_SPLIT')
                     edges.split_angle = 0.523599
