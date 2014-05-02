@@ -36,7 +36,7 @@ import math
 import mathutils
 import traceback
 from struct import unpack
-from time import strftime
+from datetime import datetime
 
 import bpy
 from bpy.props import (StringProperty,
@@ -98,8 +98,9 @@ def debugPrint(*myInput):
     # Format the output like print() does
     myOutput = [str(say) for say in myInput]
 
+    # `strftime("%H:%M:%S.%f")[:-4]` trims milliseconds down to two places
     print("\n[LDR Importer] {0} - {1}\n".format(
-        " ".join(myOutput), strftime("%H:%M:%S")))
+        " ".join(myOutput), datetime.now().strftime("%H:%M:%S.%f")[:-4]))
 
 # Attempt to read and use the path in the config
 try:
