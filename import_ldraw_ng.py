@@ -41,6 +41,9 @@ from bpy_extras.io_utils import ImportHelper
 
 from mathutils import Matrix, Vector
 
+#Global Variables
+#objects = []
+
 
 def debugPrint(*myInput):
     """Debug print with identification timestamp"""
@@ -119,6 +122,41 @@ def flattenHierarchy(root):
     bpy.ops.object.join()
     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
+def cleanUpOptions(objects):
+    debugPrint("Performing cleanup")
+    #Remove doubles and recalculate normals in each brick.
+    #The model is super high-poly without the cleanup.
+    #Cleanup can be disabled by user if wished.
+
+    # The CleanUp import option was selected
+#    bpy.context.scene.objects.active = cur_obj
+    # Select all the mesh
+    for cur_obj in objects:
+        cur_obj.select = True
+        bpy.context.scene.objects.active = cur_obj
+
+        if bpy.ops.object.mode_set.poll():
+            # Change to edit mode
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='SELECT')
+
+            # Remove doubles, calculate normals
+            bpy.ops.mesh.remove_doubles(threshold=0.01)
+            bpy.ops.mesh.normals_make_consistent()
+
+            if bpy.ops.object.mode_set.poll():
+                # Go back to object mode, set origin to geometry
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+
+                # Set smooth shading
+                bpy.ops.object.shade_smooth()
+
+        # Add 30 degree edge split modifier to all bricks
+        edges = cur_obj.modifiers.new(
+            "Edge Split", type='EDGE_SPLIT')
+        edges.split_angle = 0.523599
+
 
 class LDRImporterOperator(bpy.types.Operator, ImportHelper):
     """LDR Importer Operator"""
@@ -169,11 +207,15 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         )
     )
 
-    """cleanUpModel = EnumProperty(
+    cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
-        items=cleanupOptions
-    )"""
+        items=(
+            ("CleanUp", "Basic Cleanup",
+                "Remove double vertices, recalculate normals, add Edge Split modifier"),
+            ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
+            )
+    )
 
     def draw(self, context):
         """Display import options"""
@@ -185,8 +227,8 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         box.prop(self, "resPrims", expand=True)
         box.label("Merge parts", icon='MOD_BOOLEAN')
         box.prop(self, "mergeParts", expand=True)
-        #box.label("Model Cleanup", icon='EDIT')
-        #box.prop(self, "cleanUpModel", expand=True)
+        box.label("Model Cleanup", icon='EDIT')
+        box.prop(self, "cleanUpModel", expand=True)
 
     def findLDrawDir(self, context):
         """
@@ -265,12 +307,27 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                                       "Check the console for a list."))
         if not self.no_mesh_errors:
             self.report({"WARNING"}, "Some of the meshes loaded contained errors.")
-
+            
+        modelBricks = model.obj.children[:]
         if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
+#            debugPrint(model.obj.children)
             for child in model.obj.children:
                 flattenHierarchy(child)
 #        elif str(self.mergeParts) == "MERGE_EVERYTHING":
 #            flattenHierarchy(model.obj)
+        
+        debugPrint(str(self.cleanUpModel))
+        
+        if str(self.cleanUpModel) == "CleanUp":
+            debugPrint("Cleanup should be run")
+            debugPrint(modelBricks)
+#            for child in modelBricks:
+#                debugPrint("Finding children")
+#                debugPrint(child)
+#                cleanUpOptions(root)
+            cleanUpOptions(modelBricks)
+#        elif str(self.cleanUpModel) == "DoNothing":
+#            cleanUpOptions()
 
         return {"FINISHED"}
 
