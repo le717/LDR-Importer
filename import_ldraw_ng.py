@@ -83,36 +83,41 @@ class LDRImporterPreferences(AddonPreferences):
         layout.prop(self, "ldraw_library_path")
 
 
-def emptyToMesh(obj, empty_mesh):
-    if obj.type == "EMPTY":
-        name = obj.name
-        obj_replacement = bpy.data.objects.new(name=name, object_data=empty_mesh)
-        obj_replacement.matrix_local = obj.matrix_local
-        obj_replacement.parent = obj.parent
-        bpy.context.scene.objects.link(obj_replacement)
-        for child in obj.children:
-            child.parent = obj_replacement
-        bpy.context.scene.objects.unlink(obj)
-        obj = obj_replacement
-        obj.name = name
+def emptyToMesh(obj, emptyMesh):
+    """Replace Empty with blank mesh"""
+
+    name = obj.name
+    obj_replacement = bpy.data.objects.new(
+        name=name, object_data=emptyMesh)
+    obj_replacement.matrix_local = obj.matrix_local
+    obj_replacement.parent = obj.parent
+    bpy.context.scene.objects.link(obj_replacement)
+    for child in obj.children:
+        child.parent = obj_replacement
+    bpy.context.scene.objects.unlink(obj)
+    obj = obj_replacement
+    obj.name = name
+
     return obj
 
 
 def flattenHierarchy(root):
-    empty_mesh = bpy.data.meshes.new(name=root.name)
+    emptyMesh = bpy.data.meshes.new(name=root.name)
     bpy.context.scene.objects.active = root
     bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
     to_merge = bpy.context.selected_objects
+
     if root.type == "EMPTY":
-        root = emptyToMesh(root, empty_mesh)
+        root = emptyToMesh(root, emptyMesh)
     for obj in to_merge:
         if obj.type == "EMPTY":
-            obj = emptyToMesh(obj, empty_mesh)
+            obj = emptyToMesh(obj, emptyMesh)
         obj.select = True
 
     bpy.context.scene.objects.active = root
     root.select = True
     bpy.ops.object.join()
+    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
 
 class LDRImporterOperator(bpy.types.Operator, ImportHelper):
@@ -141,7 +146,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         name="Resolution of part primitives",
         description="Resolution of part primitives",
         items=(
-            ("", "Standard primitives",
+            ("Standard", "Standard primitives",
                 "Import primitives using standard resolution"),
             ("48", "High resolution primitives",
                 "Import primitives using high resolution"),
@@ -155,12 +160,12 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         name="Merge parts",
         description="Merge the models from the subfiles into one mesh",
         items=(
-            ("NO_MERGE", "No merge",
-                "Do not merge any meshes"),
             ("MERGE_TOPLEVEL_PARTS", "Merge top-level parts",
                 "Merge the children of the base model with all their children"),
-            ("MERGE_EVERYTHING", "Merge everything",
-                "Merge the whole model into one mesh")
+            ("NO_MERGE", "No merge",
+                "Do not merge any meshes"),
+#            ("MERGE_EVERYTHING", "Merge everything",
+#                "Merge the whole model into one mesh")
         )
     )
 
@@ -264,8 +269,8 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
             for child in model.obj.children:
                 flattenHierarchy(child)
-        elif str(self.mergeParts) == "MERGE_EVERYTHING":
-            flattenHierarchy(model.obj)
+#        elif str(self.mergeParts) == "MERGE_EVERYTHING":
+#            flattenHierarchy(model.obj)
 
         return {"FINISHED"}
 
