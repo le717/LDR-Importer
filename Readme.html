@@ -1,76 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <!-- Force IE to recognize HTML5 code -->
-    <!--[if IE]>
-        <script>/*@cc_on'abbr article aside audio canvas details figcaption figure footer header hgroup mark menu meter nav output progress section summary time video'.replace(/\w+/g,function(n){document.createElement(n)})@*/</script>
-    <![endif]-->
-
-    <meta charset="UTF-8" />
-    <title>LDR Importer</title>
-    <base target="_blank">
-    <style>
-        .subheaders { text-align:left; }
-        .center, td { text-align:center; }
-        a { text-decoration:none; color:rgb(000,000,255); }
-        a:hover { text-decoration:underline; }
-        h1, h2, h3, h4, h5, h6 { font-family:sans-serif; }
-         #top { font-size:1.3em; }
-    </style>
+  <meta charset="UTF-8">
+  <title>LDR Importer</title>
+  <base target="_blank">
+  <style>
+      .subheaders { text-align: left; }
+      .text-center, td { text-align: center; }
+      a { text-decoration: none; color: #00f; }
+      a:hover { text-decoration: underline; }
+      h1, h2, h3, h4, h5, h6 { font-family: sans-serif; }
+      #top { font-size: 1.3em; }
+  </style>
 </head>
 
 <body>
-<a id="ToC"></a><h1 class="center">LDR Importer</h1>
-<table>
+  <a id="ToC"></a><h1 class="text-center">LDR Importer</h1>
+  <table>
     <tr>
-        <th><strong>Table of Contents</strong></th>
+      <th><strong>Table of Contents</strong></th>
     </tr>
     <tr>
-        <td><a href="#WhatsNeeded">System Requirements</a></td>
+      <td><a target="_self" href="#WhatsNeeded">System Requirements</a></td>
     </tr>
     <tr>
-        <td><a href="#Install">Installation</a></td>
+      <td><a target="_self" href="#Install">Installation</a></td>
     </tr>
     <tr>
-        <td><a href="#LDrawPath">Setting the LDraw Folder Path</a></td>
+      <td><a target="_self" href="#LDrawPath">Setting the LDraw Folder Path</a></td>
     </tr>
     <tr>
-        <td><a href="#Changes">Change Log</a></td>
+      <td><a target="_self" href="#Changes">Change Log</a></td>
     </tr>
     <tr>
-        <td><a href="#Support">Support</a></td>
+      <td><a target="_self" href="#Support">Support</a></td>
     </tr>
-</table>
+  </table>
 
-<br>
-<p class="center">This is the readme for <strong>LDR Importer</strong>, licensed under the
-<a href="http://www.gnu.org/licenses/gpl-2.0.html">General Public License Version 2.</a>
-</p>
-<a id="WhatsNeeded"></a>
-<br>
+  <br>
+  <p class="text-center">This is the readme for <strong>LDR Importer</strong>, licensed under the
+  <a href="http://www.gnu.org/licenses/gpl-2.0.html">General Public License Version 2</a>.
+  </p>
+  <a id="WhatsNeeded"></a>
+  <br>
 
-<h3>System Requirements</h3>
-<ul>
+  <h3>System Requirements</h3>
+  <ul>
     <li><a href="http://www.blender.org/">Blender 2.67 or higher</a></li>
     <li><code>import_ldraw.py</code> (included in this download)</li>
     <li><a href="http://www.ldraw.org/help/getting-started.html">LDraw Parts Library</a></li>
     <li><a href="http://mlcad.lm-software.com/">MLCad</a>, <a href="http://www.leocad.org/trac/">
     LeoCAD</a> (both optional)</li>
-</ul><a id="Install"></a>
+  </ul><a id="Install"></a>
 
-<h3>Installation</h3>
+  <h3>Installation</h3>
 
-<h4>Windows, Mac OS X, Linux</h4>
-<ul>
+  <h4>Windows, Mac OS X, Linux</h4>
+  <ul>
     <li>Open Blender, and click <em>File &gt; User Preferences &gt; Addons &gt; Install from File...</em></li>
     <li>Browse for the Zip archive you downloaded and select it.</li>
     <li>Find <strong>LDR Importer</strong> in the list of Addons (search for "LDR" if needed), and tick the check mark to activate it.</li>
     <li>If you want to have the script activated at all times, click the <em>Save User Settings</em> button.<a id="LDrawPath"></a></li>
-</ul>
+  </ul>
 
-<h3>Setting the LDraw Folder Path</h3>
-<ul>
+  <h3>Setting the LDraw Folder Path</h3>
+  <ul>
     <li>Click <em>File &gt; Import &gt; LDraw Model (.ldr/.dat)</em></li>
     <li>In the bottom left corner of your screen, under the <strong>Import Options:</strong> header, there is a small field with the label
     <strong>LDraw Path</strong>.
@@ -81,51 +75,51 @@
     <br>Your model will quickly be imported into the current scene using the desired options.</li>
     <li style="font-size:1.1em; padding:4px;"><strong><em>Note about materials:</em></strong> Material colors are render engine dependant.
     That is, if you are currently using the Cycles engine, it will uses Cycles node materials, and vice verse for Blender Internal.</li>
-</ul>
-<br>
-<p class="center">That's it! You have successfully installed <strong>LDR Importer</strong> and can now import your LDraw models!</p>
-<a id="Changes"></a>
+  </ul>
+  <br>
+  <p class="text-center">That's it! You have successfully installed <strong>LDR Importer</strong> and can now import your LDraw models!</p>
+  <a id="Changes"></a>
 
-<h2>Please Note</h2>
-<ul>
+  <h2>Please Note</h2>
+  <ul>
     <li>If a brick cannot be found in the parts library, the import will suddenly stop with no visible error message.
-        This is planned to be fixed as soon as possible.</li>
+      This is planned to be fixed as soon as possible.</li>
     <li>MPD and <a href="http://bricksmith.sourceforge.net/">Bricksmith</a> models are not supported.
-        These features are planned to be added as soon as possible.<br>
-        <strong>Workaround:</strong> To import an MPD model, download <a href="http://ldraw.heidemann.org/index.php?page=mpdcenter">MPDCenter</a>
-        and extract the seperate models from the MPD. More details are available on the MPDCenter website.<br>
-        There is currently no known workaround for Bricksmith models.<br><br>
-        We are sorry for any inconvenience these issues may have caused.</li>
-</ul>
+      These features are planned to be added as soon as possible.<br>
+      <strong>Workaround:</strong> To import an MPD model, download <a href="http://ldraw.heidemann.org/index.php?page=mpdcenter">MPDCenter</a>
+      and extract the seperate models from the MPD. More details are available on the MPDCenter website.<br>
+      There is currently no known workaround for Bricksmith models.<br><br>
+      We are sorry for any inconvenience these issues may have caused.</li>
+  </ul>
 
-<h2>Change Log</h2>
+  <h2>Change Log</h2>
 
-<strong>1.1.5</strong><br>
-<em>Standards</em><br>
-(Released January 18, 2014)<br>
-<ul>
+  <strong>1.1.5</strong><br>
+  <em>Standards</em><br>
+  (Released January 18, 2014)<br>
+  <ul>
     <li>Read <code>LDConfig.ldr</code> and <code>config.py</code> using <code>UTF-8</code> encoding</li>
     <li>Added support for reading models in <code>UCS-2BE</code> & <code>UCS-2LE</code> encoding
-        (see <a href="https://github.com/le717/LDR-Importer/issues/37">Issue #37</a>)</li>
+      (see <a href="https://github.com/le717/LDR-Importer/issues/37">Issue #37</a>)</li>
     <li>Always save <code>config.py</code> in user's <code>AppData</code> on Windows
-        (see <a href="https://github.com/le717/LDR-Importer/issues/38">Issue #38</a>)</li>
+      (see <a href="https://github.com/le717/LDR-Importer/issues/38">Issue #38</a>)</li>
     <li>Remove <code>GameFix</code> cleanup option</li>
     <li>Improve part path lookup (see <a href="https://github.com/le717/LDR-Importer/issues/40">Issue #40</a>,
-        <a href="https://github.com/le717/LDR-Importer/issues/50">#50</a>)</li>
+      <a href="https://github.com/le717/LDR-Importer/issues/50">#50</a>)</li>
     <li>Give unofficial files precedence over official ones, correct usage of <code>p/8</code> primitives folder (see
-        <a href="https://github.com/le717/LDR-Importer/issues/52">Issue #52</a>)</li>
+      <a href="https://github.com/le717/LDR-Importer/issues/52">Issue #52</a>)</li>
     <li>Add <a href="https://github.com/MinnieTheMoocher">MinnieTheMoocher</a> to author list</li>
     <li>Reworked display of import options</li>
     <li>Initialize <code>paths</code> array at the beginning of the script</li>
     <li>Fix bug with high-/low-res primitives not being imported properly</li>
     <li><code>debugPrint()</code> behavior was not as expected</li>
     <li>Fixed issue with multiple edge split modifiers being added to each brick (see <a href="https://github.com/le717/LDR-Importer/issues/57">Issue #57</a>)</li>
-</ul>
+  </ul>
 
-<strong>1.1</strong><br>
-<em>The Working Quartet</em><br>
-(Released December 2, 2013)<br>
-<ul>
+  <strong>1.1</strong><br>
+  <em>The Working Quartet</em><br>
+  (Released December 2, 2013)<br>
+  <ul>
     <li>Added Blender Internal material support for Chrome, Pearlescent, Rubber, and Metal colors</li>
     <li>Removed unused import option</li>
     <li>Added basic support for Cycles materials and switch to use them</li>
@@ -151,11 +145,11 @@
     <li>"Major error messages now identify what type of error they were, and print the stack trace where necessary" - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
     (see <a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
     <li>"Importing files which do not have a .ldr, .dat, or .mpd extension is no longer allowed and will not be attempted,
-    <br>and will tell the user through a popup in Blender's UI" - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
-    (see <a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
+      <br>and will tell the user through a popup in Blender's UI" - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
+      (see <a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
     <li>Conversion of single quotes to double quotes where possible</li>
     <li>Changed new messages from <code>.mpd</code> to <code>.lcd</code> (script does not support MPD models, see
-        <a href="https://github.com/le717/LDR-Importer/issues/7">Issue #7</a>)</li>
+      <a href="https://github.com/le717/LDR-Importer/issues/7">Issue #7</a>)</li>
     <li>Reworked internal model cleanup process, now cleaner and better supports future improvements</li>
     <li>More conversion of string concentration from <code>+</code> (plus) signs to <code>str.format()</code> method</li>
     <li>New way of presenting import options, more easily understood and looks nicer too</li>
@@ -167,11 +161,11 @@
     <li>Created script (<code>setup.py</code>) to automatically package release for upload</li>
     <li>Ensure version number for <code>setup.py</code> is in proper format</li>
     <li>Detect LDraw Library of Parts installation on Windows in common locations
-        (see <a href="https://github.com/le717/LDR-Importer/issues/15">Issue #15</a>,
-        <a href="https://github.com/le717/LDR-Importer/issues/16">#16</a>)</li>
+      (see <a href="https://github.com/le717/LDR-Importer/issues/15">Issue #15</a>,
+      <a href="https://github.com/le717/LDR-Importer/issues/16">#16</a>)</li>
     <li>Cleaned up <code>GameFix</code> import option code</li>
     <li>Set <code>.ldr</code> file extension as default (per
-        <a href="http://www.ldraw.org/article/218.html#extension">http://www.ldraw.org/article/218.html#extension</a>)</li>
+      <a href="http://www.ldraw.org/article/218.html#extension">http://www.ldraw.org/article/218.html#extension</a>)</li>
     <li>Reversed condition when checking valid file extensions</li>
     <li>"Fixed loading error for models with invalid colors."</li>
     <li>"Make object color also be viewport color" (see <a href="https://github.com/le717/LDR-Importer/issues/21">Issue #21</a>)</li>
@@ -182,7 +176,7 @@
     <li>Small basic materials updates</li>
     <li>Remove <code>.lcd</code> from supported file types (incorrectly assumed to be a standard <code>.ldr</code> file)</li>
     <li>Store defined LDraw Library of Parts installation path in configuration file, load upon Blender relaunch - 
-        initial patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a></li>
+      initial patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a></li>
     <li>Connected LDraw Library of Parts installation detection to configuration file</li>
     <li>Update <code>debugPrint()</code> function to support lists (for displaying multiple items at once)</li>
     <li>Filter out configuration file made by script in <code>setup.py</code></li>
@@ -193,19 +187,19 @@
     <li>Give proper error message for missing <code>LDConfig.ldr</code></li>
     <li>Move configuration file to a different location to avoid Blender "bl_info gives bad info" message</li>
     <li>Put script in root folder of release Zip so Blender can detect it</li>
-</ul>
+  </ul>
 
-<strong>1.0</strong><br>
-<em>Banbury Edition</em><br>
-(Released October 1, 2013)
-<ul>
+  <strong>1.0</strong><br>
+  <em>Banbury Edition</em><br>
+  (Released October 1, 2013)
+  <ul>
     <li>Uploaded source code to <a href="https://github.com/Triangle717/LDR-Importer/">GitHub</a>. -Triangle717</li>
     <li>Switched to plain text version of GPL V2</li>
     <li>Converted all white space to 4 spaces white space to conform to Python standards using Blender scripting scene</li>
     <li>Added most of <a href="http://sourceforge.net/u/mss02/profile/">Marc Schmitt's</a> Linux patch, with minor changes</li>
     <li>Made LDraw folder paths case-insensitive</li>
     <li>Added ability to set LDraw System of Tools folder path from within Blender using code from 
-        <a href="https://github.com/impiaaa/blender-ldraw/">Spencer Alves's LDraw Importer</a></li>
+      <a href="https://github.com/impiaaa/blender-ldraw/">Spencer Alves's LDraw Importer</a></li>
     <li>Added ability to disable automatic model cleanup (remove doubles and recalculate normals). Doing so is <strong>not advised</strong></li>
     <li>Changed <code>dict()</code> to the proper <code>{}</code> syntax</li>
     <li>Script cleanup</li>
@@ -249,11 +243,11 @@
     <li>Continue import even if brick is missing</li>
     <li>Fixed minimum Blender version</li>
     <li>Various cleanup</li>
-</ul>
+  </ul>
 
-<strong>0.8 Beta 1</strong><br>
-(Released January 3, 2012)<br>
-<ul>
+  <strong>0.8 Beta 1</strong><br>
+  (Released January 3, 2012)<br>
+  <ul>
     <li>Simplified code dealing with the LDraw path. (Line 28) -Triangle717</li>
     <li>Restored and corrected 'Remove Doubles' and 'Recalculate Normals' code from V0.6. -Triangle717</li>
     <li>Changed default LDraw path from "LDraw System of Parts" to "C:\LDraw". -Triangle717</li>
@@ -266,11 +260,11 @@
     <li>Placed script under the GNU General Public License Version 2, and updated script to add GPL V2 block. -Triangle717</li>
     <li>Updated Installation Instructions -Triangle717</li>
     <li>Minor Readme updates -Triangle717</li>
-</ul>
+  </ul>
 
-<strong>0.7.2</strong><br>
-(Released December 13, 2012)<br>
-<ul>
+  <strong>0.7.2</strong><br>
+  (Released December 13, 2012)<br>
+  <ul>
     <li><code>ldraw_import.py</code> can be installed to the <code>scripts/startup</code> folder, eliminating a few installation
     steps. -Triangle717</li>
     <li>Added GPL Licence Block to <code>add_utils.py</code> (forgot to add it the first time). -Triangle717</li>
@@ -281,11 +275,11 @@
     <li>Implemented some CSS code into Readme to eliminate redundant inline styling and to provide for greater expandability. -Triangle717</li>
     <li>Added <strong>Planned Features</strong> section to the Readme. -Triangle717</li>
     <li>Minor changes. -Triangle717</li>
-</ul>
+  </ul>
 
-<strong>0.7.1 Special BMesh Edition</strong><br>
-(Released November 4, 2012)<br>
-<ul>
+  <strong>0.7.1 Special BMesh Edition</strong><br>
+  (Released November 4, 2012)<br>
+  <ul>
     <li>Enabled the use of <a href="http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.63/BMesh">BMesh</a>
     for importing (up to 150-gon) -Triangle717</li>
     <li>Modified Readme to mention special notes about release -Triangle717</li>
@@ -293,11 +287,11 @@
     <li>Added GPL block from <code>add_utils.py</code> code, and removed duplicate import functions in <code>add_utils</code>. -Triangle717</li>
     <li>Changed text from <em>LDraw Brick Library</em> to <em>LDraw System of Tools</em> to comply with LDraw bylaws. -Triangle717
     </li>
-</ul>
+  </ul>
 
-<strong>0.7.1</strong><br>
-(Released October 30, 2012)<br>
-<ul>
+  <strong>0.7.1</strong><br>
+  (Released October 30, 2012)<br>
+  <ul>
     <li>Renamed script to <code>ldraw_import.py</code> -Triangle717</li>
     <li>Corrected bl_info in <code>ldraw_import.py</code> to enable activation in Blender 2.64 -Triangle717</li>
     <li>Embedded entire <a href="http://www.tud.ttu.ee/material/Arvutigraafika/Tracking/b261/2.60/scripts/addons/modules/add_utils.py" target="_blank"><code>add_utils.py</code></a> file into ldraw_import.py to enable activation in Blender 2.64 -Triangle717</li>
@@ -309,11 +303,11 @@
     higher color quality, which is better for renders (the swap seems to work correctly, with no color errors. Code to use <code>LDConfig.ldr</code>
     is still present, and can be reverted at any time) -Triangle717</li>
     <li>Updated and added a few comments -Triangle717</li>
-</ul>
+  </ul>
 
-<strong>0.7</strong><br>
-(Released October 23, 2012)<br>
-<ul>
+  <strong>0.7</strong><br>
+  (Released October 23, 2012)<br>
+  <ul>
     <li>Added ability to import from every LDraw folder, including Unofficial bricks -Triangle717</li>
     <li>Removal of commented functions present since V0.5 -Triangle717 </li>
     <li>Removal of commented function added in an attempt to correct errors in V0.5 -Triangle717</li>
@@ -322,33 +316,31 @@
     <li>OS X Script Installation Instructions -JrMasterModelBuilder &amp;
     <a href="http://www.youtube.com/user/BrickkeepersLab">ProfessorBrickkeeper</a></li>
     <li>Marked some comments with David Pluntze's name because they were his comments -Triangle717</li>
-</ul>
+  </ul>
 
-<strong>0.6</strong><br>
-(Released October 19, 2012)<br><br>
-<ul>
+  <strong>0.6</strong><br>
+  (Released October 19, 2012)<br><br>
+  <ul>
     <li>Undocumented script correction - JrMasterModelBuilder</li>
     <li>Identified script requirements (<code>add_utils.py</code>) - JrMasterModelBuilder</li>
     <li>Removed faulty functions that performed the opposite of what was intended - Triangle717</li>
     <li>Corrected LDraw stylization -Triangle717</li>
     <li>Updated script description and summary of functions -Triangle717</li>
-</ul>
+  </ul>
 
-<strong>0.5</strong><br>
-(Released February 23, 2012)<br>
-<ul>
+  <strong>0.5</strong><br>
+  (Released February 23, 2012)<br>
+  <ul>
     <li>Original version by David Pluntze</li>
-</ul><a id="Support"></a>
+  </ul><a id="Support"></a>
 
-<h2>Support</h2>
-<p>To submit bug reports or get the newest, bleeding-edge script, please go to
-<a href="https://github.com/le717/LDR-Importer">https://github.com/le717/LDR-Importer</a>
-<br>
-To download the newest release, please visit <a href="https://github.com/le717/LDR-Importer/releases">
-https://github.com/le717/LDR-Importer/releases</a></p>
-<br>
-<br>
-
-<div id="top"><a class="ToC" href="#ToC">Back to the top</a></div>
+  <h2>Support</h2>
+  <p>To submit bug reports or get the newest, bleeding-edge script, please go to
+    <a href="https://github.com/le717/LDR-Importer">https://github.com/le717/LDR-Importer</a>
+    <br>
+    To download the newest release, please visit
+    <a href="https://github.com/le717/LDR-Importer/releases">https://github.com/le717/LDR-Importer/releases</a>
+  </p>
+  <a class="ToC" id="top" target="_self" href="#ToC">Back to the top</a>
 </body>
 </html>
