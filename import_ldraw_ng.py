@@ -83,52 +83,23 @@ class LDRImporterPreferences(AddonPreferences):
         layout.prop(self, "ldraw_library_path")
 
 
-def emptyToMesh(obj, emptyMesh):
-    """Replace Empty with blank mesh"""
+def mergePart(active):
+    emptyMesh = bpy.data.meshes.new(name=active.name)
+    bpy.context.scene.objects.active = active
 
-    name = obj.name
-    obj_replacement = bpy.data.objects.new(
-        name=name, object_data=emptyMesh)
-    obj_replacement.matrix_local = obj.matrix_local
-    obj_replacement.parent = obj.parent
-    bpy.context.scene.objects.link(obj_replacement)
-    for child in obj.children:
-        child.parent = obj_replacement
-    bpy.context.scene.objects.unlink(obj)
-    obj = obj_replacement
-    obj.name = name
-
-    return obj
-
-def flattenHierarchy(root):
-    emptyMesh = bpy.data.meshes.new(name=root.name)
-    bpy.context.scene.objects.active = root
-    bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
-    to_merge = bpy.context.selected_objects
-
-    #what needs to happen:
-#    select children
-#    deselect empty
-#    join mesh
-#    delete empty
-
-#sort of like this
-#select children and select only meshes WITHIN children only
-# http://blender.stackexchange.com/questions/10480/deselect-objects-by-type-with-python
+    # Selects children without selecting the empty
+    bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=False)
     
-    if root.type == "EMPTY":
-        root = emptyToMesh(root, emptyMesh)
-    for obj in to_merge:
-        if obj.type == "EMPTY":
-            obj = emptyToMesh(obj, emptyMesh)
+    for obj in bpy.context.object.children:
+        if obj.type != 'EMPTY':
             obj.select = True
 
-    bpy.context.scene.objects.active = root
-    root.select = True
+    # Merges brick parts into one mesh
     bpy.ops.object.join()
     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-    
+
 def deleteEmpty():
+    # Selects and deletes empties
     bpy.ops.object.select_by_type(type='EMPTY')
     bpy.ops.object.delete(use_global=False)
 
@@ -328,11 +299,9 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
 
         if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
             for child in model.obj.children:
-                flattenHierarchy(child)
-#        elif str(self.mergeParts) == "MERGE_EVERYTHING":
-#            flattenHierarchy(model.obj)
+                mergePart(child)
 
-        # Deletes left-over empties from flattenHierarchy
+        # Deletes left-over empties from `mergePart()`
         deleteEmpty()
 
         # The model cleanup option was selected,
