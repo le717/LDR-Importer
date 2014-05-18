@@ -41,9 +41,6 @@ from bpy_extras.io_utils import ImportHelper
 
 from mathutils import Matrix, Vector
 
-#Global Variables
-#objects = []
-
 
 def debugPrint(*myInput):
     """Debug print with identification timestamp"""
@@ -103,7 +100,6 @@ def emptyToMesh(obj, emptyMesh):
 
     return obj
 
-
 def flattenHierarchy(root):
     emptyMesh = bpy.data.meshes.new(name=root.name)
     bpy.context.scene.objects.active = root
@@ -115,28 +111,32 @@ def flattenHierarchy(root):
     for obj in to_merge:
         if obj.type == "EMPTY":
             obj = emptyToMesh(obj, emptyMesh)
-        obj.select = True
+            obj.select = True
 
     bpy.context.scene.objects.active = root
     root.select = True
     bpy.ops.object.join()
     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+    
+def deleteEmpty():
+    bpy.ops.object.select_by_type(type='EMPTY')
+    bpy.ops.object.delete(use_global=False)
+
 
 def cleanUpOptions(objects):
-    debugPrint("Performing cleanup")
-    #Remove doubles and recalculate normals in each brick.
-    #The model is super high-poly without the cleanup.
-    #Cleanup can be disabled by user if wished.
+    """
+    Remove doubles and recalculate normals in each brick.
+    The model is really high-poly without the cleanup.
+    Cleanup can be disabled by user if wished.
+    """
 
-    # The CleanUp import option was selected
-#    bpy.context.scene.objects.active = cur_obj
     # Select all the mesh
     for cur_obj in objects:
         cur_obj.select = True
         bpy.context.scene.objects.active = cur_obj
 
         if bpy.ops.object.mode_set.poll():
-            # Change to edit mode
+            # Switch to edit mode
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='SELECT')
 
@@ -145,9 +145,8 @@ def cleanUpOptions(objects):
             bpy.ops.mesh.normals_make_consistent()
 
             if bpy.ops.object.mode_set.poll():
-                # Go back to object mode, set origin to geometry
+                # Go back to object mode
                 bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
                 # Set smooth shading
                 bpy.ops.object.shade_smooth()
@@ -155,7 +154,13 @@ def cleanUpOptions(objects):
         # Add 30 degree edge split modifier to all bricks
         edges = cur_obj.modifiers.new(
             "Edge Split", type='EDGE_SPLIT')
-        edges.split_angle = 0.523599
+        if edges is not None:
+            edges.split_angle = 0.523599
+
+
+#def originChange(argument):
+#    bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_MASS')
+#    # bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
 
 class LDRImporterOperator(bpy.types.Operator, ImportHelper):
@@ -307,27 +312,25 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                                       "Check the console for a list."))
         if not self.no_mesh_errors:
             self.report({"WARNING"}, "Some of the meshes loaded contained errors.")
-            
+
+        # Make a copy of the mesh list for use later
         modelBricks = model.obj.children[:]
+
         if str(self.mergeParts) == "MERGE_TOPLEVEL_PARTS":
-#            debugPrint(model.obj.children)
             for child in model.obj.children:
                 flattenHierarchy(child)
 #        elif str(self.mergeParts) == "MERGE_EVERYTHING":
 #            flattenHierarchy(model.obj)
-        
-        debugPrint(str(self.cleanUpModel))
-        
+
+        # Deletes left-over empties from flattenHierarchy
+        deleteEmpty()
+
+        # The model cleanup option was selected,
+        # now we use that copy made a few lines above
         if str(self.cleanUpModel) == "CleanUp":
-            debugPrint("Cleanup should be run")
-            debugPrint(modelBricks)
-#            for child in modelBricks:
-#                debugPrint("Finding children")
-#                debugPrint(child)
-#                cleanUpOptions(root)
             cleanUpOptions(modelBricks)
 #        elif str(self.cleanUpModel) == "DoNothing":
-#            cleanUpOptions()
+#            pass
 
         return {"FINISHED"}
 
