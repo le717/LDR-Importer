@@ -28,7 +28,8 @@ bl_info = {
     "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
     "tracker_url": "https://github.com/le717/LDR-Importer/issues",
-    "category": "Import-Export"}
+    "category": "Import-Export"
+    }
 
 import os
 import sys
@@ -1076,6 +1077,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         default=False
     )
 
+    lsynthParts = BoolProperty(
+        name="Use LSynth Parts",
+        description="Use LSynth parts during import",
+        default=False
+    )
+
     def draw(self, context):
         """Display model cleanup options"""
         layout = self.layout
@@ -1090,6 +1097,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "cleanUpModel", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
         box.prop(self, "addGaps")
+        box.prop(self, "lsynthParts")
 
     def execute(self, context):
         """Set import options and run the script"""
@@ -1098,6 +1106,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         WhatRes = str(self.resPrims)
         CleanUpOpt = str(self.cleanUpModel)
         GapsOpt = bool(self.addGaps)
+        LSynth = bool(self.lsynthParts)
 
         # Clear array before adding data if it contains data already
         # Not doing so duplicates the indexes
@@ -1127,6 +1136,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
             # Search in the `unofficial/p` folder
             paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+
+            # The user wants to use LSynth parts
+            if LSynth:
+              if os.path.exists(os.path.join(LDrawDir, "unofficial", "lsynth")):
+                  paths.append(os.path.join(LDrawDir, "unofficial", "lsynth"))
+                  debugPrint("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
         paths.append(os.path.join(LDrawDir, "parts"))
@@ -1180,7 +1195,7 @@ def saveInstallPath(self):
         f.write(config_contents)
 
 
-def menu_import(self, context):
+def menuImport(self, context):
     """Import menu listing label"""
     self.layout.operator(LDRImporterOps.bl_idname, text="LDraw (.ldr/.dat)")
 
@@ -1188,13 +1203,13 @@ def menu_import(self, context):
 def register():
     """Register Menu Listing"""
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_import)
+    bpy.types.INFO_MT_file_import.append(menuImport)
 
 
 def unregister():
     """Unregister Menu Listing"""
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_import)
+    bpy.types.INFO_MT_file_import.remove(menuImport)
 
 
 if __name__ == "__main__":
