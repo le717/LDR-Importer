@@ -106,6 +106,15 @@ def flattenHierarchy(root):
     bpy.ops.object.select_grouped(type="CHILDREN_RECURSIVE", extend=False)
     to_merge = bpy.context.selected_objects
 
+    #what needs to happen:
+#    select children
+#    deselect empty
+#    join mesh
+#    delete empty
+
+#sort of like this
+#select children and select only meshes WITHIN children only
+    
     if root.type == "EMPTY":
         root = emptyToMesh(root, emptyMesh)
     for obj in to_merge:
