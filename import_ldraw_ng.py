@@ -114,6 +114,7 @@ def flattenHierarchy(root):
 
 #sort of like this
 #select children and select only meshes WITHIN children only
+# http://blender.stackexchange.com/questions/10480/deselect-objects-by-type-with-python
     
     if root.type == "EMPTY":
         root = emptyToMesh(root, emptyMesh)
