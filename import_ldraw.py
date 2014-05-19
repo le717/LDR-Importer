@@ -1143,9 +1143,9 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
             # The user wants to use LSynth parts
             if LSynth:
-              if os.path.exists(os.path.join(LDrawDir, "unofficial", "lsynth")):
-                  paths.append(os.path.join(LDrawDir, "unofficial", "lsynth"))
-                  debugPrint("Use LSynth Parts selected")
+                if os.path.exists(os.path.join(LDrawDir, "unofficial", "lsynth")):
+                    paths.append(os.path.join(LDrawDir, "unofficial", "lsynth"))
+                    debugPrint("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
         paths.append(os.path.join(LDrawDir, "parts"))
