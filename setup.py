@@ -62,12 +62,9 @@ if not os.path.exists(archivesFolder):
 if not os.path.exists(blenderFolder):
     os.makedirs(blenderFolder)
 
-# Construct final version number (maj, min)
-finalVersion = "v{0}.{1}".format(__version__[0], __version__[1])
-
-# Check if this is a patch release and if so use it too
-if __version__[2] > 0:
-    finalVersion = "{0}.{1}".format(finalVersion, __version__[2])
+# Construct final version number (maj, min, patch)
+finalVersion = "v{0}.{1}.{2}".format(
+    __version__[0], __version__[1], __version__[2])
 
 # Construct Zip archive filename using final version number
 zipFileName = "LDR-Importer-{0}".format(finalVersion)
