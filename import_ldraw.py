@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
-###### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-###### END GPL LICENSE BLOCK #####
+"""
+  BEGIN GPL LICENSE BLOCK
+
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation,
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+  END GPL LICENSE BLOCK
+"""
 
 bl_info = {
     "name": "LDR Importer",
@@ -25,8 +27,8 @@ bl_info = {
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
-    "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",
+    "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",  # noqa
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",  # noqa
     "tracker_url": "https://github.com/le717/LDR-Importer/issues",
     "category": "Import-Export"
     }
@@ -213,7 +215,6 @@ class LDrawFile(object):
             color = self.colour
 
         num_points = int((len(line) - 2) / 3)
-        #matrix = mathutils.Matrix(mat)
         for i in range(num_points):
                 self.points.append(
                     (self.mat * mathutils.Vector((float(line[i * 3 + 2]),
@@ -323,11 +324,10 @@ class LDrawFile(object):
                         # The brick content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
-                            x, y, z, a, b, c, d, e, f, g, h, i = map(
-                                float, tmpdate[2:14])
-                            #mat_new = self.mat * mathutils.Matrix(
-                                #[[a, d, g, 0], [b, e, h, 0], [c, f, i, 0],
-                                 #[x, y, z, 1]])
+                            (
+                             x, y, z, a, b, c,
+                             d, e, f, g, h, i
+                            ) = map(float, tmpdate[2:14])
                             mat_new = self.mat * mathutils.Matrix(
                                 ((a, b, c, x), (d, e, f, y), (g, h, i, z),
                                  (0, 0, 0, 1)))
@@ -413,7 +413,7 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values"""
-    #TODO: Not all colors are accessible
+    #FIXME: Not all colors are accessible
     if colour in colors:
         if not (colour in mat_list):
             col = colors[colour]
@@ -761,8 +761,12 @@ Must be a .ldr or .dat''')
             and rotate -90 degrees around the x-axis,
             so the object is upright.
             """
-            mat = mathutils.Matrix(
-                ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) * scale
+            mat = mathutils.Matrix((
+                (1.0, 0.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0, 0.0),
+                (0.0, 0.0, 1.0, 0.0),
+                (0.0, 0.0, 0.0, 1.0)
+            )) * scale
             mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
 
             # If LDrawDir does not exist, stop the import
@@ -986,7 +990,7 @@ def hex_to_rgb(rgb_str):
     return tuple([val / 255 for val in int_tuple])
 
 # Model cleanup options
-# DoNothing option does not require an entry
+# DoNothing option does not require a check later on
 cleanupOptions = (
     ("CleanUp", "Basic Cleanup",
         "Remove double vertices, recalculate normals, add Edge Split modifier"),
