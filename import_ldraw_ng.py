@@ -89,12 +89,15 @@ def mergePart(active):
 
     # Selects children without selecting the empty
     bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=False)
-    
+
     for obj in bpy.context.object.children:
         if obj.type != 'EMPTY':
             obj.select = True
 
     # Merges brick parts into one mesh
+    bpy.context.scene.objects.active = active
+    active.select = True
+
     bpy.ops.object.join()
     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
