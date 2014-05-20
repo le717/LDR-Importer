@@ -325,8 +325,8 @@ class LDrawFile(object):
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             (
-                             x, y, z, a, b, c,
-                             d, e, f, g, h, i
+                                x, y, z, a, b, c,
+                                d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
                             mat_new = self.mat * mathutils.Matrix(
                                 ((a, b, c, x), (d, e, f, y), (g, h, i, z),
@@ -832,8 +832,8 @@ Must be a .ldr or .dat''')
                 for cur_obj in objects:
                     cur_obj.select = True
                     bpy.context.scene.objects.active = cur_obj
-                    if bpy.ops.object.mode_set.poll():
 
+                    if bpy.ops.object.mode_set.poll():
                         # Change to edit mode
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_all(action='SELECT')
@@ -844,7 +844,7 @@ Must be a .ldr or .dat''')
 
                             # Go back to object mode
                             bpy.ops.object.mode_set(mode='OBJECT')
-                            
+
             # The Bevel import option was selected
             if BevelOpt:  # noqa
                 debugPrint("Bevel option selected")
@@ -853,8 +853,8 @@ Must be a .ldr or .dat''')
                 for cur_obj in objects:
                     cur_obj.select = True
                     bpy.context.scene.objects.active = cur_obj
-                    if bpy.ops.object.mode_set.poll():
 
+                    if bpy.ops.object.mode_set.poll():
                         # Change to edit mode
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_all(action='DESELECT')
@@ -1102,7 +1102,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Add small spaces between each brick",
         default=False
     )
-    
+
     addBevels = BoolProperty(
         name="Bevel",
         description="Add small 1-segment bevel to edges of bricks ",
