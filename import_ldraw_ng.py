@@ -83,6 +83,15 @@ class LDRImporterPreferences(AddonPreferences):
         layout.prop(self, "ldraw_library_path")
 
 
+def select_children_recursive(obj_parent):
+    debugPrint(obj_parent.children)
+    for obj in obj_parent.children:
+        select_children_recursive(obj)
+        if obj.type != 'EMPTY':
+#            debugPrint(obj, obj.type)
+            obj.select = True
+
+
 def mergePart(active):
     emptyMesh = bpy.data.meshes.new(name=active.name)
     bpy.context.scene.objects.active = active
@@ -90,13 +99,20 @@ def mergePart(active):
     # Selects children without selecting the empty
     bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=False)
 
-    for obj in bpy.context.object.children:
-        if obj.type != 'EMPTY':
-            obj.select = True
+#    for obj in bpy.context.object.children:
+#        if obj.type != 'EMPTY':
+#            obj.select = True
+
+#    select_children_recursive(bpy.context.object)
+    bpy.ops.object.select_by_type(type='EMPTY')
+    bpy.ops.object.select_all(action='TOGGLE')
+
+
 
     # Merges brick parts into one mesh
     bpy.context.scene.objects.active = active
-    active.select = True
+    if active.type != 'EMPTY':
+        active.select = True
 
     bpy.ops.object.join()
     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
