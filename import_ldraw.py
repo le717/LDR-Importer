@@ -844,6 +844,28 @@ Must be a .ldr or .dat''')
 
                             # Go back to object mode
                             bpy.ops.object.mode_set(mode='OBJECT')
+                            
+            # The Bevel import option was selected
+            if BevelOpt:  # noqa
+                debugPrint("Bevel option selected")
+
+                # Select all the mesh
+                for cur_obj in objects:
+                    cur_obj.select = True
+                    bpy.context.scene.objects.active = cur_obj
+                    if bpy.ops.object.mode_set.poll():
+
+                        # Change to edit mode
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_all(action='DESELECT')
+
+                        # Add small bevel to each brick
+                        bpy.ops.mesh.edges_select_sharp()
+                        bpy.ops.mesh.bevel(offset=0.0110997, segments=1, vertex_only=False)
+                        if bpy.ops.object.mode_set.poll():
+
+                            # Go back to object mode
+                            bpy.ops.object.mode_set(mode='OBJECT')
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
@@ -1080,6 +1102,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Add small spaces between each brick",
         default=False
     )
+    
+    addBevels = BoolProperty(
+        name="Bevel",
+        description="Add a small bevel to each brick model",
+        default=False
+    )
 
     lsynthParts = BoolProperty(
         name="Use LSynth Parts",
@@ -1101,15 +1129,17 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "cleanUpModel", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
         box.prop(self, "addGaps")
+        box.prop(self, "addBevels")
         box.prop(self, "lsynthParts")
 
     def execute(self, context):
         """Set import options and run the script"""
-        global LDrawDir, CleanUpOpt, GapsOpt
+        global LDrawDir, CleanUpOpt, GapsOpt, BevelOpt
         LDrawDir = str(self.ldrawPath)
         WhatRes = str(self.resPrims)
         CleanUpOpt = str(self.cleanUpModel)
         GapsOpt = bool(self.addGaps)
+        BevelOpt = bool(self.addBevels)
         LSynth = bool(self.lsynthParts)
 
         # Clear array before adding data if it contains data already
