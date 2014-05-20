@@ -1105,7 +1105,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     
     addBevels = BoolProperty(
         name="Bevel",
-        description="Add a small bevel to each brick model",
+        description="Add small 1-segment bevel to edges of bricks ",
         default=False
     )
 
