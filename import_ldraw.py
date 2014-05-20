@@ -855,17 +855,16 @@ Must be a .ldr or .dat''')
                     bpy.context.scene.objects.active = cur_obj
 
                     if bpy.ops.object.mode_set.poll():
-                        # Change to edit mode
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='DESELECT')
+                        # Go back to object mode, set origin to geometry
+                        bpy.ops.object.mode_set(mode='OBJECT')
 
                         # Add small bevel to each brick
-                        bpy.ops.mesh.edges_select_sharp()
-                        bpy.ops.mesh.bevel(offset=0.0110997, segments=1, vertex_only=False)
-                        if bpy.ops.object.mode_set.poll():
-
-                            # Go back to object mode
-                            bpy.ops.object.mode_set(mode='OBJECT')
+                        for cur_obj in objects:
+                            bevel = cur_obj.modifiers.new("Bevel", type='BEVEL')
+                            bpy.ops.object.modifier_move_up(modifier="Bevel")
+                            bevel.width = 0.01
+                            bevel.limit_method = 'ANGLE'
+                            bevel.angle_limit = 0.523599
 
             # Select all the mesh now that import is complete
             for cur_obj in objects:
