@@ -36,7 +36,12 @@ from time import strftime
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, FloatProperty, EnumProperty
+from bpy.props import (
+    StringProperty,
+    FloatProperty,
+    EnumProperty,
+    BoolProperty
+)
 from bpy_extras.io_utils import ImportHelper
 
 from mathutils import Matrix, Vector
@@ -155,6 +160,12 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         )
     )
 
+    lsynthParts = BoolProperty(
+        name="Use LSynth Parts",
+        description="Use LSynth parts during import",
+        default=False
+    )
+
     mergeParts = EnumProperty(
         # Leave `name` blank for better display
         name="Merge parts",
@@ -185,6 +196,8 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         box.prop(self, "resPrims", expand=True)
         box.label("Merge parts", icon='MOD_BOOLEAN')
         box.prop(self, "mergeParts", expand=True)
+        box.label("Additional Options", icon='PREFERENCES')
+        box.prop(self, "lsynthParts")
         #box.label("Model Cleanup", icon='EDIT')
         #box.prop(self, "cleanUpModel", expand=True)
 
@@ -225,13 +238,21 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
                 return
 
         subdirs = ["models", "parts", "p"]
-        unofficial_path = os.path.join(library_path, "unofficial")
-        if os.path.isdir(unofficial_path):
+
+        # The user wants to use Unofficial parts
+        # TODO: Make this an import option
+        if os.path.isdir(os.path.join(library_path, "unofficial")):
             subdirs.append(os.path.join("unofficial", "parts"))
             subdirs.append(os.path.join("unofficial", "p"))
             subdirs.append(os.path.join("unofficial", "p", str(self.resPrims)))
 
         subdirs.append(os.path.join("p", str(self.resPrims)))
+
+        # The user wants to use LSynth parts
+        if bool(self.lsynthParts):
+            if os.path.exists(library_path, "unofficial", "lsynth"):
+                subdirs.append(os.path.join("unofficial", "lsynth"))
+                debugPrint("Use LSynth Parts option selected")
 
         return [os.path.join(library_path, component) for component in subdirs]
 
