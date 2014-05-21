@@ -24,6 +24,7 @@
 # <pep8-80 compliant>
 
 from __future__ import print_function
+import sys
 import os
 import distutils.file_util
 import distutils.dir_util
@@ -32,6 +33,14 @@ import fnmatch
 
 from __version__ import __version__
 
+# Support Python 2 and 3 input
+# If this is Python 3, use input()
+if sys.version_info >= (3, 0):
+    get_input = input
+
+# If this is Python 2, use raw_input()
+elif sys.version_info <= (2, 7):
+    get_input = raw_input
 
 # Various folders
 curDir = os.path.dirname(os.path.realpath(__file__))
@@ -144,5 +153,5 @@ distutils.dir_util.remove_tree(tmpFolder)
 print('''
 LDR Importer {0} release packaged and saved to
 {1}.zip'''.format(finalVersion, os.path.join(archivesFolder, zipFileName)))
-raw_input("\nPress Enter to close. :) ")
+get_input("\nPress Enter to close. :) ")
 raise SystemExit(0)
