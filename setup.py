@@ -34,12 +34,11 @@ import fnmatch
 from __version__ import __version__
 
 # Support Python 2 and 3 input
-# If this is Python 3, use input()
-if sys.version_info >= (3, 0):
-    get_input = input
+# Default to Python 3's input()
+get_input = input
 
 # If this is Python 2, use raw_input()
-elif sys.version_info <= (2, 7):
+if sys.version_info[:2] <= (2, 7):
     get_input = raw_input
 
 # Various folders
