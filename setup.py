@@ -34,7 +34,7 @@ from __version__ import __version__
 
 
 # Various folders
-curDir = os.path.dirname(__file__)
+curDir = os.path.dirname(os.path.realpath(__file__))
 archivesFolder = os.path.join(curDir, "Archives")
 tmpFolder = os.path.join(archivesFolder, "tmp")
 blenderFolder = os.path.join(tmpFolder, "io_scene_ldraw")
@@ -144,5 +144,5 @@ distutils.dir_util.remove_tree(tmpFolder)
 print('''
 LDR Importer {0} release packaged and saved to
 {1}.zip'''.format(finalVersion, os.path.join(archivesFolder, zipFileName)))
-input("\nPress Enter to close. :) ")
+raw_input("\nPress Enter to close. :) ")
 raise SystemExit(0)
