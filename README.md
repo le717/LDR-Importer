@@ -6,7 +6,7 @@ A [Blender 3D](http://www.blender.org) Importer script for the [LDraw Parts Libr
 
 > LDraw&trade; is an open standard for LEGO CAD programs that allow the user to create virtual LEGO models and scenes. You can use it to document models
 you have physically built, create building instructions just like LEGO, render 3D photo realistic images of your virtual models and even make animations.
-The possibilities are endless. Unlike real LEGO bricks where you are limited by the number of parts and colors, in LDraw nothing is impossible.
+The possibilities are endless. Unlike real LEGO bricks where you are limited by the number of parts and colors, in LDraw nothing is impossible. The purpose of the LDR Importer is to import LDraw bricks into Blender as they are supposed to be (with proper mesh and materials). It is not for importing edited LDraw bricks (for example, photo-realistic, or cleaned up). The LDR Importer does, however have options where the user can enable extra features. These options are always optional, and never manditory.
 
 # Releases #
 
