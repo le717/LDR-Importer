@@ -281,7 +281,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         self.report({"INFO"}, "Search paths are {0}".format(self.search_paths))
 
         self.search_paths.insert(0, os.path.dirname(self.filepath))
-        model = self.parse_part(self.filepath)()
+        model = self.parsePart(self.filepath)()
 
         # Rotate model to proper LDraw orientation
         model.obj.matrix_world = Matrix((
@@ -323,7 +323,7 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         for testpath in self.search_paths:
             path = os.path.join(testpath, filename)
             if os.path.isfile(path):
-                LoadedPart = self.parse_part(path)
+                LoadedPart = self.parsePart(path)
                 self.part_cache[filename] = LoadedPart
                 return LoadedPart
 
@@ -345,9 +345,14 @@ class LDRImporterOperator(bpy.types.Operator, ImportHelper):
         self.part_cache[filename] = NonFoundPart
         return NonFoundPart
 
-    def parse_part(self, filename):
+    def parsePart(self, filename):
         if filename in self.part_cache:
             return self.part_cache[filename]
+
+        #debugPrint(filename)
+        if "stud".lower() in os.path.basename(filename):
+            debugPrint("Stud found!")
+            filename = os.path.join(os.path.dirname(filename), "unofficial", "p", "stud2-logo4.dat")
 
         # Points are Vector instances
         # Faces are tuples of 3/4 point indices
