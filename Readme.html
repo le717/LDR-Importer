@@ -5,12 +5,12 @@
   <title>LDR Importer</title>
   <base target="_blank">
   <style>
-      .subheaders { text-align: left; }
-      .text-center, td { text-align: center; }
-      a { text-decoration: none; color: #00f; }
-      a:hover { text-decoration: underline; }
-      h1, h2, h3, h4, h5, h6 { font-family: sans-serif; }
-      #top { font-size: 1.3em; }
+    .subheaders { text-align: left; }
+    .text-center, td { text-align: center; }
+    a { text-decoration: none; color: #00f; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, h4, h5, h6 { font-family: sans-serif; }
+    #top { font-size: 1.3em; }
   </style>
 </head>
 
@@ -39,7 +39,7 @@
 
   <br>
   <p class="text-center">This is the readme for <strong>LDR Importer</strong>, licensed under the
-  <a href="http://www.gnu.org/licenses/gpl-2.0.html">General Public License Version 2</a>.
+  <a href="http://www.gnu.org/licenses/gpl-2.0.html">General Public License Version 2</a> or any later version.
   </p>
   <a id="WhatsNeeded"></a>
   <br>
@@ -92,17 +92,20 @@
   </ul>
 
   <h2>Change Log</h2>
-  <strong>1.2</strong><br>
-  <em>Codename not available</em><br>
-  (Released ?? ??, 2014)<br>
+  <strong>1.2.0</strong><br>
+  <em>Speedy </em><br>
+  (Released 5 July, 2014)<br>
   <ul>
     <li>Added "Spaces between bricks" import option</li>
     <li>Add link to GitHub issues for easier bug reporting</li>
-    <li>Update and sort contributor names (<a href="https://github.com/le717/LDR-Importer/issues/59">Issue #59</a>)</li>
-    <li>Use Operator Presets to preserve import options (<a href="https://github.com/le717/LDR-Importer/issues/42">Issue #42</a>, <a href="https://github.com/le717/LDR-Importer/issues/65">#65</a>)</li>
+    <li>Update and sort contributor names (<a href="https://github.com/le717/LDR-Importer/issues/59">#59</a>)</li>
+    <li>Use Operator Presets to preserve import options (<a href="https://github.com/le717/LDR-Importer/issues/42">#42</a>, <a href="https://github.com/le717/LDR-Importer/issues/65">#65</a>)</li>
     <li>Update <code>debugPrint()</code> function to display two place milliseconds</li>
-    <li>"LDR-Importer 1.1.5 is five times slower" (<a href="https://github.com/le717/LDR-Importer/issues/61">Issue #61 </a>, <a href="https://github.com/le717/LDR-Importer/pull/73">#73</a>)</li>
-    <li>Add support for <a href="http://lsynth.sourceforge.net/">LSynth</a> bendable parts (<a href="https://github.com/le717/LDR-Importer/issues/75">Issue #75</a>, <a href="https://github.com/le717/LDR-Importer/pull/79">#79</a>)</li>
+    <li>"LDR-Importer 1.1.5 is five times slower" (<a href="https://github.com/le717/LDR-Importer/issues/61">#61 </a>, <a href="https://github.com/le717/LDR-Importer/pull/73">#73</a>)</li>
+    <li>Add beta support for <a href="http://lsynth.sourceforge.net/">LSynth</a> bendable parts (<a href="https://github.com/le717/LDR-Importer/issues/75">#75</a>, <a href="https://github.com/le717/LDR-Importer/pull/79">#79</a>)</li>
+    <li>"Always use patch version when creating release"</li>
+    <li>Fix setup.py crashing on Linux and on exit." (<a href="https://github.com/le717/LDR-Importer/pull/84">#84</a>, <a href="https://github.com/le717/LDR-Importer/pull/86">#86</a>)</li>
+    <li>Make setup.py Python 2 and 3 compatible (<a href="https://github.com/le717/LDR-Importer/pull/86">#86</a>)</li>
   </ul>
 
   <strong>1.1.5</strong><br>
@@ -111,22 +114,22 @@
   <ul>
     <li>Read <code>LDConfig.ldr</code> and <code>config.py</code> using <code>UTF-8</code> encoding</li>
     <li>Added support for reading models in <code>UCS-2BE</code> & <code>UCS-2LE</code> encoding
-      (<a href="https://github.com/le717/LDR-Importer/issues/37">Issue #37</a>)</li>
+      (<a href="https://github.com/le717/LDR-Importer/issues/37">#37</a>)</li>
     <li>Always save <code>config.py</code> in user's <code>AppData</code> on Windows
-      (<a href="https://github.com/le717/LDR-Importer/issues/38">Issue #38</a>)</li>
+      (<a href="https://github.com/le717/LDR-Importer/issues/38">#38</a>)</li>
     <li>Remove <code>GameFix</code> cleanup option</li>
-    <li>Improve part path lookup (<a href="https://github.com/le717/LDR-Importer/issues/40">Issue #40</a>,
+    <li>Improve part path lookup (<a href="https://github.com/le717/LDR-Importer/issues/40">#40</a>,
       <a href="https://github.com/le717/LDR-Importer/pull/50">#50</a>)</li>
-    <li>Give unofficial files precedence over official ones, correct usage of <code>p/8</code> primitives folder (<a href="https://github.com/le717/LDR-Importer/issues/52">Issue #52</a>)</li>
+    <li>Give unofficial files precedence over official ones, correct usage of <code>p/8</code> primitives folder (<a href="https://github.com/le717/LDR-Importer/issues/52">#52</a>)</li>
     <li>Add <a href="https://github.com/MinnieTheMoocher">MinnieTheMoocher</a> to author list</li>
     <li>Reworked display of import options</li>
     <li>Initialize <code>paths</code> array at the beginning of the script</li>
     <li>Fix bug with high-/low-res primitives not being imported properly</li>
     <li><code>debugPrint()</code> behavior was not as expected</li>
-    <li>Fixed issue with multiple edge split modifiers being added to each brick (<a href="https://github.com/le717/LDR-Importer/issues/57">Issue #57</a>)</li>
+    <li>Fixed issue with multiple edge split modifiers being added to each brick (<a href="https://github.com/le717/LDR-Importer/issues/57">#57</a>)</li>
   </ul>
 
-  <strong>1.1</strong><br>
+  <strong>1.1.0</strong><br>
   <em>The Working Quartet</em><br>
   (Released December 2, 2013)<br>
   <ul>
@@ -136,7 +139,7 @@
     <li>Fix string concentration errors</li>
     <li>Fix LEGO brick plastic IOR value</li>
     <li>Fix many PEP 8 line length issues</li>
-    <li>Fix crash when trying to import a non-existent brick (<a href="https://github.com/le717/LDR-Importer/issues/11">Issue #11</a>)</li>
+    <li>Fix crash when trying to import a non-existent brick (<a href="https://github.com/le717/LDR-Importer/issues/11">#11</a>)</li>
     <li>Detect render engine and use proper materials for it rather than selecting a checkbox</li>
     <li>Allow import on allow import on both case-sensitive and case-insensitive file systems - initial patch submitted via GitHub by
         <a href="https://github.com/Tribex">Tribex</a></li>
@@ -147,18 +150,18 @@
     <li>Majorly updated Markdown documentation files</li>
     <li>Fix possible bug with LDraw installation directory</li>
     <li>New <code>debugPrint()</code> function for easier understanding of message origin ans exactly when it was displayed - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
-    (<a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
+    (<a href="https://github.com/le717/LDR-Importer/pull/14">#14</a>)</li>
     <li>"Major error messages now display a small popup when called, notifying the user in Blender's UI,
     <br>instead of silently closing the file select screen and only outputting to the console" - patch submitted via GitHub by
         <a href="https://github.com/Tribex">Tribex</a>
-    (<a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
+    (<a href="https://github.com/le717/LDR-Importer/pull/14">#14</a>)</li>
     <li>"Major error messages now identify what type of error they were, and print the stack trace where necessary" - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
-    (<a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
+    (<a href="https://github.com/le717/LDR-Importer/pull/14">#14</a>)</li>
     <li>"Importing files which do not have a .ldr, .dat, or .mpd extension is no longer allowed and will not be attempted,
       <br>and will tell the user through a popup in Blender's UI" - patch submitted via GitHub by <a href="https://github.com/Tribex">Tribex</a>
-      (<a href="https://github.com/le717/LDR-Importer/pull/14">Issue #14</a>)</li>
+      (<a href="https://github.com/le717/LDR-Importer/pull/14">#14</a>)</li>
     <li>Conversion of single quotes to double quotes where possible</li>
-    <li>Changed new messages from <code>.mpd</code> to <code>.lcd</code> (script does not support MPD models, <a href="https://github.com/le717/LDR-Importer/issues/7">Issue #7</a>)</li>
+    <li>Changed new messages from <code>.mpd</code> to <code>.lcd</code> (script does not support MPD models, <a href="https://github.com/le717/LDR-Importer/issues/7">#7</a>)</li>
     <li>Reworked internal model cleanup process, now cleaner and better supports future improvements</li>
     <li>More conversion of string concentration from <code>+</code> (plus) signs to <code>str.format()</code> method</li>
     <li>New way of presenting import options, more easily understood and looks nicer too</li>
@@ -170,14 +173,14 @@
     <li>Created script (<code>setup.py</code>) to automatically package release for upload</li>
     <li>Ensure version number for <code>setup.py</code> is in proper format</li>
     <li>Detect LDraw Library of Parts installation on Windows in common locations
-      (<a href="https://github.com/le717/LDR-Importer/issues/15">Issue #15</a>,
+      (<a href="https://github.com/le717/LDR-Importer/issues/15">#15</a>,
       <a href="https://github.com/le717/LDR-Importer/pull/16">#16</a>)</li>
     <li>Cleaned up <code>GameFix</code> import option code</li>
     <li>Set <code>.ldr</code> file extension as default (per
       <a href="http://www.ldraw.org/article/218.html#extension">http://www.ldraw.org/article/218.html#extension</a>)</li>
     <li>Reversed condition when checking valid file extensions</li>
     <li>"Fixed loading error for models with invalid colors."</li>
-    <li>"Make object color also be viewport color" (<a href="https://github.com/le717/LDR-Importer/issues/21">Issue #21</a>)</li>
+    <li>"Make object color also be viewport color" (<a href="https://github.com/le717/LDR-Importer/issues/21">#21</a>)</li>
     <li>Display message in console if high-res bricks are being used in the import</li>
     <li>Filter out <code>.pyc</code> files made by Python 2.x in <code>setup.py</code></li>
     <li>Display "This software uses the LDraw Parts Library" image in <code>README.md</code></li>
@@ -189,8 +192,8 @@
     <li>Connected LDraw Library of Parts installation detection to configuration file</li>
     <li>Update <code>debugPrint()</code> function to support lists (for displaying multiple items at once)</li>
     <li>Filter out configuration file made by script in <code>setup.py</code></li>
-    <li>Updated minimum Blender version to 2.67 (<a href="https://github.com/le717/LDR-Importer/issues/27">Issue #27</a>)</li>
-    <li>Deselect objects in scene before importing (<a href="https://github.com/le717/LDR-Importer/issues/29">Issue #29</a>)</li>
+    <li>Updated minimum Blender version to 2.67 (<a href="https://github.com/le717/LDR-Importer/issues/27">#27</a>)</li>
+    <li>Deselect objects in scene before importing (<a href="https://github.com/le717/LDR-Importer/issues/29">#29</a>)</li>
     <li>Renamed script to <code>import_ldraw.py</code> to better match other Blender Addons</li>
     <li>Major HTML Readme update</li>
     <li>Give proper error message for missing <code>LDConfig.ldr</code></li>
@@ -198,7 +201,7 @@
     <li>Put script in root folder of release Zip so Blender can detect it</li>
   </ul>
 
-  <strong>1.0</strong><br>
+  <strong>1.0.0</strong><br>
   <em>Banbury Edition</em><br>
   (Released October 1, 2013)
   <ul>
