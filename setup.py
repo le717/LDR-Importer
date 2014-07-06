@@ -1,8 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-"""
-  BEGIN GPL LICENSE BLOCK
+"""BEGIN GPL LICENSE BLOCK
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -39,7 +37,7 @@ get_input = input
 
 # If this is Python 2, use raw_input()
 if sys.version_info[:2] <= (2, 7):
-    get_input = raw_input
+    get_input = raw_input  # noqa
 
 # Various folders
 curDir = os.path.dirname(os.path.realpath(__file__))

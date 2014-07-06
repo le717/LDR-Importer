@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-  BEGIN GPL LICENSE BLOCK
+"""BEGIN GPL LICENSE BLOCK
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -92,12 +91,12 @@ else:
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
 
 # The ldraw file being loaded by the user.
-#FIXME: v1.2 rewrite - Placeholder until rewrite.
+# FIXME: v1.2 rewrite - Placeholder until rewrite.
 file_directory = ""
 
 
 def debugPrint(*myInput):
-    """Debug print with identification timestamp"""
+    """Debug print with identification timestamp."""
     # Format the output like print() does
     myOutput = [str(say) for say in myInput]
 
@@ -131,8 +130,7 @@ except Exception as e:
 
 
 def checkEncoding(file_path):
-    """Check the encoding of a file for Endian encoding"""
-
+    """Check the encoding of a file for Endian encoding."""
     # Open it, read just the area containing a possible byte mark
     with open(file_path, "rb") as encode_check:
         encoding = encode_check.readline(3)
@@ -151,8 +149,8 @@ def checkEncoding(file_path):
 
 
 class LDrawFile(object):
-    """Scans LDraw files"""
-    #FIXME: v1.2 rewrite - Rewrite entire class (#35)
+    """Scans LDraw files."""
+    # FIXME: v1.2 rewrite - Rewrite entire class (#35)
     def __init__(self, context, filename, mat, colour=None):
 
         engine = context.scene.render.engine
@@ -207,7 +205,7 @@ class LDrawFile(object):
             self.submodels.append(LDrawFile(context, i[0], i[1], i[2]))
 
     def parse_line(self, line):
-        """Harvest the information from each line"""
+        """Harvest the information from each line."""
         verts = []
         color = line[1]
 
@@ -225,7 +223,7 @@ class LDrawFile(object):
         self.material_index.append(color)
 
     def parse_quad(self, line):
-        """Properly construct quads in each brick"""
+        """Properly construct quads in each brick."""
         color = line[1]
         verts = []
         num_points = 4
@@ -260,8 +258,8 @@ class LDrawFile(object):
         self.material_index.append(color)
 
     def parse(self, filename):
-        """Construct tri's in each brick"""
-        #FIXME: v1.2 rewrite - Rework function (#35)
+        """Construct tri's in each brick."""
+        # FIXME: v1.2 rewrite - Rework function (#35)
         subfiles = []
 
         while True:
@@ -294,7 +292,7 @@ class LDrawFile(object):
 
                 # The brick does not exist
                 else:
-                    #FIXME: v1.2 rewrite - Throw visible error message (#11)
+                    # FIXME: v1.2 rewrite - Throw visible error message (#11)
                     # (self.report)
                     debugPrint("File not found: {0}".format(fname))
                     return False
@@ -325,8 +323,8 @@ class LDrawFile(object):
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             (
-                             x, y, z, a, b, c,
-                             d, e, f, g, h, i
+                                x, y, z, a, b, c,
+                                d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
                             mat_new = self.mat * mathutils.Matrix(
                                 ((a, b, c, x), (d, e, f, y), (g, h, i, z),
@@ -355,7 +353,7 @@ class LDrawFile(object):
 
 
 def getMaterial(colour):
-    """Get Blender Internal Material Values"""
+    """Get Blender Internal Material Values."""
     if colour in colors:
         if not (colour in mat_list):
             mat = bpy.data.materials.new("Mat_{0}_".format(colour))
@@ -412,8 +410,8 @@ def getMaterial(colour):
 
 
 def getCyclesMaterial(colour):
-    """Get Cycles Material Values"""
-    #FIXME: Not all colors are accessible
+    """Get Cycles Material Values."""
+    # FIXME: Not all colors are accessible
     if colour in colors:
         if not (colour in mat_list):
             col = colors[colour]
@@ -461,7 +459,7 @@ def getCyclesMaterial(colour):
 
 
 def getCyclesBase(name, diff_color, alpha):
-    """Base Material, Mix shader and output node"""
+    """Base Material, Mix shader and output node."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
@@ -692,9 +690,9 @@ def getCyclesMilkyWhite(name, diff_color):
 
 
 def isSubPart(brick):
-    """Check if brick is a main part or a subpart"""
-    #FIXME: Remove this function
-    #TODO: A file is a "part" only if its header states so.
+    """Check if brick is a main part or a subpart."""
+    # FIXME: Remove this function
+    # TODO: A file is a "part" only if its header states so.
     # (#40#issuecomment-31279788)
     if str.lower(os.path.split(brick)[0]) == "s":
         isSubpart = True
@@ -705,7 +703,7 @@ def isSubPart(brick):
 
 
 def locate(pattern):
-    """Check if each part exists"""
+    """Check if each part exists."""
     partName = pattern.replace("\\", os.path.sep)
 
     for path in paths:
@@ -720,14 +718,14 @@ def locate(pattern):
                 return (fname, False)
 
     debugPrint("Could not find file {0}".format(fname))
-    #FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
+    # FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
     # for example by returning an empty string!
     return ("ERROR, FILE NOT FOUND", False)
 
 
 def create_model(self, scale, context):
-    """Create the actual model"""
-    #FIXME: v1.2 rewrite - Rewrite entire function (#35)
+    """Create the actual model."""
+    # FIXME: v1.2 rewrite - Rewrite entire function (#35)
     global objects
     global colors
     global mat_list
@@ -791,7 +789,7 @@ Must be a .ldr or .dat''')
             Cleanup can be disabled by user if wished.
             """
 
-            #FIXME v1.2 Rewrite - Split into separate function
+            # FIXME v1.2 Rewrite - Split into separate function
             # The CleanUp import option was selected
             if CleanUpOpt == "CleanUp":  # noqa
                 debugPrint("CleanUp option selected")
@@ -940,7 +938,7 @@ Check the console logs for more information.'''.format(LDrawDir))  # noqa
 
 
 def hasColorValue(line, value):
-    """Check if the color value is present"""
+    """Check if the color value is present."""
     return value in line
 
 
@@ -952,7 +950,7 @@ def getColorValue(line, value):
 
 
 def findWinLDrawDir():
-    """Detect LDraw Installation Path on Windows"""
+    """Detect LDraw installation path on Windows."""
     # Use previously defined path if it exists
     if LDrawDirs[3] != r"":
         install_path = LDrawDirs[3]
@@ -980,12 +978,12 @@ def findWinLDrawDir():
 
 
 def RunMe(self, context):
-    """Run process to store the installation path"""
+    """Run process to store the installation path."""
     saveInstallPath(self)
 
 
 def hex_to_rgb(rgb_str):
-    """Convert color hex value to RGB value"""
+    """Convert color hex value to RGB value."""
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
 
@@ -1011,7 +1009,7 @@ primsOptions = (
 
 
 class LDRImporterOps(bpy.types.Operator, ImportHelper):
-    """LDR Importer Operator"""
+    """LDR Importer Operator."""
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
     bl_label = "Import LDraw Model"
@@ -1055,7 +1053,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         update=RunMe
     )
 
-    ## Import options ##
+    # Import options
 
     scale = FloatProperty(
         name="Scale",
@@ -1088,7 +1086,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     )
 
     def draw(self, context):
-        """Display model cleanup options"""
+        """Display model cleanup options."""
         layout = self.layout
         box = layout.box()
         box.label("Import Options", icon='SCRIPTWIN')
@@ -1104,7 +1102,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "lsynthParts")
 
     def execute(self, context):
-        """Set import options and run the script"""
+        """Set import options and run the script."""
         global LDrawDir, CleanUpOpt, GapsOpt
         LDrawDir = str(self.ldrawPath)
         WhatRes = str(self.resPrims)
@@ -1180,8 +1178,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
 
 def saveInstallPath(self):
-    """Save the LDraw installation path for future use"""
-    #OPTIMIZE: Expand for other settings (#42)
+    """Save the LDraw installation path for future use."""
+    # TODO: Remove this dangerous thing
     # The contents of the configuration file
     config_contents = '''# -*- coding: utf-8 -*-
 # LDR Importer Configuration File #
@@ -1200,18 +1198,18 @@ def saveInstallPath(self):
 
 
 def menuImport(self, context):
-    """Import menu listing label"""
+    """Import menu listing label."""
     self.layout.operator(LDRImporterOps.bl_idname, text="LDraw (.ldr/.dat)")
 
 
 def register():
-    """Register Menu Listing"""
+    """Register Menu Listing."""
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menuImport)
 
 
 def unregister():
-    """Unregister Menu Listing"""
+    """Unregister Menu Listing."""
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menuImport)
 
