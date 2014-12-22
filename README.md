@@ -1,6 +1,6 @@
 # LDR Importer #
 
-[![Build Status](https://travis-ci.org/le717/LDR-Importer.png?branch=master)](https://travis-ci.org/le717/LDR-Importer)
+[![Build Status](https://travis-ci.org/le717/LDR-Importer.svg?branch=master)](https://travis-ci.org/le717/LDR-Importer)
 
 A [Blender 3D](http://www.blender.org) Importer script for the [LDraw Parts Library](http://www.ldraw.org).
 
