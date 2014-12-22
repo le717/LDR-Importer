@@ -753,20 +753,16 @@ Must be a .ldr or .dat''')
     # It has the proper file extension, continue with the import
     else:
         try:
-
-            """
-            Set the initial transformation matrix,
-            set the scale factor to 0.05,
-            and rotate -90 degrees around the x-axis,
-            so the object is upright.
-            """
-            mat = mathutils.Matrix((
-                (1.0, 0.0, 0.0, 0.0),
-                (0.0, 1.0, 0.0, 0.0),
-                (0.0, 0.0, 1.0, 0.0),
-                (0.0, 0.0, 0.0, 1.0)
-            )) * scale
-            mat = mat * mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
+            # Rotate and scale the part
+            # Scale factor is divided by 25 so we can use whole number
+            # scale factors in the UI. For reference,
+            # the default scale 1 = 0.04 to Blender
+            trix = mathutils.Matrix((
+                (1.0,  0.0, 0.0, 0.0), # noqa
+                (0.0,  0.0, 1.0, 0.0), # noqa
+                (0.0, -1.0, 0.0, 0.0),
+                (0.0,  0.0, 0.0, 1.0) # noqa
+            )) * (scale / 25)
 
             # If LDrawDir does not exist, stop the import
             if not os.path.isdir(LDrawDir):  # noqa
@@ -782,7 +778,7 @@ Must be a .ldr or .dat''')
             # Get material list from LDConfig.ldr
             scanLDConfig(self)
 
-            LDrawFile(context, file_name, mat)
+            LDrawFile(context, file_name, trix)
 
             """
             Remove doubles and recalculate normals in each brick.
@@ -1059,7 +1055,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     scale = FloatProperty(
         name="Scale",
         description="Use a specific scale for each brick",
-        default=0.05
+        default= 1.00
     )
 
     resPrims = EnumProperty(
