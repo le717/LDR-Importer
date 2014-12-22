@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""BEGIN GPL LICENSE BLOCK
+"""LDR Importer GPLv2 license.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -15,14 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-END GPL LICENSE BLOCK
-
 """
 
 bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
-    "author": "The LDR Importer Developers and Contributors",
+    "author": "LDR Importer developers and contributors",
     "version": (1, 2, 5),
     "blender": (2, 67, 0),
     "api": 31236,
@@ -35,7 +33,6 @@ bl_info = {
 
 import os
 import sys
-import math
 import mathutils
 import traceback
 from struct import unpack
@@ -150,7 +147,9 @@ def checkEncoding(file_path):
 
 
 class LDrawFile(object):
+
     """Scans LDraw files."""
+
     # FIXME: v1.2 rewrite - Rewrite entire class (#35)
     def __init__(self, context, filename, mat, colour=None):
 
@@ -393,7 +392,7 @@ def getMaterial(colour):
                 mat.raytrace_mirror.use = True
                 mat.raytrace_mirror.reflect_factor = 0.9
 
-            #elif col["material"] == "GLITTER":
+            # elif col["material"] == "GLITTER":
             #    slot = mat.texture_slots.add()
             #    tex = bpy.data.textures.new("GlitterTex", type = "STUCCI")
             #    tex.use_color_ramp = True
@@ -1006,7 +1005,9 @@ primsOptions = (
 
 
 class LDRImporterOps(bpy.types.Operator, ImportHelper):
+
     """LDR Importer Operator."""
+
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
     bl_label = "Import LDraw Model"
@@ -1055,7 +1056,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     scale = FloatProperty(
         name="Scale",
         description="Use a specific scale for each brick",
-        default= 1.00
+        default=1.00
     )
 
     resPrims = EnumProperty(
@@ -1138,8 +1139,10 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
             # The user wants to use LSynth parts
             if LSynth:
-                if os.path.exists(os.path.join(LDrawDir, "unofficial", "lsynth")):
-                    paths.append(os.path.join(LDrawDir, "unofficial", "lsynth"))
+                if os.path.exists(os.path.join(LDrawDir, "unofficial",
+                                               "lsynth")):
+                    paths.append(os.path.join(LDrawDir, "unofficial",
+                                              "lsynth"))
                     debugPrint("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
