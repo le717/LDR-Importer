@@ -683,17 +683,12 @@ def getCyclesMilkyWhite(name, diff_color):
     return mat
 
 
-def isSubPart(brick):
-    """Check if brick is a main part or a subpart."""
+def isSubPart(part):
+    """Check if part is a main part or a subpart."""
     # FIXME: Remove this function
     # TODO: A file is a "part" only if its header states so.
     # (#40#issuecomment-31279788)
-    if str.lower(os.path.split(brick)[0]) == "s":
-        isSubpart = True
-    else:
-        isSubpart = False
-
-    return isSubpart
+    return str.lower(os.path.split(part)[0]) == "s":
 
 
 def locate(pattern):
