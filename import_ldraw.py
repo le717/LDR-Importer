@@ -276,6 +276,11 @@ class LDrawFile(object):
                 # Search for the brick in the various folders
                 fname, isPart = locate(filename)
 
+                # The brick does not exist
+                # TODO Do not halt on this condition
+                if fname is None:
+                    return False
+
                 # Check encoding of `fname` too
                 file_encode = checkEncoding(fname)
 
@@ -284,45 +289,41 @@ class LDrawFile(object):
                     with open(fname, "rt", encoding=file_encode) as f_in:
                         lines = f_in.readlines()
 
-                # The brick does not exist
-                else:
-                    # FIXME: rewrite - Throw visible error message (#11)
-                    # (self.report)
-                    debugPrint("File not found: {0}".format(fname))
-                    return False
-
             self.part_count += 1
             if self.part_count > 1 and isPart:
                 self.subparts.append([filename, self.mat, self.colour])
             else:
                 for retval in lines:
                     tmpdate = retval.strip()
-                    if tmpdate != '':
+                    if tmpdate != "":
                         tmpdate = tmpdate.split()
 
-                        # LDraw brick comments
-                        if tmpdate[0] == "0":
-                            if len(tmpdate) >= 3:
-                                if (
-                                    tmpdate[1] == "!LDRAW_ORG" and
-                                    'Part' in tmpdate[2]
-                                ):
-                                    if self.part_count > 1:
-                                        self.subparts.append(
-                                            [filename, self.mat, self.colour]
-                                        )
-                                        break
+                        # TODO What is this condition for?
+                        # le717 unable to find a case where it is hit.
+                        if (tmpdate[0] == "0" and
+                            len(tmpdate) >= 3 and
+                            tmpdate[1].lower() == "!ldraw_org" and
+                            "part" in tmpdate[2].lower() and
+                            self.part_count > 1
+                        ):
+                            self.subparts.append(
+                                [filename, self.mat, self.colour]
+                            )
+                            break
 
-                        # The brick content
+                        # Part content
                         if tmpdate[0] == "1":
                             new_file = tmpdate[14]
                             (
                                 x, y, z, a, b, c,
                                 d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
-                            mat_new = self.mat * mathutils.Matrix(
-                                ((a, b, c, x), (d, e, f, y), (g, h, i, z),
-                                 (0, 0, 0, 1)))
+                            mat_new = self.mat * mathutils.Matrix((
+                                    (a, b, c, x),
+                                    (d, e, f, y),
+                                    (g, h, i, z),
+                                    (0, 0, 0, 1)
+                                ))
 
                             color = tmpdate[1]
                             if color == '16':
@@ -688,15 +689,15 @@ def isSubPart(part):
     # FIXME: Remove this function
     # TODO: A file is a "part" only if its header states so.
     # (#40#issuecomment-31279788)
-    return str.lower(os.path.split(part)[0]) == "s":
+    return str.lower(os.path.split(part)[0]) == "s"
 
 
 def locate(pattern):
-    """Check if each part exists."""
+    """Check if a part exists."""
     partName = pattern.replace("\\", os.path.sep)
 
     for path in paths:
-        # Perform a direct check
+        # Perform a case-sensitive check
         fname = os.path.join(path, partName)
         if os.path.exists(fname):
             return (fname, False)
@@ -707,9 +708,7 @@ def locate(pattern):
                 return (fname, False)
 
     debugPrint("Could not find file {0}".format(fname))
-    # FIXME: rewrite - Wrong! return error to caller, (#35)
-    # for example by returning an empty string!
-    return ("ERROR, FILE NOT FOUND", False)
+    return (None, False)
 
 
 def create_model(self, scale, context):
