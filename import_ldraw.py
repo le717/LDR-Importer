@@ -744,120 +744,119 @@ Must be a .ldr or .dat''')
         return {'CANCELLED'}
 
     # It has the proper file extension, continue with the import
-    else:
-        try:
-            # Rotate and scale the part
-            # Scale factor is divided by 25 so we can use whole number
-            # scale factors in the UI. For reference,
-            # the default scale 1 = 0.04 to Blender
-            trix = mathutils.Matrix((
-                (1.0,  0.0, 0.0, 0.0), # noqa
-                (0.0,  0.0, 1.0, 0.0), # noqa
-                (0.0, -1.0, 0.0, 0.0),
-                (0.0,  0.0, 0.0, 1.0) # noqa
-            )) * (scale / 25)
+    try:
+        # Rotate and scale the part
+        # Scale factor is divided by 25 so we can use whole number
+        # scale factors in the UI. For reference,
+        # the default scale 1 = 0.04 to Blender
+        trix = mathutils.Matrix((
+            (1.0,  0.0, 0.0, 0.0), # noqa
+            (0.0,  0.0, 1.0, 0.0), # noqa
+            (0.0, -1.0, 0.0, 0.0),
+            (0.0,  0.0, 0.0, 1.0) # noqa
+        )) * (scale / 25)
 
-            # If LDrawDir does not exist, stop the import
-            if not os.path.isdir(LDrawDir):  # noqa
-                debugPrint(''''ERROR: Cannot find LDraw installation at
+        # If LDrawDir does not exist, stop the import
+        if not os.path.isdir(LDrawDir):  # noqa
+            debugPrint(''''ERROR: Cannot find LDraw installation at
 {0}'''.format(LDrawDir))  # noqa
-                self.report({'ERROR'}, '''Cannot find LDraw installation at
+            self.report({'ERROR'}, '''Cannot find LDraw installation at
 {0}'''.format(LDrawDir))  # noqa
-                return {'CANCELLED'}
+            return {'CANCELLED'}
 
-            colors = {}
-            mat_list = {}
+        colors = {}
+        mat_list = {}
 
-            # Get the material list from LDConfig.ldr
-            getLDColors(self)
+        # Get the material list from LDConfig.ldr
+        getLDColors(self)
 
-            LDrawFile(context, file_name, trix)
+        LDrawFile(context, file_name, trix)
 
-            """
-            Remove doubles and recalculate normals in each brick.
-            The model is super high-poly without the cleanup.
-            Cleanup can be disabled by user if wished.
-            """
+        """
+        Remove doubles and recalculate normals in each brick.
+        The model is super high-poly without the cleanup.
+        Cleanup can be disabled by user if wished.
+        """
 
-            # FIXME Rewrite - Split into separate function
-            # The CleanUp import option was selected
-            if CleanUpOpt == "CleanUp":  # noqa
-                debugPrint("CleanUp option selected")
+        # FIXME Rewrite - Split into separate function
+        # The CleanUp import option was selected
+        if CleanUpOpt == "CleanUp":  # noqa
+            debugPrint("CleanUp option selected")
 
-                # Select all the mesh
-                for cur_obj in objects:
-                    cur_obj.select = True
-                    bpy.context.scene.objects.active = cur_obj
-
-                    if bpy.ops.object.mode_set.poll():
-                        # Change to edit mode
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='SELECT')
-
-                        # Remove doubles, calculate normals
-                        bpy.ops.mesh.remove_doubles(threshold=0.01)
-                        bpy.ops.mesh.normals_make_consistent()
-
-                        if bpy.ops.object.mode_set.poll():
-                            # Go back to object mode, set origin to geometry
-                            bpy.ops.object.mode_set(mode='OBJECT')
-                            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-
-                            # Set smooth shading
-                            bpy.ops.object.shade_smooth()
-
-                # Add 30 degree edge split modifier to all bricks
-                for cur_obj in objects:
-                    edges = cur_obj.modifiers.new(
-                        "Edge Split", type='EDGE_SPLIT')
-                    edges.split_angle = 0.523599
-
-            # The Gaps import option was selected
-            if GapsOpt:  # noqa
-                debugPrint("Gaps option selected")
-
-                # Select all the mesh
-                for cur_obj in objects:
-                    cur_obj.select = True
-                    bpy.context.scene.objects.active = cur_obj
-                    if bpy.ops.object.mode_set.poll():
-
-                        # Change to edit mode
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='SELECT')
-
-                        # Add small gaps between each brick
-                        bpy.ops.transform.resize(value=(0.99, 0.99, 0.99))
-                        if bpy.ops.object.mode_set.poll():
-
-                            # Go back to object mode
-                            bpy.ops.object.mode_set(mode='OBJECT')
-
-            # Select all the mesh now that import is complete
+            # Select all the mesh
             for cur_obj in objects:
                 cur_obj.select = True
+                bpy.context.scene.objects.active = cur_obj
 
-            # Update the scene with the changes
-            context.scene.update()
-            objects = []
+                if bpy.ops.object.mode_set.poll():
+                    # Change to edit mode
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
 
-            # Always reset 3D cursor to <0,0,0> after import
-            bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
+                    # Remove doubles, calculate normals
+                    bpy.ops.mesh.remove_doubles(threshold=0.01)
+                    bpy.ops.mesh.normals_make_consistent()
 
-            # Display success message
-            debugPrint("{0} successfully imported!".format(file_name))
-            return {'FINISHED'}
+                    if bpy.ops.object.mode_set.poll():
+                        # Go back to object mode, set origin to geometry
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-        except Exception as e:
-            debugPrint("ERROR: {0}\n{1}\n".format(
-                       type(e).__name__, traceback.format_exc()))
+                        # Set smooth shading
+                        bpy.ops.object.shade_smooth()
 
-            debugPrint("ERROR: Reason: {0}.".format(
-                       type(e).__name__))
+            # Add 30 degree edge split modifier to all bricks
+            for cur_obj in objects:
+                edges = cur_obj.modifiers.new(
+                    "Edge Split", type='EDGE_SPLIT')
+                edges.split_angle = 0.523599
 
-            self.report({'ERROR'}, '''File not imported ("{0}").
+        # The Gaps import option was selected
+        if GapsOpt:  # noqa
+            debugPrint("Gaps option selected")
+
+            # Select all the mesh
+            for cur_obj in objects:
+                cur_obj.select = True
+                bpy.context.scene.objects.active = cur_obj
+                if bpy.ops.object.mode_set.poll():
+
+                    # Change to edit mode
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
+
+                    # Add small gaps between each brick
+                    bpy.ops.transform.resize(value=(0.99, 0.99, 0.99))
+                    if bpy.ops.object.mode_set.poll():
+
+                        # Go back to object mode
+                        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Select all the mesh now that import is complete
+        for cur_obj in objects:
+            cur_obj.select = True
+
+        # Update the scene with the changes
+        context.scene.update()
+        objects = []
+
+        # Always reset 3D cursor to <0,0,0> after import
+        bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
+
+        # Display success message
+        debugPrint("{0} successfully imported!".format(file_name))
+        return {'FINISHED'}
+
+    except Exception as e:
+        debugPrint("ERROR: {0}\n{1}\n".format(
+                   type(e).__name__, traceback.format_exc()))
+
+        debugPrint("ERROR: Reason: {0}.".format(
+                   type(e).__name__))
+
+        self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
-            return {'CANCELLED'}
+        return {'CANCELLED'}
 
 
 def getLDColors(self):
