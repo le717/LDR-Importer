@@ -51,7 +51,6 @@ from bpy_extras.io_utils import ImportHelper
 objects = []
 paths = []
 mat_list = {}
-colors = {}
 
 """
 Default LDraw installation paths
@@ -87,11 +86,6 @@ else:
 
 # Name of configuration file
 config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
-
-# The ldraw file being loaded by the user.
-# FIXME: v1.2 rewrite - Placeholder until rewrite.
-file_directory = ""
-
 
 def debugPrint(*myInput):
     """Debug print with identification timestamp."""
@@ -150,7 +144,7 @@ class LDrawFile(object):
 
     """Scans LDraw files."""
 
-    # FIXME: v1.2 rewrite - Rewrite entire class (#35)
+    # FIXME: rewrite - Rewrite entire class (#35)
     def __init__(self, context, filename, mat, colour=None):
 
         engine = context.scene.render.engine
@@ -259,7 +253,7 @@ class LDrawFile(object):
 
     def parse(self, filename):
         """Construct tri's in each brick."""
-        # FIXME: v1.2 rewrite - Rework function (#35)
+        # FIXME: rewrite - Rework function (#35)
         subfiles = []
 
         while True:
@@ -292,7 +286,7 @@ class LDrawFile(object):
 
                 # The brick does not exist
                 else:
-                    # FIXME: v1.2 rewrite - Throw visible error message (#11)
+                    # FIXME: rewrite - Throw visible error message (#11)
                     # (self.report)
                     debugPrint("File not found: {0}".format(fname))
                     return False
@@ -718,14 +712,14 @@ def locate(pattern):
                 return (fname, False)
 
     debugPrint("Could not find file {0}".format(fname))
-    # FIXME: v1.2 rewrite - Wrong! return error to caller, (#35)
+    # FIXME: rewrite - Wrong! return error to caller, (#35)
     # for example by returning an empty string!
     return ("ERROR, FILE NOT FOUND", False)
 
 
 def create_model(self, scale, context):
     """Create the actual model."""
-    # FIXME: v1.2 rewrite - Rewrite entire function (#35)
+    # FIXME: rewrite - Rewrite entire function (#35)
     global objects
     global colors
     global mat_list
@@ -774,8 +768,8 @@ Must be a .ldr or .dat''')
             colors = {}
             mat_list = {}
 
-            # Get material list from LDConfig.ldr
-            scanLDConfig(self)
+            # Get the material list from LDConfig.ldr
+            getLDColors(self)
 
             LDrawFile(context, file_name, trix)
 
@@ -785,7 +779,7 @@ Must be a .ldr or .dat''')
             Cleanup can be disabled by user if wished.
             """
 
-            # FIXME v1.2 Rewrite - Split into separate function
+            # FIXME Rewrite - Split into separate function
             # The CleanUp import option was selected
             if CleanUpOpt == "CleanUp":  # noqa
                 debugPrint("CleanUp option selected")
@@ -866,7 +860,7 @@ Check the console logs for more information.'''.format(type(e).__name__))
             return {'CANCELLED'}
 
 
-def scanLDConfig(self):
+def getLDColors(self):
     """Scan LDConfig to get the material color info."""
     # LDConfig.ldr does not exist for some reason
     if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):  # noqa
@@ -880,9 +874,9 @@ Check the console logs for more information.'''.format(LDrawDir))  # noqa
 
     with open(os.path.join(LDrawDir, "LDConfig.ldr"),  # noqa
               "rt", encoding="utf_8") as ldconfig:
-        ldconfig_lines = ldconfig.readlines()
+        lines = ldconfig.readlines()
 
-    for line in ldconfig_lines:
+    for line in lines:
         if len(line) > 3:
             if line[2:4].lower() == '!c':
                 line_split = line.split()
@@ -898,7 +892,6 @@ Check the console logs for more information.'''.format(LDrawDir))  # noqa
                     "material": "BASIC"
                 }
 
-                #if len(line_split) > 10 and line_split[9] == 'ALPHA':
                 if hasColorValue(line_split, "ALPHA"):
                     color["alpha"] = int(
                         getColorValue(line_split, "ALPHA")) / 256.0
