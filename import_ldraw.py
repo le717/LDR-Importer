@@ -711,35 +711,34 @@ def locate(pattern):
     return (None, False)
 
 
-def create_model(self, scale, context):
+def create_model(self, context, scale):
     """Create the actual model."""
     # FIXME: rewrite - Rewrite entire function (#35)
     global objects
     global colors
     global mat_list
-    global file_name
+    global fileName
 
-    file_name = self.filepath
+    fileName = self.filepath
     # Attempt to get the directory the file came from
     # and add it to the `paths` list
-    paths[0] = os.path.dirname(file_name)
-    debugPrint("Attempting to import {0}".format(file_name))
+    paths[0] = os.path.dirname(fileName)
+    debugPrint("Attempting to import {0}".format(fileName))
 
-    # Make sure the model ends with the proper file extension
-    if not (
-        file_name.endswith(".ldr")
-        or file_name.endswith(".dat")
-    ):
+    # The file format as hinted to by
+    # conventional file extensions is not supported.
+    # Recommended: http://ghost.kirk.by/file-extensions-are-only-hints
+    if fileName[-4:].lower() not in (".ldr", ".dat"):
 
         debugPrint('''ERROR: Reason: Invalid File Type
 Must be a .ldr or .dat''')
         self.report({'ERROR'}, '''Error: Invalid File Type
 Must be a .ldr or .dat''')
-        return {'CANCELLED'}
+        return {'ERROR'}
 
     # It has the proper file extension, continue with the import
     try:
-        # Rotate and scale the part
+        # Rotate and scale the parts
         # Scale factor is divided by 25 so we can use whole number
         # scale factors in the UI. For reference,
         # the default scale 1 = 0.04 to Blender
@@ -764,7 +763,7 @@ Must be a .ldr or .dat''')
         # Get the material list from LDConfig.ldr
         getLDColors(self)
 
-        LDrawFile(context, file_name, trix)
+        LDrawFile(context, fileName, trix)
 
         """
         Remove doubles and recalculate normals in each brick.
@@ -838,7 +837,7 @@ Must be a .ldr or .dat''')
         bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
 
         # Display success message
-        debugPrint("{0} successfully imported!".format(file_name))
+        debugPrint("{0} successfully imported!".format(fileName))
         return {'FINISHED'}
 
     except Exception as e:
@@ -1030,7 +1029,6 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 {0}'''.format(FinalLDrawDir))
 
     ldrawPath = StringProperty(
-        # Leave `name` blank for better display
         name="",
         description="Path to the LDraw Parts Library",
         default=FinalLDrawDir,
@@ -1070,7 +1068,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     )
 
     def draw(self, context):
-        """Display model cleanup options."""
+        """Display import options."""
         layout = self.layout
         box = layout.box()
         box.label("Import Options", icon='SCRIPTWIN')
@@ -1159,7 +1157,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         if sys.platform == "win32":
             saveInstallPath(self)
 
-        create_model(self, self.scale, context)
+        create_model(self, context, self.scale)
         return {'FINISHED'}
 
 
