@@ -428,11 +428,11 @@ def getCyclesMaterial(colour):
 
             elif col["material"] == "PEARLESCENT":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"], 0.2)
+                                          col["color"])
 
             elif col["material"] == "METAL":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"], 0.5)
+                                          col["color"])
 
             elif col["material"] == "RUBBER":
                 mat = getCyclesRubber("Mat_{0}_".format(colour),
@@ -495,6 +495,7 @@ def getCyclesBase(name, diffColor, alpha):
 
     gloss = nodes.new('ShaderNodeBsdfGlossy')
     gloss.location = -242, -23
+    gloss.distribution = 'BECKMANN'
     gloss.inputs['Roughness'].default_value = 0.05
     gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
 
@@ -580,14 +581,16 @@ def getCyclesChrome(name, diffColor):
     return mat
 
 
-def getCyclesPearlMetal(name, diff_color, roughness):
-
+def getCyclesPearlMetal(name, diffColor):
+    """Pearlescent material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
 
@@ -598,18 +601,20 @@ def getCyclesPearlMetal(name, diff_color, roughness):
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
-    glossy = nodes.new('ShaderNodeBsdfGlossy')
-    glossy.location = -242, 154
-    glossy.inputs['Color'].default_value = diff_color + (1.0,)
-    glossy.inputs['Roughness'].default_value = 3.25
+    gloss = nodes.new('ShaderNodeBsdfGlossy')
+    gloss.location = -242, 154
+    gloss.distribution = 'BECKMANN'
+    gloss.inputs['Color'].default_value = diffColor + (1.0,)
+    gloss.inputs['Roughness'].default_value = 0.05
 
-    aniso = nodes.new('ShaderNodeBsdfDiffuse')
-    aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.0
+    diffuse = nodes.new('ShaderNodeBsdfDiffuse')
+    diffuse.location = -242, -23
+    diffuse.inputs['Color'].default_value = diffColor + (1.0,)
+    diffuse.inputs['Roughness'].default_value = 0.0
 
     links.new(mix.outputs[0], out.inputs[0])
-    links.new(glossy.outputs[0], mix.inputs[1])
-    links.new(aniso.outputs[0], mix.inputs[2])
+    links.new(gloss.outputs[0], mix.inputs[1])
+    links.new(diffuse.outputs[0], mix.inputs[2])
 
     return mat
 
