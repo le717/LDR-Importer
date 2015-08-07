@@ -454,11 +454,9 @@ def getCyclesMaterial(colour):
 
 
 def getCyclesBase(name, diffColor, alpha):
-    """Base Material, Mix shader and output node."""
+    """Basic material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
-
-    # Set viewport color to be the same as material color
     mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
@@ -495,14 +493,14 @@ def getCyclesBase(name, diffColor, alpha):
         node.inputs['Roughness'].default_value = 0.05
         node.inputs['IOR'].default_value = 1.46
 
-    aniso = nodes.new('ShaderNodeBsdfGlossy')
-    aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.05
-    aniso.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+    gloss = nodes.new('ShaderNodeBsdfGlossy')
+    gloss.location = -242, -23
+    gloss.inputs['Roughness'].default_value = 0.05
+    gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
 
     links.new(mix.outputs[0], out.inputs[0])
     links.new(node.outputs[0], mix.inputs[1])
-    links.new(aniso.outputs[0], mix.inputs[2])
+    links.new(gloss.outputs[0], mix.inputs[2])
 
     return mat
 
@@ -544,26 +542,40 @@ def getCyclesEmit(name, diff_color, alpha, luminance):
     return mat
 
 
-def getCyclesChrome(name, diff_color):
-    """Cycles render engine Chrome material."""
+def getCyclesChrome(name, diffColor):
+    """Chrome material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+    mix.inputs['Fac'].default_value = 0.01
 
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
-    glass = nodes.new('ShaderNodeBsdfGlossy')
-    glass.location = -242, 154
-    glass.inputs['Color'].default_value = diff_color + (1.0,)
-    glass.inputs['Roughness'].default_value = 0.05
+    glossOne = nodes.new('ShaderNodeBsdfGlossy')
+    glossOne.location = -242, 154
+    glossOne.distribution = 'GGX'
+    glossOne.inputs['Color'].default_value = diffColor + (1.0,)
+    glossOne.inputs['Roughness'].default_value = 0.03
 
-    links.new(glass.outputs[0], out.inputs[0])
+    glossTwo = nodes.new('ShaderNodeBsdfGlossy')
+    glossTwo.location = -242, -23
+    glossTwo.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+    glossTwo.inputs['Roughness'].default_value = 0.03
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(glossOne.outputs[0], mix.inputs[1])
+    links.new(glossTwo.outputs[0], mix.inputs[2])
 
     return mat
 
