@@ -482,11 +482,7 @@ def getCyclesBase(name, diffColor, alpha):
 
     # Transparent bricks
     else:
-        """
-        The alpha transparency used by LDraw is too simplistic for Cycles,
-        so I'm not using the value here. Other transparent colors
-        like 'Milky White' will need special materials.
-        """
+        # TODO Figure out a good way to make use of the alpha value
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
         node.inputs['Color'].default_value = diffColor + (1.0,)
