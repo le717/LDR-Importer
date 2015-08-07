@@ -453,51 +453,52 @@ def getCyclesMaterial(colour):
     return None
 
 
-def getCyclesBase(name, diff_color, alpha):
+def getCyclesBase(name, diffColor, alpha):
     """Base Material, Mix shader and output node."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
 
     # Set viewport color to be the same as material color
-    mat.diffuse_color = diff_color
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
 
     mix = nodes.new('ShaderNodeMixShader')
     mix.location = 0, 90
+    mix.inputs['Fac'].default_value = 0.05
 
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
+    # Solid bricks
     if alpha == 1.0:
-        mix.inputs['Fac'].default_value = 0.05
         node = nodes.new('ShaderNodeBsdfDiffuse')
         node.location = -242, 154
-        node.inputs['Color'].default_value = diff_color + (1.0,)
+        node.inputs['Color'].default_value = diffColor + (1.0,)
         node.inputs['Roughness'].default_value = 0.0
 
+    # Transparent bricks
     else:
         """
         The alpha transparency used by LDraw is too simplistic for Cycles,
         so I'm not using the value here. Other transparent colors
         like 'Milky White' will need special materials.
         """
-        mix.inputs['Fac'].default_value = 0.05
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
-        node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.01
-
-        # The IOR of LEGO brick plastic is 1.46
+        node.inputs['Color'].default_value = diffColor + (1.0,)
+        node.inputs['Roughness'].default_value = 0.05
         node.inputs['IOR'].default_value = 1.46
 
     aniso = nodes.new('ShaderNodeBsdfGlossy')
     aniso.location = -242, -23
     aniso.inputs['Roughness'].default_value = 0.05
+    aniso.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
 
     links.new(mix.outputs[0], out.inputs[0])
     links.new(node.outputs[0], mix.inputs[1])
