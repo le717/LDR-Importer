@@ -415,7 +415,7 @@ def getCyclesMaterial(colour):
                 mat = getCyclesMilkyWhite("Mat_{0}_".format(colour),
                                           col["color"])
 
-            elif (col["material"] == "BASIC" and col["luminance"]) == 0:
+            elif col["material"] == "BASIC" and col["luminance"] == 0:
                 mat = getCyclesBase("Mat_{0}_".format(colour),
                                     col["color"], col["alpha"])
 
