@@ -17,26 +17,11 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 """
 
-bl_info = {
-    "name": "LDR Importer",
-    "description": "Import LDraw models in .ldr and .dat format",
-    "author": "LDR Importer developers and contributors",
-    "version": (1, 2, 5),
-    "blender": (2, 67, 0),
-    "api": 31236,
-    "location": "File > Import",
-    "warning": "Incomplete Cycles support, MPD and Bricksmith models not supported",  # noqa
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/LDRAW_Importer",  # noqa
-    "tracker_url": "https://github.com/le717/LDR-Importer/issues",
-    "category": "Import-Export"
-    }
 
 import os
-import sys
 import mathutils
 import traceback
 from struct import unpack
-from datetime import datetime
 
 import bpy
 from bpy.props import (StringProperty,
@@ -47,78 +32,12 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import ImportHelper
 
+from .src.ldutils import (Console, Preferences)
+
 # Global variables
 objects = []
 paths = []
 mat_list = {}
-
-"""
-Default LDraw installation paths
-Index 0: Windows
-Index 1: Mac OS X
-Index 2: Linux
-Index 3: User defined, raw string
-Storing the paths in a list prevents the creation of global variables
-if they are changed. Instead, simply update the proper index.
-"""
-LDrawDirs = ["C:\\LDraw", "/Applications/ldraw/", "~/ldraw/", r""]
-
-# Location of configuration file...
-# ...on Windows...
-if sys.platform == "win32":
-    # Get the location of the user's %AppData%
-    userAppData = os.path.expandvars(os.path.join(
-        "%AppData%", "Blender Foundation", "Blender"))
-
-    # Get the version of Blender being used
-    blVersion = bpy.app.version_string[:4]
-
-    # Set the final configuration path
-    config_path = os.path.join(userAppData, blVersion, "scripts",
-                               "presets", "io_import_ldraw")
-
-# ...and not on Windows...
-else:
-    # `up` and `os.path.abspath` is used to break it out of core app files
-    up = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    config_path = os.path.abspath(os.path.join(
-        up, "presets", "io_import_ldraw"))
-
-# Name of configuration file
-config_filename = os.path.abspath(os.path.join(config_path, "config.py"))
-
-def debugPrint(*myInput):
-    """Debug print with identification timestamp."""
-    # Format the output like print() does
-    myOutput = [str(say) for say in myInput]
-
-    # `strftime("%H:%M:%S.%f")[:-4]` trims milliseconds down to two places
-    print("\n[LDR Importer] {0} - {1}\n".format(
-        " ".join(myOutput), datetime.now().strftime("%H:%M:%S.%f")[:-4]))
-
-# Attempt to read and use the path in the config
-try:
-    # A hacky trick that basically is: from config import *
-    debugPrint("Configuration file found at\n{0}".format(config_filename))
-    with open(config_filename, "rt", encoding="utf_8") as f:
-        lines = f.read()
-    exec(compile(lines, config_filename, 'exec'))
-
-    # Set LDrawDirs[3] to the value that was in the file (ldraw_dir)
-    LDrawDirs[3] = ldraw_dir  # noqa
-
-# Suppress error when script is run the first time
-# and config.py does not yet exist
-except FileNotFoundError:  # noqa
-    pass
-
-# If we had an error, dump the traceback
-except Exception as e:
-    debugPrint("ERROR: {0}\n{1}\n".format(
-               type(e).__name__, traceback.format_exc()))
-
-    debugPrint("ERROR: Reason: {0}.".format(
-               type(e).__name__))
 
 
 def checkEncoding(file_path):
@@ -707,7 +626,7 @@ def locate(pattern):
             if os.path.exists(fname):
                 return (fname, False)
 
-    debugPrint("Could not find file {0}".format(fname))
+    Console.log("Could not find file {0}".format(fname))
     return (None, False)
 
 
@@ -723,14 +642,14 @@ def create_model(self, context, scale):
     # Attempt to get the directory the file came from
     # and add it to the `paths` list
     paths[0] = os.path.dirname(fileName)
-    debugPrint("Attempting to import {0}".format(fileName))
+    Console.log("Attempting to import {0}".format(fileName))
 
     # The file format as hinted to by
     # conventional file extensions is not supported.
     # Recommended: http://ghost.kirk.by/file-extensions-are-only-hints
     if fileName[-4:].lower() not in (".ldr", ".dat"):
 
-        debugPrint('''ERROR: Reason: Invalid File Type
+        Console.log('''ERROR: Reason: Invalid File Type
 Must be a .ldr or .dat''')
         self.report({'ERROR'}, '''Error: Invalid File Type
 Must be a .ldr or .dat''')
@@ -751,7 +670,7 @@ Must be a .ldr or .dat''')
 
         # If LDrawDir does not exist, stop the import
         if not os.path.isdir(LDrawDir):  # noqa
-            debugPrint(''''ERROR: Cannot find LDraw installation at
+            Console.log(''''ERROR: Cannot find LDraw installation at
 {0}'''.format(LDrawDir))  # noqa
             self.report({'ERROR'}, '''Cannot find LDraw installation at
 {0}'''.format(LDrawDir))  # noqa
@@ -774,7 +693,7 @@ Must be a .ldr or .dat''')
         # FIXME Rewrite - Split into separate function
         # The CleanUp import option was selected
         if CleanUpOpt == "CleanUp":  # noqa
-            debugPrint("CleanUp option selected")
+            Console.log("CleanUp option selected")
 
             # Select all the mesh
             for cur_obj in objects:
@@ -806,7 +725,7 @@ Must be a .ldr or .dat''')
 
         # The Gaps import option was selected
         if GapsOpt:  # noqa
-            debugPrint("Gaps option selected")
+            Console.log("Gaps option selected")
 
             # Select all the mesh
             for cur_obj in objects:
@@ -837,14 +756,14 @@ Must be a .ldr or .dat''')
         bpy.context.scene.cursor_location = (0.0, 0.0, 0.0)
 
         # Display success message
-        debugPrint("{0} successfully imported!".format(fileName))
+        Console.log("{0} successfully imported!".format(fileName))
         return {'FINISHED'}
 
     except Exception as e:
-        debugPrint("ERROR: {0}\n{1}\n".format(
+        Console.log("ERROR: {0}\n{1}\n".format(
                    type(e).__name__, traceback.format_exc()))
 
-        debugPrint("ERROR: Reason: {0}.".format(
+        Console.log("ERROR: Reason: {0}.".format(
                    type(e).__name__))
 
         self.report({'ERROR'}, '''File not imported ("{0}").
@@ -860,7 +779,7 @@ def getLDColors(self):
 {0}
 Check the console logs for more information.'''.format(LDrawDir))  # noqa
 
-        debugPrint('''ERROR: Could not find LDConfig.ldr at
+        Console.log('''ERROR: Could not find LDConfig.ldr at
 {0}'''.format(LDrawDir))  # noqa
         return {'CANCELLED'}
 
@@ -930,39 +849,6 @@ def getColorValue(line, value):
         return line[n + 1]
 
 
-def findWinLDrawDir():
-    """Detect LDraw installation path on Windows."""
-    # Use previously defined path if it exists
-    if LDrawDirs[3] != r"":
-        install_path = LDrawDirs[3]
-
-    # No previous path, so check at default installation (C:\\LDraw)
-    elif os.path.isfile(os.path.join(LDrawDirs[0], "LDConfig.ldr")):
-        install_path = LDrawDirs[0]
-
-    # If that fails, look in Program Files
-    elif os.path.isfile(os.path.join(
-                        "C:\\Program Files\\LDraw", "LDConfig.ldr")):
-        install_path = "C:\\Program Files\\LDraw"
-
-    # If it fails again, look in Program Files (x86)
-    elif os.path.isfile(os.path.join(
-                        "C:\\Program Files (x86)\\LDraw", "LDConfig.ldr")):
-        install_path = "C:\\Program Files (x86)\\LDraw"
-
-    # If all that fails, fall back to default installation
-    else:
-        install_path = LDrawDirs[0]
-
-    # Update the list with the path (avoids creating a global variable)
-    LDrawDirs[0] = install_path
-
-
-def RunMe(self, context):
-    """Run process to store the installation path."""
-    saveInstallPath(self)
-
-
 def hex_to_rgb(rgb_str):
     """Convert color hex value to RGB value."""
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
@@ -1000,39 +886,20 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     bl_region_type = "WINDOW"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
+    # Instance the preferences system
+    prefs = Preferences()
+
     # File type filter in file browser
     filename_ext = ".ldr"
-
     filter_glob = StringProperty(
         default="*.ldr;*.dat",
         options={'HIDDEN'}
     )
 
-    # The installation path was defined, use it
-    if LDrawDirs[3] != r"":
-        FinalLDrawDir = LDrawDirs[3]
-
-    # The installation path was not defined, fall back to defaults
-    # On Windows, this means attempting to detect the installation
-    else:
-
-        # Run Windows installation path detection process
-        if sys.platform == "win32":
-            findWinLDrawDir()
-
-        FinalLDrawDir = {
-            "win32": LDrawDirs[0],
-            "darwin": LDrawDirs[1]
-        }.get(sys.platform, LDrawDirs[2])
-
-    debugPrint('''The LDraw Parts Library installation path to be used is
-{0}'''.format(FinalLDrawDir))
-
     ldrawPath = StringProperty(
         name="",
         description="Path to the LDraw Parts Library",
-        default=FinalLDrawDir,
-        update=RunMe
+        default=prefs.findLDraw()
     )
 
     # Import options
@@ -1127,7 +994,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
                                                "lsynth")):
                     paths.append(os.path.join(LDrawDir, "unofficial",
                                               "lsynth"))
-                    debugPrint("Use LSynth Parts selected")
+                    Console.log("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
         paths.append(os.path.join(LDrawDir, "parts"))
@@ -1135,68 +1002,22 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # The user wants to use high-res primitives
         if WhatRes == "HighRes":
             paths.append(os.path.join(LDrawDir, "p", "48"))
-            debugPrint("High-res primitives substitution selected")
+            Console.log("High-res primitives substitution selected")
 
         # The user wants to use low-res primitives
         elif WhatRes == "LowRes":
             paths.append(os.path.join(LDrawDir, "p", "8"))
-            debugPrint("Low-res primitives substitution selected")
+            Console.log("Low-res primitives substitution selected")
 
         # The user wants to use normal-res primitives
         else:
-            debugPrint("Standard-res primitives substitution selected")
+            Console.log("Standard-res primitives substitution selected")
 
         # Finally, search in the `p` folder
         paths.append(os.path.join(LDrawDir, "p"))
 
-        """
-        Blender for Windows does not like the 'update' key in ldrawPath{},
-        so force it to run. We can run the process directly,
-        rather than going through RunMe().
-        """
-        if sys.platform == "win32":
-            saveInstallPath(self)
-
+        # Save any preferences and import the model
+        self.prefs.setLDraw(self.ldrawPath)
+        self.prefs.savePrefs()
         create_model(self, context, self.scale)
         return {'FINISHED'}
-
-
-def saveInstallPath(self):
-    """Save the LDraw installation path for future use."""
-    # TODO: Remove this dangerous thing
-    # The contents of the configuration file
-    config_contents = '''# -*- coding: utf-8 -*-
-# LDR Importer Configuration File #
-
-# Path to the LDraw Parts Library
-{0}"{1}"
-'''.format("ldraw_dir = r", self.ldrawPath)
-
-    # Create the config path if it does not exist
-    if not os.path.exists(config_path):
-        os.makedirs(config_path)
-
-    # Write the config file
-    with open(config_filename, "wt", encoding="utf_8") as f:
-        f.write(config_contents)
-
-
-def menuImport(self, context):
-    """Import menu listing label."""
-    self.layout.operator(LDRImporterOps.bl_idname, text="LDraw (.ldr/.dat)")
-
-
-def register():
-    """Register Menu Listing."""
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menuImport)
-
-
-def unregister():
-    """Unregister Menu Listing."""
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menuImport)
-
-
-if __name__ == "__main__":
-    register()
