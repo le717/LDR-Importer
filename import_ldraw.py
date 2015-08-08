@@ -417,6 +417,20 @@ def getMaterial(colour):
             mat_list[colour] = mat
 
         return mat_list[colour]
+    else:
+        # Check for a possible direct color
+        directColor = convertDirectColor(colour)
+
+        # We have a direct color on our hands
+        if directColor[0]:
+            debugPrint("Direct color {0} found".format(colour))
+            mat = bpy.data.materials.new("Mat_{0}_".format(colour))
+            mat.diffuse_color = directColor[1]
+
+            # Add it to the material lists to avoid duplicate processing
+            colors[colour] = mat
+            mat_list[colour] = mat
+            return mat_list[colour]
 
     return None
 
