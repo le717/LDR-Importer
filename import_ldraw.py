@@ -31,7 +31,9 @@ bl_info = {
     "category": "Import-Export"
     }
 
+
 import os
+import re
 import sys
 import mathutils
 import traceback
@@ -346,6 +348,21 @@ class LDrawFile(object):
             else:
                 break
 
+def convertDirectColor(color):
+    """Convert direct colors to usable RGB values.
+
+    @param {String} An LDraw direct color in the format 0x2RRGGBB.
+                    Details at http://www.ldraw.org/article/218.html#colours.
+    @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
+                                     if a direct color was found or not.
+                                     If it is True, index one is the color
+                                     converted into a three-index
+                                     RGB color tuple.
+    """
+    if re.fullmatch(r"^0x2(?:[\A-F0-9]{2}){3}$", color) is None:
+        return (False,)
+    return (True, hex_to_rgb(color.lstrip("0x2")))
+
 
 def getMaterial(colour):
     """Get Blender Internal Material Values."""
@@ -446,8 +463,24 @@ def getCyclesMaterial(colour):
 
         return mat_list[colour]
     else:
-        mat_list[colour] = getCyclesBase("Mat_{0}_".format(colour),
-                                         (1, 1, 0), 1.0)
+        # Check for a possible direct color
+        directColor = convertDirectColor(colour)
+
+        # We have a direct color on our hands
+        if directColor[0]:
+            debugPrint("Direct color {0} found".format(colour))
+            mat = getCyclesBase("Mat_{0}_".format(colour),
+                                             directColor[1], 1.0)
+
+        # Some other color format, keep it Blender default gray
+        else:
+            debugPrint("Unknown color format {0} found".format(colour))
+            mat = getCyclesBase("Mat_{0}_".format(colour),
+                                             (0.8, 0.8, 0.8), 1.0)
+
+        # Add it to the material lists to avoid duplicate processing
+        colors[colour] = mat
+        mat_list[colour] = mat
         return mat_list[colour]
 
     return None
