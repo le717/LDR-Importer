@@ -31,7 +31,9 @@ bl_info = {
     "category": "Import-Export"
     }
 
+
 import os
+import re
 import sys
 import mathutils
 import traceback
@@ -321,6 +323,22 @@ class LDrawFile(object):
                 break
 
 
+def convertDirectColor(color):
+    """Convert direct colors to usable RGB values.
+
+    @param {String} An LDraw direct color in the format 0x2RRGGBB.
+                    Details at http://www.ldraw.org/article/218.html#colours.
+    @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
+                                     if a direct color was found or not.
+                                     If it is True, index one is the color
+                                     converted into a three-index
+                                     RGB color tuple.
+    """
+    if re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None:
+        return (False,)
+    return (True, hex_to_rgb(color.lstrip("0x2")))
+
+
 def getMaterial(colour):
     """Get Blender Internal Material Values."""
     if colour in colors:
@@ -374,6 +392,20 @@ def getMaterial(colour):
             mat_list[colour] = mat
 
         return mat_list[colour]
+    else:
+        # Check for a possible direct color
+        directColor = convertDirectColor(colour)
+
+        # We have a direct color on our hands
+        if directColor[0]:
+            debugPrint("Direct color {0} found".format(colour))
+            mat = bpy.data.materials.new("Mat_{0}_".format(colour))
+            mat.diffuse_color = directColor[1]
+
+            # Add it to the material lists to avoid duplicate processing
+            colors[colour] = mat
+            mat_list[colour] = mat
+            return mat_list[colour]
 
     return None
 
@@ -420,9 +452,19 @@ def getCyclesMaterial(colour):
 
         return mat_list[colour]
     else:
-        mat_list[colour] = getCyclesBase("Mat_{0}_".format(colour),
-                                         (1, 1, 0), 1.0)
-        return mat_list[colour]
+        # Check for a possible direct color
+        directColor = convertDirectColor(colour)
+
+        # We have a direct color on our hands
+        if directColor[0]:
+            debugPrint("Direct color {0} found".format(colour))
+            mat = getCyclesBase("Mat_{0}_".format(colour),
+                                directColor[1], 1.0)
+
+            # Add it to the material lists to avoid duplicate processing
+            colors[colour] = mat
+            mat_list[colour] = mat
+            return mat_list[colour]
 
     return None
 
