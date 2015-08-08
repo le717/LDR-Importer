@@ -969,23 +969,6 @@ def hex_to_rgb(rgb_str):
     int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
     return tuple([val / 255 for val in int_tuple])
 
-# Model cleanup options
-# DoNothing option does not require a check later on
-cleanupOptions = (
-    ("CleanUp", "Basic Cleanup",
-        "Remove double vertices, recalculate normals, add Edge Split modifier"),
-    ("DoNothing", "Original LDraw Mesh", "Import LDraw Mesh as Original"),
-)
-
-# Primitives import options
-primsOptions = (
-    ("StandardRes", "Standard Primitives",
-        "Import primitives using standard resolution"),
-    ("HighRes", "High-Res Primitives",
-        "Import primitives using high resolution"),
-    ("LowRes", "Low-Res Primitives",
-        "Import primitives using low resolution")
-)
 
 # ------------ Operator ------------ #
 
@@ -1047,13 +1030,26 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     resPrims = EnumProperty(
         name="Resolution of part primitives",
         description="Resolution of part primitives",
-        items=primsOptions
+        items=(
+            ("StandardRes", "Standard Primitives",
+             "Import using standard resolution primitives"),
+            ("HighRes", "High-Res Primitives",
+             "Import using high resolution primitives"),
+            ("LowRes", "Low-Res Primitives",
+             "Import using low resolution primitives")
+        )
     )
 
     cleanUpModel = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
-        items=cleanupOptions
+        items=(
+            ("CleanUp", "Basic Cleanup",
+             "Remove double vertices, recalculate normals,"
+             "add Edge Split modifier"),
+            ("DoNothing", "Original LDraw Mesh",
+             "Import LDraw Mesh as Original"),
+        )
     )
 
     addGaps = BoolProperty(
