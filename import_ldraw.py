@@ -421,7 +421,7 @@ def getCyclesMaterial(colour):
                 mat = getCyclesMilkyWhite("Mat_{0}_".format(colour),
                                           col["color"])
 
-            elif (col["material"] == "BASIC" and col["luminance"]) == 0:
+            elif col["material"] == "BASIC" and col["luminance"] == 0:
                 mat = getCyclesBase("Mat_{0}_".format(colour),
                                     col["color"], col["alpha"])
 
@@ -434,11 +434,11 @@ def getCyclesMaterial(colour):
 
             elif col["material"] == "PEARLESCENT":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"], 0.2)
+                                          col["color"])
 
             elif col["material"] == "METAL":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"], 0.5)
+                                          col["color"])
 
             elif col["material"] == "RUBBER":
                 mat = getCyclesRubber("Mat_{0}_".format(colour),
@@ -470,11 +470,9 @@ def getCyclesMaterial(colour):
 
 
 def getCyclesBase(name, diffColor, alpha):
-    """Base Material, Mix shader and output node."""
+    """Basic material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
-
-    # Set viewport color to be the same as material color
     mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
@@ -500,25 +498,22 @@ def getCyclesBase(name, diffColor, alpha):
 
     # Transparent bricks
     else:
-        """
-        The alpha transparency used by LDraw is too simplistic for Cycles,
-        so I'm not using the value here. Other transparent colors
-        like 'Milky White' will need special materials.
-        """
+        # TODO Figure out a good way to make use of the alpha value
         node = nodes.new('ShaderNodeBsdfGlass')
         node.location = -242, 154
         node.inputs['Color'].default_value = diffColor + (1.0,)
         node.inputs['Roughness'].default_value = 0.05
         node.inputs['IOR'].default_value = 1.46
 
-    aniso = nodes.new('ShaderNodeBsdfGlossy')
-    aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.05
-    aniso.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+    gloss = nodes.new('ShaderNodeBsdfGlossy')
+    gloss.location = -242, -23
+    gloss.distribution = 'BECKMANN'
+    gloss.inputs['Roughness'].default_value = 0.05
+    gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
 
     links.new(mix.outputs[0], out.inputs[0])
     links.new(node.outputs[0], mix.inputs[1])
-    links.new(aniso.outputs[0], mix.inputs[2])
+    links.new(gloss.outputs[0], mix.inputs[2])
 
     return mat
 
@@ -560,38 +555,54 @@ def getCyclesEmit(name, diff_color, alpha, luminance):
     return mat
 
 
-def getCyclesChrome(name, diff_color):
-    """Cycles render engine Chrome material."""
+def getCyclesChrome(name, diffColor):
+    """Chrome material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
+
+    mix = nodes.new('ShaderNodeMixShader')
+    mix.location = 0, 90
+    mix.inputs['Fac'].default_value = 0.01
 
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
-    glass = nodes.new('ShaderNodeBsdfGlossy')
-    glass.location = -242, 154
-    glass.inputs['Color'].default_value = diff_color + (1.0,)
-    glass.inputs['Roughness'].default_value = 0.05
+    glossOne = nodes.new('ShaderNodeBsdfGlossy')
+    glossOne.location = -242, 154
+    glossOne.distribution = 'GGX'
+    glossOne.inputs['Color'].default_value = diffColor + (1.0,)
+    glossOne.inputs['Roughness'].default_value = 0.03
 
-    links.new(glass.outputs[0], out.inputs[0])
+    glossTwo = nodes.new('ShaderNodeBsdfGlossy')
+    glossTwo.location = -242, -23
+    glossTwo.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+    glossTwo.inputs['Roughness'].default_value = 0.03
+
+    links.new(mix.outputs[0], out.inputs[0])
+    links.new(glossOne.outputs[0], mix.inputs[1])
+    links.new(glossTwo.outputs[0], mix.inputs[2])
 
     return mat
 
 
-def getCyclesPearlMetal(name, diff_color, roughness):
-
+def getCyclesPearlMetal(name, diffColor):
+    """Pearlescent material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
 
@@ -602,67 +613,89 @@ def getCyclesPearlMetal(name, diff_color, roughness):
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
-    glossy = nodes.new('ShaderNodeBsdfGlossy')
-    glossy.location = -242, 154
-    glossy.inputs['Color'].default_value = diff_color + (1.0,)
-    glossy.inputs['Roughness'].default_value = 3.25
+    gloss = nodes.new('ShaderNodeBsdfGlossy')
+    gloss.location = -242, 154
+    gloss.distribution = 'BECKMANN'
+    gloss.inputs['Color'].default_value = diffColor + (1.0,)
+    gloss.inputs['Roughness'].default_value = 0.05
 
-    aniso = nodes.new('ShaderNodeBsdfDiffuse')
-    aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.0
+    diffuse = nodes.new('ShaderNodeBsdfDiffuse')
+    diffuse.location = -242, -23
+    diffuse.inputs['Color'].default_value = diffColor + (1.0,)
+    diffuse.inputs['Roughness'].default_value = 0.0
 
     links.new(mix.outputs[0], out.inputs[0])
-    links.new(glossy.outputs[0], mix.inputs[1])
-    links.new(aniso.outputs[0], mix.inputs[2])
+    links.new(gloss.outputs[0], mix.inputs[1])
+    links.new(diffuse.outputs[0], mix.inputs[2])
 
     return mat
 
 
-def getCyclesRubber(name, diff_color, alpha):
-    """Cycles render engine Rubber material."""
+def getCyclesRubber(name, diffColor, alpha):
+    """Rubber material colors for Cycles render engine."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
+    mat.diffuse_color = diffColor
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
+    # Remove all previous nodes
     for n in nodes:
         nodes.remove(n)
 
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
+    mixTwo = nodes.new('ShaderNodeMixShader')
+    mixTwo.location = 0, 90
+    mixTwo.inputs['Fac'].default_value = 0.05
 
     out = nodes.new('ShaderNodeOutputMaterial')
     out.location = 290, 100
 
+    # Solid bricks
     if alpha == 1.0:
-        mix.inputs['Fac'].default_value = 0.05
-        node = nodes.new('ShaderNodeBsdfDiffuse')
-        node.location = -242, 154
-        node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.3
+        diffuse = nodes.new('ShaderNodeBsdfDiffuse')
+        diffuse.location = -242, 154
+        diffuse.inputs['Color'].default_value = diffColor + (1.0,)
+        diffuse.inputs['Roughness'].default_value = 0
 
+        trans = nodes.new('ShaderNodeBsdfTranslucent')
+        trans.location = -242, 154
+        trans.inputs['Color'].default_value = diffColor + (1.0,)
+
+        mixOne = nodes.new('ShaderNodeMixShader')
+        mixOne.location = 0, 90
+        mixOne.inputs['Fac'].default_value = 0.7
+
+        gloss = nodes.new('ShaderNodeBsdfGlossy')
+        gloss.location = -242, 154
+        gloss.distribution = 'BECKMANN'
+        gloss.inputs['Color'].default_value = diffColor + (1.0,)
+        gloss.inputs['Roughness'].default_value = 0.2
+
+        links.new(diffuse.outputs[0], mixOne.inputs[1])
+        links.new(trans.outputs[0], mixOne.inputs[2])
+        links.new(mixOne.outputs[0], mixTwo.inputs[1])
+        links.new(gloss.outputs[0], mixTwo.inputs[2])
+
+    # Transparent bricks
     else:
-        """
-        The alpha transparency used by LDraw is too simplistic for Cycles,
-        so I'm not using the value here. Other transparent colors
-        like 'Milky White' will need special materials.
-        """
-        mix.inputs['Fac'].default_value = 0.1
-        node = nodes.new('ShaderNodeBsdfGlass')
-        node.location = -242, 154
-        node.inputs['Color'].default_value = diff_color + (1.0,)
-        node.inputs['Roughness'].default_value = 0.01
-        node.inputs['IOR'].default_value = 1.5191
+        glass = nodes.new('ShaderNodeBsdfGlass')
+        glass.location = -242, 154
+        glass.distribution = 'BECKMANN'
+        glass.inputs['Color'].default_value = diffColor + (1.0,)
+        glass.inputs['Roughness'].default_value = 0.4
+        glass.inputs['IOR'].default_value = 1.160
 
-    aniso = nodes.new('ShaderNodeBsdfAnisotropic')
-    aniso.location = -242, -23
-    aniso.inputs['Roughness'].default_value = 0.5
-    aniso.inputs['Anisotropy'].default_value = 0.02
+        gloss = nodes.new('ShaderNodeBsdfGlossy')
+        gloss.location = -242, 154
+        gloss.distribution = 'GGX'
+        gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+        gloss.inputs['Roughness'].default_value = 0.2
 
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(node.outputs[0], mix.inputs[1])
-    links.new(aniso.outputs[0], mix.inputs[2])
+        links.new(glass.outputs[0], mixTwo.inputs[1])
+        links.new(gloss.outputs[0], mixTwo.inputs[2])
+
+    links.new(mixTwo.outputs[0], out.inputs[0])
 
     return mat
 
