@@ -1034,9 +1034,11 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             ("StandardRes", "Standard Primitives",
              "Import using standard resolution primitives"),
             ("HighRes", "High-Res Primitives",
-             "Import using high resolution primitives"),
+             "Import using high resolution primitives. "
+             "NOTE: This feature may create mesh errors"),
             ("LowRes", "Low-Res Primitives",
-             "Import using low resolution primitives")
+             "Import using low resolution primitives. "
+             "NOTE: This feature may create mesh errors")
         )
     )
 
@@ -1045,10 +1047,10 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Model Cleanup Options",
         items=(
             ("CleanUp", "Basic Cleanup",
-             "Remove double vertices, recalculate normals,"
+             "Remove double vertices, recalculate normals, "
              "add Edge Split modifier"),
             ("DoNothing", "Original LDraw Mesh",
-             "Import LDraw Mesh as Original"),
+             "Import using original LDraw Mesh"),
         )
     )
 
