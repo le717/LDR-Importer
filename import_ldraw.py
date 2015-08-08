@@ -121,25 +121,6 @@ except Exception as e:
                type(e).__name__))
 
 
-def checkEncoding(file_path):
-    """Check the encoding of a file for Endian encoding."""
-    # Open it, read just the area containing a possible byte mark
-    with open(file_path, "rb") as encode_check:
-        encoding = encode_check.readline(3)
-
-    # The file uses UCS-2 (UTF-16) Big Endian encoding
-    if encoding == b"\xfe\xff\x00":
-        return "utf_16_be"
-
-    # The file uses UCS-2 (UTF-16) Little Endian
-    elif encoding == b"\xff\xfe0":
-        return "utf_16_le"
-
-    # Use LDraw model stantard UTF-8
-    else:
-        return "utf_8"
-
-
 class LDrawFile(object):
 
     """Scans LDraw files."""
@@ -260,16 +241,12 @@ class LDrawFile(object):
             isPart = False
             if os.path.exists(filename):
 
-                # Check encoding of `filename` for non UTF-8 compatibility
-                # GitHub Issue #37
-                file_encode = checkEncoding(filename)
-
                 # Check if this is a main part or a subpart
                 if not isSubPart(filename):
                     isPart = True
 
                 # Read the brick using relative path (to entire model)
-                with open(filename, "rt", encoding=file_encode) as f_in:
+                with open(filename, "rt", encoding="utf_8") as f_in:
                     lines = f_in.readlines()
 
             else:
@@ -281,12 +258,9 @@ class LDrawFile(object):
                 if fname is None:
                     return False
 
-                # Check encoding of `fname` too
-                file_encode = checkEncoding(fname)
-
                 # It exists, read it and get the data
                 if os.path.exists(fname):
-                    with open(fname, "rt", encoding=file_encode) as f_in:
+                    with open(fname, "rt", encoding="utf_8") as f_in:
                         lines = f_in.readlines()
 
             self.part_count += 1
