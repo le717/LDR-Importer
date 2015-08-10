@@ -807,11 +807,8 @@ Must be a .ldr or .dat''')
 {0}'''.format(LDrawDir))  # noqa
             return {'CANCELLED'}
 
-        colors = {}
+        colors = getLDColors(self, LDrawDir)  # noqa
         mat_list = {}
-
-        # Get the material list from LDConfig.ldr
-        getLDColors(self)
 
         LDrawFile(context, fileName, trix)
 
@@ -902,21 +899,28 @@ Check the console logs for more information.'''.format(type(e).__name__))
         return {'CANCELLED'}
 
 
-def getLDColors(self):
-    """Scan LDConfig to get the material color info."""
+def getLDColors(self, ldPath):
+    """Parse and extract color material from LDConfig.ldr.
+
+    @param {String} ldPath The path to the LDraw installation.
+    @return {Dictionary} All the colors, with color codes as the keys.
+    """
     # LDConfig.ldr does not exist for some reason
-    if not os.path.exists(os.path.join(LDrawDir, "LDConfig.ldr")):  # noqa
+    if not os.path.exists(os.path.join(ldPath, "LDConfig.ldr")):
         self.report({'ERROR'}, '''Could not find LDConfig.ldr at
 {0}
-Check the console logs for more information.'''.format(LDrawDir))  # noqa
+Check the console logs for more information.'''.format(ldPath))
 
         debugPrint('''ERROR: Could not find LDConfig.ldr at
-{0}'''.format(LDrawDir))  # noqa
+{0}'''.format(ldPath))
         return {'CANCELLED'}
 
-    with open(os.path.join(LDrawDir, "LDConfig.ldr"),  # noqa
+    debugPrint("Parsing LDConfig.ldr")
+    with open(os.path.join(ldPath, "LDConfig.ldr"),
               "rt", encoding="utf_8") as ldconfig:
         lines = ldconfig.readlines()
+
+    colors = {}
 
     for line in lines:
         if len(line) > 3:
@@ -966,6 +970,8 @@ Check the console logs for more information.'''.format(LDrawDir))  # noqa
                     color["maxsize"] = getColorValue(subline, "MAXSIZE")
 
                 colors[code] = color
+
+    return colors
 
 
 def hasColorValue(line, value):
