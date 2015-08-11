@@ -334,7 +334,7 @@ def convertDirectColor(color):
                                      converted into a three-index
                                      RGB color tuple.
     """
-    if re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None:
+    if color is None or re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None:
         return (False,)
     return (True, hex_to_rgb(color.lstrip("0x2")))
 
