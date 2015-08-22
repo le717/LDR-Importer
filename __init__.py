@@ -20,7 +20,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bpy
 
-from __version__ import version
+from .__version__ import version
 from . import import_ldraw
 
 bl_info = {

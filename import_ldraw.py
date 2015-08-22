@@ -968,7 +968,6 @@ def replaceParts(part, color):
     """Replace identical meshes of part/color-combination
        with a linked version.
     """
-    scene = bpy.context.scene
     mat = bpy.data.materials[color]
     mesh = None
 
