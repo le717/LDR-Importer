@@ -228,7 +228,7 @@ class LDrawFile(object):
                                     (g, h, i, z),
                                     (0, 0, 0, 1)
                                 )) * mathutils.Matrix.Rotation(
-                                   math.radians(90), 4, 'X')
+                                    math.radians(90), 4, 'X')
                             else:
                                 mat_new = self.mat * mathutils.Matrix((
                                     (a, b, c, x),
