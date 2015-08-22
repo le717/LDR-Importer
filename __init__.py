@@ -20,14 +20,13 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bpy
 
-from .__version__ import version
 from . import import_ldraw
 
 bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
     "author": "LDR Importer developers and contributors",
-    "version": version,
+    "version": (1, 3, 0),
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
