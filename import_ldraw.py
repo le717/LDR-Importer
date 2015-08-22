@@ -18,7 +18,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 """
 
 
-
 import os
 import re
 import math
@@ -48,7 +47,8 @@ class LDrawFile(object):
     """Scans LDraw files."""
 
     # FIXME: rewrite - Rewrite entire class (#35)
-    def __init__(self, context, filename, level, mat, colour=None, orientation=None):
+    def __init__(self, context, filename, level, mat,
+                 colour=None, orientation=None):
 
         engine = context.scene.render.engine
         self.level = level
@@ -59,7 +59,8 @@ class LDrawFile(object):
         self.submodels = []
         self.part_count = 0
 
-        # Orientation matrix to handle orientation separately (top-level part only)
+        # Orientation matrix to handle orientation separately
+        # (top-level part only)
         self.orientation = orientation
         self.mat = mat
         self.colour = colour
@@ -95,7 +96,7 @@ class LDrawFile(object):
             # Naming of objects: filename of .dat-file, without extension
             self.ob.name = os.path.basename(filename)[:-4]
 
-            if LinkParts:
+            if LinkParts:  # noqa
                 # Set top-level part orientation using Blender's 'matrix_world'
                 self.ob.matrix_world = self.orientation.normalized()
             else:
@@ -107,7 +108,8 @@ class LDrawFile(object):
             bpy.context.scene.objects.link(self.ob)
 
         for i in self.subparts:
-            self.submodels.append(LDrawFile(context, i[0], i[1], i[2], i[3], i[4]))
+            self.submodels.append(LDrawFile(context, i[0], i[1], i[2],
+                                            i[3], i[4]))
 
     def parse_line(self, line):
         """Harvest the information from each line."""
@@ -195,7 +197,8 @@ class LDrawFile(object):
 
             self.part_count += 1
             if self.part_count > 1 and self.level == 0:
-                self.subparts.append([filename, self.level + 1, self.mat, self.colour, self.orientation])
+                self.subparts.append([filename, self.level + 1, self.mat,
+                                      self.colour, self.orientation])
             else:
                 for retval in lines:
                     tmpdate = retval.strip()
@@ -209,28 +212,30 @@ class LDrawFile(object):
                                 x, y, z, a, b, c,
                                 d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
-                            # Reset orientation of top-level part, track original orientation
+                            # Reset orientation of top-level part,
+                            # track original orientation
                             # TODO Check if isPart dependency can be avoided
-                            if self.part_count == 1 and isPart and LinkParts:
+                            if self.part_count == 1 and isPart and LinkParts:  # noqa
                                 mat_new = self.mat * mathutils.Matrix((
-                                        (1, 0, 0, 0),
-                                        (0, 1, 0, 0),
-                                        (0, 0, 1, 0),
-                                        (0, 0, 0, 1)
-                                    ))
+                                    (1, 0, 0, 0),
+                                    (0, 1, 0, 0),
+                                    (0, 0, 1, 0),
+                                    (0, 0, 0, 1)
+                                ))
                                 orientation = self.mat * mathutils.Matrix((
-                                        (a, b, c, x),
-                                        (d, e, f, y),
-                                        (g, h, i, z),
-                                        (0, 0, 0, 1)
-                                    )) * mathutils.Matrix.Rotation(math.radians(90), 4, 'X')
+                                    (a, b, c, x),
+                                    (d, e, f, y),
+                                    (g, h, i, z),
+                                    (0, 0, 0, 1)
+                                )) * mathutils.Matrix.Rotation(
+                                   math.radians(90), 4, 'X')
                             else:
                                 mat_new = self.mat * mathutils.Matrix((
-                                        (a, b, c, x),
-                                        (d, e, f, y),
-                                        (g, h, i, z),
-                                        (0, 0, 0, 1)
-                                    ))
+                                    (a, b, c, x),
+                                    (d, e, f, y),
+                                    (g, h, i, z),
+                                    (0, 0, 0, 1)
+                                ))
                                 orientation = None
                             color = tmpdate[1]
                             if color == '16':
@@ -239,7 +244,8 @@ class LDrawFile(object):
                             # When top-level part, save orientation separately
                             # TODO Check if isPart dependency can be avoided
                             if self.part_count == 1 and isPart:
-                                subfiles.append(['orientation', orientation, ''])
+                                subfiles.append(['orientation',
+                                                 orientation, ''])
 
                         # Triangle (tri)
                         if tmpdate[0] == "3":
@@ -252,7 +258,8 @@ class LDrawFile(object):
             if len(subfiles) > 0:
                 subfile = subfiles.pop()
                 filename = subfile[0]
-                # When top-level brick orientation information found, save it in self.orientation
+                # When top-level brick orientation information found,
+                # save it in self.orientation
                 if filename == 'orientation':
                     self.orientation = subfile[1]
                     subfile = subfiles.pop()
@@ -274,7 +281,10 @@ def convertDirectColor(color):
                                      converted into a three-index
                                      RGB color tuple.
     """
-    if color is None or re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None:
+    if (
+        color is None or
+        re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None
+    ):
         return (False,)
     return (True, hex_to_rgb(color.lstrip("0x2")))
 
@@ -338,7 +348,7 @@ def getMaterial(colour):
 
         # We have a direct color on our hands
         if directColor[0]:
-            debugPrint("Direct color {0} found".format(colour))
+            Console.log("Direct color {0} found".format(colour))
             mat = bpy.data.materials.new("Mat_{0}_".format(colour))
             mat.diffuse_color = directColor[1]
 
@@ -378,7 +388,7 @@ def getCyclesMaterial(colour):
 
             elif col["material"] == "METAL":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                           col["color"])
+                                          col["color"])
 
             elif col["material"] == "RUBBER":
                 mat = getCyclesRubber("Mat_{0}_".format(colour),
@@ -397,7 +407,7 @@ def getCyclesMaterial(colour):
 
         # We have a direct color on our hands
         if directColor[0]:
-            debugPrint("Direct color {0} found".format(colour))
+            Console.log("Direct color {0} found".format(colour))
             mat = getCyclesBase("Mat_{0}_".format(colour),
                                 directColor[1], 1.0)
 
@@ -733,10 +743,10 @@ Must be a .ldr or .dat''')
         # scale factors in the UI. For reference,
         # the default scale 1 = 0.04 to Blender
         trix = mathutils.Matrix((
-            (1.0,  0.0, 0.0, 0.0), # noqa
-            (0.0,  0.0, 1.0, 0.0), # noqa
+            (1.0,  0.0, 0.0, 0.0),  # noqa
+            (0.0,  0.0, 1.0, 0.0),  # noqa
             (0.0, -1.0, 0.0, 0.0),
-            (0.0,  0.0, 0.0, 1.0) # noqa
+            (0.0,  0.0, 0.0, 1.0)  # noqa
         )) * (scale / 25)
 
         # If LDrawDir does not exist, stop the import
@@ -781,7 +791,7 @@ Must be a .ldr or .dat''')
                         # Go back to object mode, set origin to geometry
                         bpy.ops.object.mode_set(mode='OBJECT')
                         # When using linked bricks, keep original origin point
-                        if not LinkParts:
+                        if not LinkParts:  # noqa
                             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
                         # Set smooth shading
@@ -815,8 +825,8 @@ Must be a .ldr or .dat''')
                         bpy.ops.object.mode_set(mode='OBJECT')
 
         # Link identical bricks
-        if LinkParts:
-            debugPrint("LinkParts option selected")
+        if LinkParts:  # noqa
+            Console.log("LinkParts option selected")
             linkedParts()
 
         # Select all the mesh now that import is complete
@@ -836,10 +846,10 @@ Must be a .ldr or .dat''')
 
     except Exception as e:
         Console.log("ERROR: {0}\n{1}\n".format(
-                   type(e).__name__, traceback.format_exc()))
+                    type(e).__name__, traceback.format_exc()))
 
         Console.log("ERROR: Reason: {0}.".format(
-                   type(e).__name__))
+                    type(e).__name__))
 
         self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
@@ -862,7 +872,7 @@ Check the console logs for more information.'''.format(ldPath))
 {0}'''.format(LDrawDir))  # noqa
         return {'CANCELLED'}
 
-    debugPrint("Parsing LDConfig.ldr")
+    Console.log("Parsing LDConfig.ldr")
     with open(os.path.join(ldPath, "LDConfig.ldr"),
               "rt", encoding="utf_8") as ldconfig:
         lines = ldconfig.readlines()
@@ -909,7 +919,8 @@ Check the console logs for more information.'''.format(ldPath))
                     subline = line_split[line_split.index("MATERIAL"):]
 
                     color["material"] = getColorValue(subline, "MATERIAL")
-                    color["secondary_color"] = getColorValue(subline, "VALUE")[1:]
+                    color["secondary_color"] = getColorValue(
+                        subline, "VALUE")[1:]
                     color["fraction"] = getColorValue(subline, "FRACTION")
                     color["vfraction"] = getColorValue(subline, "VFRACTION")
                     color["size"] = getColorValue(subline, "SIZE")
@@ -932,12 +943,14 @@ def getColorValue(line, value):
         n = line.index(value)
         return line[n + 1]
 
+
 def linkedParts():
     """Clean-up design by linking identical parts (mesh/color)."""
     # Generate list of all materials (colors).
     colors = [color.name for color in bpy.data.materials]
 
-    # List all unique meshes; for example 3002 and 3002.001 are considered equal.
+    # List all unique meshes
+    # For example 3002 and 3002.001 are considered equal.
     parts = []
     for part in objects:
         # Find all unique names of meshes, ignoring everything behind the '.'
@@ -950,19 +963,23 @@ def linkedParts():
         for color in colors:
             replaceParts(part, color)
 
+
 def replaceParts(part, color):
-    """Replace identical meshes of part/color-combination with a linked version."""
+    """Replace identical meshes of part/color-combination
+       with a linked version.
+    """
     scene = bpy.context.scene
     mat = bpy.data.materials[color]
     mesh = None
 
-    # For each imported object in the scene check if it matches the given part name.
+    # For each imported object in the scene check
+    # if it matches the given part name.
     for ob in objects:
         if ob.type == 'MESH' and ob.name.split('.')[0] == part:
             for slot in ob.material_slots:
                 if slot.material == mat:
                     # First occurrence of part, save in mesh.
-                    if mesh == None:
+                    if mesh is None:
                         mesh = ob.data
                     # Following occurrences of part, link to mesh.
                     else:
@@ -974,6 +991,7 @@ def replaceParts(part, color):
     # Change mesh name in combination of .dat-filename and material.
     if mesh is not None:
         mesh.name = "{0} {1}".format(part, color)
+
 
 def hex_to_rgb(rgb_str):
     """Convert color hex value to RGB value."""
