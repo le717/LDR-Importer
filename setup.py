@@ -32,12 +32,7 @@ import distutils.dir_util
 from __version__ import version
 
 # Support Python 2 and 3 input
-# Default to Python 3's input()
-get_input = input
-
-# If this is Python 2, use raw_input
-if sys.version_info[:2] <= (2, 7):
-    get_input = raw_input  # noqa
+get_input = (input if sys.version_info[:2] >= (3, 0) else raw_input)  # noqa
 
 # Required folders
 curDir = os.path.dirname(os.path.realpath(__file__))
