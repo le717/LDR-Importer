@@ -113,18 +113,21 @@ class Preferences:
             Console.log("Retrieve LDraw path from preferences")
             self.ldPath = self.__prefsData["ldPath"]
 
+            Console.log("The current platform is", self.__prefsData["platform"])
             Console.log("The LDraw Parts Library to be used is\n{0}".format(
                         self.ldPath))
             return self.__prefsData["ldPath"]
 
         # Get and resolve the current platform
-        curOS = platform.platform()
-        if "Windows" in curOS:
+        curOS = platform.system()
+        if curOS == "Windows":
             self.__curPlatform = "win"
-        elif "MacOS" in curOS:
+        elif curOS == "Darwin":
             self.__curPlatform = "mac"
-        elif "Linux" in curOS:
+        elif curOS == "Linux":
             self.__curPlatform = "linux"
+        else:
+            self.__curPlatform = "win"
         Console.log("The current platform is", self.__curPlatform)
 
         # Perform platform-specific searches to find the LDraw installation
