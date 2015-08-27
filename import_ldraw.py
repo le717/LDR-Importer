@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
@@ -286,7 +286,7 @@ def convertDirectColor(color):
         re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None
     ):
         return (False,)
-    return (True, hex_to_rgb(color.lstrip("0x2")))
+    return (True, hexToRgb(color.lstrip("0x2")))
 
 
 def getMaterial(colour):
@@ -362,7 +362,6 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values."""
-    # FIXME: Not all colors are accessible
     if colour in colors:
         if not (colour in mat_list):
             col = colors[colour]
@@ -889,7 +888,7 @@ Check the console logs for more information.'''.format(ldPath))
 
                 color = {
                     "name": name,
-                    "color": hex_to_rgb(line_split[6][1:]),
+                    "color": hexToRgb(line_split[6][1:]),
                     "alpha": 1.0,
                     "luminance": 0.0,
                     "material": "BASIC"
@@ -992,10 +991,17 @@ def replaceParts(part, color):
         mesh.name = "{0} {1}".format(part, color)
 
 
-def hex_to_rgb(rgb_str):
-    """Convert color hex value to RGB value."""
-    int_tuple = unpack('BBB', bytes.fromhex(rgb_str))
-    return tuple([val / 255 for val in int_tuple])
+def hexToRgb(color):
+    """Convert color hex value to the RGB format Blender requires.
+
+    @param {String} color The hex color value to convert.
+                          Can be prefixed with "#".
+    @return {Tuple.<number>} A three-index tuple containing
+                            the converted RGB value.
+    """
+    color = color.lstrip("#")
+    rgbColor = unpack("BBB", bytes.fromhex(color))
+    return tuple([val / 255 for val in rgbColor])
 
 
 # ------------ Operator ------------ #
