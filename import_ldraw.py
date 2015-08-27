@@ -34,7 +34,8 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import ImportHelper
 
-from .src.ldutils import (Console, Preferences)
+from .src.ldconsole import Console
+from .src.ldprefs import Preferences
 
 # Global variables
 objects = []

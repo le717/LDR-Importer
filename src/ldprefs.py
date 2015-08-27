@@ -21,46 +21,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 import os
 import json
 import platform
-from datetime import datetime
 
-
-class Console:
-
-    @staticmethod
-    def __makeMessage(msg, prefix=None):
-        """Construct the message for displaying in the console.
-
-        Formats, timestamps, and identifies the message
-        as coming from this script.
-
-        @param {Tuple} msg The message to be displayed.
-        @param {String} prefix Any text to prefix to the message.
-        @return {String} The constucted message.
-        """
-        msg = [str(text) for text in msg]
-
-        # Prefix text if needed
-        if prefix:
-            msg.insert(0, str(prefix))
-
-        return "[LDR Importer] ({0})\n{1}".format(
-            datetime.now().strftime("%H:%M:%S.%f")[:-4], " ".join(msg))
-
-    @staticmethod
-    def log(*msg):
-        """Print logging messages to the console.
-
-        @param {Tuple} msg The message to be displayed.
-        """
-        print(Console.__makeMessage(msg))
-
-    @staticmethod
-    def warn(*msg):
-        """Print warning messages to the console.
-
-        @param {Tuple} msg The message to be displayed.
-        """
-        print(Console.__makeMessage(msg, "Warning!"))
+from .ldconsole import Console
 
 
 class Preferences:
