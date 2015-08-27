@@ -66,12 +66,12 @@ class Console:
 class Preferences:
 
     def __init__(self):
-        self.ldPath = None
+        self.__ldPath = None
         self.__curPlatform = None
         self.__prefsData = None
         self.__prefsPath = self.__getPrefsDir()
         self.__prefsFile = os.path.join(self.__prefsPath, "LDR-Importer.json")
-        self.__getPrefs()
+        self.__load()
 
         self.__paths = {
             "win": [
@@ -99,7 +99,7 @@ class Preferences:
         return os.path.join(os.path.dirname(
             os.path.dirname(__file__)), "prefs")
 
-    def __getPrefs(self):
+    def __load(self):
         """Read and store the preferences file.
 
         @returns {Boolean} True if the preferences file was read,
@@ -136,12 +136,13 @@ class Preferences:
         # The path was previously stored in the preferences
         if self.__prefsData is not None:
             Console.log("Retrieve LDraw path from preferences")
-            self.ldPath = self.__prefsData["ldPath"]
+            self.__ldPath = self.__prefsData["ldPath"]
 
-            Console.log("The current platform is", self.__prefsData["platform"])
+            Console.log("The current platform is {0}".format(
+                        self.__prefsData["platform"]))
             Console.log("The LDraw Parts Library to be used is\n{0}".format(
-                        self.ldPath))
-            return self.__prefsData["ldPath"]
+                        self.__ldPath))
+            return self.__ldPath
 
         # Get and resolve the current platform
         curOS = platform.system()
@@ -153,21 +154,20 @@ class Preferences:
             self.__curPlatform = "linux"
         else:
             self.__curPlatform = "win"
-        Console.log("The current platform is", self.__curPlatform)
+        Console.log("The current platform is {0}".format(self.__curPlatform))
 
         # Perform platform-specific searches to find the LDraw installation
         Console.log("Search {0}-specific paths for the LDraw path".format(
                     self.__curPlatform))
-
         for path in self.__paths[self.__curPlatform]:
             if self.setLDraw(path):
                 return path
 
         # We came up dry, default to Windows default
+        self.__ldPath = self.__paths["win"][0]
         Console.log("Cound not find LDraw installation, default to {0}".format(
-                    self.__paths["win"][0]))
-        self.ldPath = self.__paths["win"][0]
-        return self.__paths["win"][0]
+                    self.__ldPath))
+        return self.__ldPath
 
     def setLDraw(self, ldPath):
         """Set the LDraw installation.
@@ -176,11 +176,11 @@ class Preferences:
         @return {Boolean} True if the installation was set, False otherwise.
         """
         if self.__confirmLDraw(ldPath):
-            self.ldPath = ldPath.replace("\\", "/")
+            self.__ldPath = ldPath.replace("\\", "/")
             return True
         return False
 
-    def savePrefs(self):
+    def save(self):
         """Write the JSON-based preferences file.
 
         @returns {Boolean} True if the preferences file was written,
@@ -188,7 +188,7 @@ class Preferences:
         """
         prefs = {
             "platform": self.__curPlatform,
-            "ldPath": self.ldPath,
+            "ldPath": self.__ldPath,
             "importOpts": {}
         }
 
