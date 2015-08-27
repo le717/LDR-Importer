@@ -42,6 +42,21 @@ paths = []
 mat_list = {}
 
 
+def debugPrint(msg):
+    """Compatibility function for easier debugging of older patches.
+
+    Do not use this function in new code! Always use the appropriate
+    static method in the Console class when displaying information
+    in the Blender console. This function may be removed by
+    the developers at any time and will not be permanent.
+
+    @param {String} msg The message to be displayed.
+    """
+    Console.warn("""debugPrint() is deprecated!
+Use the appropriate Console method instead.""")
+    Console.log(msg)
+
+
 class LDrawFile(object):
 
     """Scans LDraw files."""
