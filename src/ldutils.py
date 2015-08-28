@@ -43,7 +43,7 @@ class Console:
         if prefix:
             msg.insert(0, str(prefix))
 
-        return "[LDR Importer] ({0})\n{1}".format(
+        return "\n[LDR Importer] ({0}) {1}".format(
             datetime.now().strftime("%H:%M:%S.%f")[:-4], " ".join(msg))
 
     @staticmethod
