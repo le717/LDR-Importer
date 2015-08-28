@@ -137,6 +137,7 @@ class Preferences:
         if self.__prefsData is not None:
             Console.log("Retrieve LDraw path from preferences")
             self.ldPath = self.__prefsData["ldPath"]
+            self.__curPlatform = self.__prefsData["platform"]
 
             Console.log("The current platform is", self.__prefsData["platform"])
             Console.log("The LDraw Parts Library to be used is\n{0}".format(
