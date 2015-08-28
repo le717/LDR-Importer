@@ -1086,21 +1086,21 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     )
 
     addGaps = BoolProperty(
-        name="Spaces Between Bricks",
-        description="Add small spaces between each brick",
-        default=False
+        name="Spaces Between Parts",
+        description="Add small spaces between each part",
+        default=prefs.get("addGaps", False)
     )
 
     lsynthParts = BoolProperty(
         name="Use LSynth Parts",
         description="Use LSynth parts during import",
-        default=False
+        default=prefs.get("lsynthParts", False)
     )
 
     links = BoolProperty(
-        name="Link Identical Bricks",
+        name="Link Identical Parts",
         description="Link identical parts by type and color",
-        default=True
+        default=prefs.get("linkParts", True)
     )
 
     def draw(self, context):
@@ -1132,11 +1132,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
         # Clear array before adding data if it contains data already
         # Not doing so duplicates the indexes
-        try:
-            if paths[0]:
-                del paths[:]
-        except IndexError:
-            pass
+        if paths:
+            del paths[:]
 
         # Create placeholder for index 0.
         # It will be filled with the location of the model later.

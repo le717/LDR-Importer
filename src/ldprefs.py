@@ -142,6 +142,17 @@ class Preferences:
             return True
         return False
 
+    def get(self, opt, default):
+        # Make sure we have preferences to use
+        if self.__prefsData is None or not self.__prefsData["importOpts"]:
+            return default
+
+        # Retrieve the desired import option
+        options = self.__prefsData["importOpts"]
+        if opt in options.keys():
+            return options[opt]
+        return default
+
     def save(self):
         """Write the JSON-based preferences file.
 
@@ -149,9 +160,9 @@ class Preferences:
                            False otherwise.
         """
         prefs = {
-            "platform": self.__curPlatform,
+            "importOpts": {},
             "ldPath": self.__ldPath,
-            "importOpts": {}
+            "platform": self.__curPlatform
         }
 
         # Create the preferences folder if it does not exist
