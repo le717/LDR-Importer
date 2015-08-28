@@ -166,6 +166,11 @@ class Preferences:
         @return {Boolean} True if the preferences were written,
                           False otherwise.
         """
+        # Round off any numbers to two decimal places
+        for k, v in importOpts.items():
+            if type(v) == float:
+                importOpts[k] = round(v, 2)
+
         prefs = {
             "importOpts": importOpts,
             "ldPath": self.__ldPath,
