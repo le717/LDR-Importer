@@ -1054,8 +1054,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     scale = FloatProperty(
         name="Scale",
-        description="Use a specific scale for each brick",
-        default=1.00
+        description="Use a specific scale for each part",
+        default=prefs.get("importScale", 1.00)
     )
 
     resPrims = EnumProperty(
@@ -1184,7 +1184,15 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # Finally, search in the `p` folder
         paths.append(os.path.join(LDrawDir, "p"))
 
-        # Save any preferences and import the model
+        # Create the preferences dictionary
+        importOpts = {
+            "addGaps": self.addGaps,
+            "importScale": self.scale,
+            "linkParts": self.links,
+            "lsynthParts": self.lsynthParts
+        }
+
+        # Save the preferences and import the model
         self.prefs.setLDraw(self.ldrawPath)
         self.prefs.save()
         create_model(self, context, self.scale)
