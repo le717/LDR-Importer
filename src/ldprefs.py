@@ -56,7 +56,7 @@ class Preferences:
     def __getPrefsDir(self):
         """Get the file path where preferences file will be stored.
 
-        @returns {String} The configuration path.
+        @return {String} The configuration path.
         """
         return os.path.join(os.path.dirname(
             os.path.dirname(__file__)), "prefs")
@@ -64,8 +64,8 @@ class Preferences:
     def __load(self):
         """Read and store the preferences file.
 
-        @returns {Boolean} True if the preferences file was read,
-                            False otherwise.
+        @return {Boolean} True if the preferences file was read,
+                          False otherwise.
         """
         if os.path.exists(self.__prefsFile):
             try:
@@ -143,6 +143,12 @@ class Preferences:
         return False
 
     def get(self, opt, default):
+        """Retrieve the desired import option from the preferences.
+
+        @param {String} opt TODO.
+        @param {TODO} default TODO.
+        @return {TODO} TODO.
+        """
         # Make sure we have preferences to use
         if self.__prefsData is None or not self.__prefsData["importOpts"]:
             return default
@@ -153,14 +159,15 @@ class Preferences:
             return options[opt]
         return default
 
-    def save(self):
-        """Write the JSON-based preferences file.
+    def save(self, importOpts):
+        """Write the JSON preferences.
 
-        @returns {Boolean} True if the preferences file was written,
-                           False otherwise.
+        @param {Dictionary} importOpts TODO.
+        @return {Boolean} True if the preferences were written,
+                          False otherwise.
         """
         prefs = {
-            "importOpts": {},
+            "importOpts": importOpts,
             "ldPath": self.__ldPath,
             "platform": self.__curPlatform
         }

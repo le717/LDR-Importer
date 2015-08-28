@@ -1194,6 +1194,6 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
         # Save the preferences and import the model
         self.prefs.setLDraw(self.ldrawPath)
-        self.prefs.save()
+        self.prefs.save(importOpts)
         create_model(self, context, self.scale)
         return {'FINISHED'}
