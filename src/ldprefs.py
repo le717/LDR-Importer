@@ -145,7 +145,7 @@ class Preferences:
     def get(self, opt, default):
         """Retrieve the desired import option from the preferences.
 
-        @param {String} opt TODO.
+        @param {String} opt The key for the import option desired.
         @param {TODO} default TODO.
         @return {TODO} TODO.
         """
@@ -183,6 +183,8 @@ class Preferences:
 
         try:
             with open(self.__prefsFile, "wt", encoding="utf_8") as f:
+                # TODO Consder removing the indent parameter
+                # once work on the system is completed.
                 f.write(json.dumps(prefs, indent=4, sort_keys=True))
             Console.log("Preferences saved to {0}".format(self.__prefsFile))
             return True

@@ -1052,7 +1052,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     # Import options
 
-    scale = FloatProperty(
+    importScale = FloatProperty(
         name="Scale",
         description="Use a specific scale for each part",
         default=prefs.get("importScale", 1.00)
@@ -1097,7 +1097,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         default=prefs.get("lsynthParts", False)
     )
 
-    links = BoolProperty(
+    linkParts = BoolProperty(
         name="Link Identical Parts",
         description="Link identical parts by type and color",
         default=prefs.get("linkParts", True)
@@ -1110,7 +1110,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Import Options", icon='SCRIPTWIN')
         box.label("LDraw Path", icon='FILESEL')
         box.prop(self, "ldrawPath")
-        box.prop(self, "scale")
+        box.prop(self, "importScale")
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
         box.label("Model Cleanup", icon='EDIT')
@@ -1118,7 +1118,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Additional Options", icon='PREFERENCES')
         box.prop(self, "addGaps")
         box.prop(self, "lsynthParts")
-        box.prop(self, "links")
+        box.prop(self, "linkParts")
 
     def execute(self, context):
         """Set import options and run the script."""
@@ -1128,7 +1128,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         CleanUpOpt = str(self.cleanUpModel)
         GapsOpt = bool(self.addGaps)
         LSynth = bool(self.lsynthParts)
-        LinkParts = bool(self.links)
+        LinkParts = bool(self.linkParts)
 
         # Clear array before adding data if it contains data already
         # Not doing so duplicates the indexes
@@ -1187,13 +1187,13 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # Create the preferences dictionary
         importOpts = {
             "addGaps": self.addGaps,
-            "importScale": self.scale,
-            "linkParts": self.links,
+            "importScale": self.importScale,
+            "linkParts": self.linkParts,
             "lsynthParts": self.lsynthParts
         }
 
         # Save the preferences and import the model
         self.prefs.setLDraw(self.ldrawPath)
         self.prefs.save(importOpts)
-        create_model(self, context, self.scale)
+        create_model(self, context, self.importScale)
         return {'FINISHED'}
