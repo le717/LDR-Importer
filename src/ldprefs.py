@@ -84,10 +84,7 @@ class Preferences:
         @param {String} ldPath The path to confirm an LDraw installation.
         @return {Boolean} True if an installation exists, False otherwise.
         """
-        if os.path.isfile(os.path.join(ldPath, "LDConfig.ldr")):
-            Console.log("Found LDraw installation at {0}".format(ldPath))
-            return True
-        return False
+        return os.path.isfile(os.path.join(ldPath, "LDConfig.ldr"))
 
     def findLDraw(self):
         """Try to find an LDraw installation.
@@ -139,6 +136,7 @@ class Preferences:
         @return {Boolean} True if the installation was set, False otherwise.
         """
         if self.__confirmLDraw(ldPath):
+            Console.log("Found LDraw installation at {0}".format(ldPath))
             self.__ldPath = ldPath.replace("\\", "/")
             return True
         return False

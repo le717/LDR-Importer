@@ -1025,7 +1025,7 @@ def hexToRgb(color):
 
 class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
-    """LDR Importer Operator."""
+    """LDR Importer Import Operator."""
 
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
