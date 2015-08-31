@@ -86,7 +86,7 @@ class Preferences:
         """
         return os.path.isfile(os.path.join(ldPath, "LDConfig.ldr"))
 
-    def findLDraw(self):
+    def __findLDraw(self):
         """Try to find an LDraw installation.
 
         @return {String} The found LDraw installation
@@ -120,7 +120,7 @@ class Preferences:
         Console.log("Search {0}-specific paths for the LDraw path".format(
                     self.__curPlatform))
         for path in self.__paths[self.__curPlatform]:
-            if self.setLDraw(path):
+            if self.saveLDraw(path):
                 return path
 
         # We came up dry, default to Windows default
@@ -129,7 +129,7 @@ class Preferences:
                     self.__ldPath))
         return self.__ldPath
 
-    def setLDraw(self, ldPath):
+    def saveLDraw(self, ldPath):
         """Set the LDraw installation.
 
         @param {String} ldPath The LDraw installation
@@ -158,6 +158,13 @@ class Preferences:
             return options[opt]
         return default
 
+    def getLDraw(self):
+        """Retrieve the LDraw installation.
+
+        @return {String} The LDraw installation."""
+        return (self.__ldPath if self.__ldPath is not None
+                else self.__findLDraw())
+
     def save(self, importOpts):
         """Write the JSON preferences.
 
@@ -169,6 +176,9 @@ class Preferences:
         for k, v in importOpts.items():
             if type(v) == float:
                 importOpts[k] = round(v, 2)
+
+        # Update the in-memory preferences
+        self.__prefsData["importOpts"] = importOpts
 
         prefs = {
             "importOpts": importOpts,

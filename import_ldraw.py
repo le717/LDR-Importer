@@ -1047,7 +1047,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     ldrawPath = StringProperty(
         name="",
         description="Path to the LDraw Parts Library",
-        default=prefs.findLDraw()
+        default=prefs.getLDraw()
     )
 
     # Import options
@@ -1193,7 +1193,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         }
 
         # Save the preferences and import the model
-        self.prefs.setLDraw(self.ldrawPath)
+        self.prefs.saveLDraw(self.ldrawPath)
         self.prefs.save(importOpts)
         create_model(self, context, self.importScale)
         return {'FINISHED'}
