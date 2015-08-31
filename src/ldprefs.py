@@ -129,24 +129,13 @@ class Preferences:
                     self.__ldPath))
         return self.__ldPath
 
-    def saveLDraw(self, ldPath):
-        """Set the LDraw installation.
-
-        @param {String} ldPath The LDraw installation
-        @return {Boolean} True if the installation was set, False otherwise.
-        """
-        if self.__confirmLDraw(ldPath):
-            Console.log("Found LDraw installation at {0}".format(ldPath))
-            self.__ldPath = ldPath.replace("\\", "/")
-            return True
-        return False
-
     def get(self, opt, default):
         """Retrieve the desired import option from the preferences.
 
         @param {String} opt The key for the import option desired.
-        @param {TODO} default TODO.
-        @return {TODO} TODO.
+        @param {Boolean|Number|String} default Default value if a value cannot
+                                               be retrieved from the prefs.
+        @return {Boolean|Number|String} The import option to use.
         """
         # Make sure we have preferences to use
         if self.__prefsData is None or not self.__prefsData["importOpts"]:
@@ -161,14 +150,15 @@ class Preferences:
     def getLDraw(self):
         """Retrieve the LDraw installation.
 
-        @return {String} The LDraw installation."""
+        @return {String} The LDraw installation.
+        """
         return (self.__ldPath if self.__ldPath is not None
                 else self.__findLDraw())
 
     def save(self, importOpts):
         """Write the JSON preferences.
 
-        @param {Dictionary} importOpts TODO.
+        @param {Dictionary} importOpts The import options to save.
         @return {Boolean} True if the preferences were written,
                           False otherwise.
         """
@@ -178,7 +168,8 @@ class Preferences:
                 importOpts[k] = round(v, 2)
 
         # Update the in-memory preferences
-        self.__prefsData["importOpts"] = importOpts
+        if self.__prefsData is not None:
+            self.__prefsData["importOpts"] = importOpts
 
         prefs = {
             "importOpts": importOpts,
@@ -192,12 +183,22 @@ class Preferences:
 
         try:
             with open(self.__prefsFile, "wt", encoding="utf_8") as f:
-                # TODO Consder removing the indent parameter
-                # once work on the system is completed.
-                f.write(json.dumps(prefs, indent=4, sort_keys=True))
-            Console.log("Preferences saved to {0}".format(self.__prefsFile))
+                f.write(json.dumps(prefs, sort_keys=True))
+            Console.log("Preferences saved to\n{0}".format(self.__prefsFile))
             return True
 
         # Silently fail
         except PermissionError:
             return False
+
+    def saveLDraw(self, ldPath):
+        """Set the LDraw installation.
+
+        @param {String} ldPath The LDraw installation
+        @return {Boolean} True if the installation was set, False otherwise.
+        """
+        if self.__confirmLDraw(ldPath):
+            Console.log("Found LDraw installation at {0}".format(ldPath))
+            self.__ldPath = ldPath.replace("\\", "/")
+            return True
+        return False

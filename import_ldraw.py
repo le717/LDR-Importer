@@ -1061,6 +1061,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     resPrims = EnumProperty(
         name="Resolution of part primitives",
         description="Resolution of part primitives",
+        default=prefs.get("resPrims", "StandardRes"),
         items=(
             ("StandardRes", "Standard Primitives",
              "Import using standard resolution primitives"),
@@ -1073,9 +1074,10 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
-    cleanUpModel = EnumProperty(
+    cleanUpParts = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
+        default=prefs.get("cleanUpParts", "CleanUp"),
         items=(
             ("CleanUp", "Basic Cleanup",
              "Remove double vertices, recalculate normals, "
@@ -1114,7 +1116,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
         box.label("Model Cleanup", icon='EDIT')
-        box.prop(self, "cleanUpModel", expand=True)
+        box.prop(self, "cleanUpParts", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
         box.prop(self, "addGaps")
         box.prop(self, "lsynthParts")
@@ -1124,10 +1126,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         """Set import options and run the script."""
         global LDrawDir, CleanUpOpt, GapsOpt, LinkParts
         LDrawDir = str(self.ldrawPath)
-        WhatRes = str(self.resPrims)
-        CleanUpOpt = str(self.cleanUpModel)
+        CleanUpOpt = str(self.cleanUpParts)
         GapsOpt = bool(self.addGaps)
-        LSynth = bool(self.lsynthParts)
         LinkParts = bool(self.linkParts)
 
         # Clear array before adding data if it contains data already
@@ -1147,17 +1147,17 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
 
             # The user wants to use high-res unofficial primitives
-            if WhatRes == "HighRes":
+            if self.resPrims == "HighRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
             # The user wants to use low-res unofficial primitives
-            elif WhatRes == "LowRes":
+            elif self.resPrims == "LowRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
 
             # Search in the `unofficial/p` folder
             paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
             # The user wants to use LSynth parts
-            if LSynth:
+            if self.lsynthParts:
                 if os.path.exists(os.path.join(LDrawDir, "unofficial",
                                                "lsynth")):
                     paths.append(os.path.join(LDrawDir, "unofficial",
@@ -1168,12 +1168,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         paths.append(os.path.join(LDrawDir, "parts"))
 
         # The user wants to use high-res primitives
-        if WhatRes == "HighRes":
+        if self.resPrims == "HighRes":
             paths.append(os.path.join(LDrawDir, "p", "48"))
             Console.log("High-res primitives substitution selected")
 
         # The user wants to use low-res primitives
-        elif WhatRes == "LowRes":
+        elif self.resPrims == "LowRes":
             paths.append(os.path.join(LDrawDir, "p", "8"))
             Console.log("Low-res primitives substitution selected")
 
@@ -1187,9 +1187,11 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # Create the preferences dictionary
         importOpts = {
             "addGaps": self.addGaps,
+            "cleanUpParts": self.cleanUpParts,
             "importScale": self.importScale,
             "linkParts": self.linkParts,
-            "lsynthParts": self.lsynthParts
+            "lsynthParts": self.lsynthParts,
+            "resPrims": self.resPrims
         }
 
         # Save the preferences and import the model
