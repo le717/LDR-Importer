@@ -83,5 +83,6 @@ blender_python_*/*
 
 Archives/
 Testing/
+prefs/
 
 .idea

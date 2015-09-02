@@ -198,7 +198,7 @@ class LDrawFile(object):
             with open(filename, "rt", encoding="utf_8") as f:
                 lines = f.readlines()
 
-            # Check the part header for subpart status
+            # Check the part header for top-level part status
             isPart = isTopLevelPart(lines[3])
 
             self.part_count += 1
@@ -696,13 +696,10 @@ def isTopLevelPart(headerLine):
     @return {Boolean} True if a top level part, False otherwise
                       or the header does not specify.
     """
-    headerLine = headerLine.lower()
-    if not headerLine.startswith("0 !ldraw_org"):
+    headerLine = headerLine.lower().split()
+    if not headerLine[0] != "0 !ldraw_org":
         return False
-
-    partType = headerLine.lstrip("0 !ldraw_org ")
-    return (partType.startswith("part") or
-            partType.startswith("unofficial_part"))
+    return  headerLine[2] in ("part", "unofficial_part")
 
 
 def locatePart(partName):
