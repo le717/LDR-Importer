@@ -697,9 +697,9 @@ def isTopLevelPart(headerLine):
                       or the header does not specify.
     """
     headerLine = headerLine.lower().split()
-    if not headerLine[0] != "0 !ldraw_org":
+    if headerLine[0] != "0 !ldraw_org":
         return False
-    return  headerLine[2] in ("part", "unofficial_part")
+    return headerLine[2] in ("part", "unofficial_part")
 
 
 def locatePart(partName):
@@ -708,10 +708,22 @@ def locatePart(partName):
     @param {String} partName The part to find.
     @return {!String} The absolute path to the part if found.
     """
+    # Use the OS's path separator to ensure the parts are found
+    partName = partName.replace("\\", os.path.sep)
+
     for path in paths:
+        # Find the part filename using the exact case in the file
         fname = os.path.join(path, partName)
         if os.path.exists(fname):
             return fname
+        
+        # Because case-sensitive file systems, if the first check fails
+        # check again using a normalized part filename
+        # See #112#issuecomment-136719763
+        else:
+            fname = os.path.join(path, partName.lower())
+            if os.path.exists(fname):
+                return fname
 
     Console.log("Could not find part {0}".format(fname))
     return None
