@@ -34,7 +34,8 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import ImportHelper
 
-from .src.ldutils import (Console, Preferences)
+from .src.ldconsole import Console
+from .src.ldprefs import Preferences
 
 # Global variables
 objects = []
@@ -1024,7 +1025,7 @@ def hexToRgb(color):
 
 class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
-    """LDR Importer Operator."""
+    """LDR Importer Import Operator."""
 
     bl_idname = "import_scene.ldraw"
     bl_description = "Import an LDraw model (.ldr/.dat)"
@@ -1046,20 +1047,21 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     ldrawPath = StringProperty(
         name="",
         description="Path to the LDraw Parts Library",
-        default=prefs.findLDraw()
+        default=prefs.getLDraw()
     )
 
     # Import options
 
-    scale = FloatProperty(
+    importScale = FloatProperty(
         name="Scale",
-        description="Use a specific scale for each brick",
-        default=1.00
+        description="Use a specific scale for each part",
+        default=prefs.get("importScale", 1.00)
     )
 
     resPrims = EnumProperty(
         name="Resolution of part primitives",
         description="Resolution of part primitives",
+        default=prefs.get("resPrims", "StandardRes"),
         items=(
             ("StandardRes", "Standard Primitives",
              "Import using standard resolution primitives"),
@@ -1072,9 +1074,10 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
-    cleanUpModel = EnumProperty(
+    cleanUpParts = EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
+        default=prefs.get("cleanUpParts", "CleanUp"),
         items=(
             ("CleanUp", "Basic Cleanup",
              "Remove double vertices, recalculate normals, "
@@ -1085,21 +1088,21 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
     )
 
     addGaps = BoolProperty(
-        name="Spaces Between Bricks",
-        description="Add small spaces between each brick",
-        default=False
+        name="Spaces Between Parts",
+        description="Add small spaces between each part",
+        default=prefs.get("addGaps", False)
     )
 
     lsynthParts = BoolProperty(
         name="Use LSynth Parts",
         description="Use LSynth parts during import",
-        default=False
+        default=prefs.get("lsynthParts", False)
     )
 
-    links = BoolProperty(
-        name="Link Identical Bricks",
+    linkParts = BoolProperty(
+        name="Link Identical Parts",
         description="Link identical parts by type and color",
-        default=True
+        default=prefs.get("linkParts", True)
     )
 
     def draw(self, context):
@@ -1109,33 +1112,28 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Import Options", icon='SCRIPTWIN')
         box.label("LDraw Path", icon='FILESEL')
         box.prop(self, "ldrawPath")
-        box.prop(self, "scale")
+        box.prop(self, "importScale")
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
         box.label("Model Cleanup", icon='EDIT')
-        box.prop(self, "cleanUpModel", expand=True)
+        box.prop(self, "cleanUpParts", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
         box.prop(self, "addGaps")
         box.prop(self, "lsynthParts")
-        box.prop(self, "links")
+        box.prop(self, "linkParts")
 
     def execute(self, context):
         """Set import options and run the script."""
         global LDrawDir, CleanUpOpt, GapsOpt, LinkParts
         LDrawDir = str(self.ldrawPath)
-        WhatRes = str(self.resPrims)
-        CleanUpOpt = str(self.cleanUpModel)
+        CleanUpOpt = str(self.cleanUpParts)
         GapsOpt = bool(self.addGaps)
-        LSynth = bool(self.lsynthParts)
-        LinkParts = bool(self.links)
+        LinkParts = bool(self.linkParts)
 
         # Clear array before adding data if it contains data already
         # Not doing so duplicates the indexes
-        try:
-            if paths[0]:
-                del paths[:]
-        except IndexError:
-            pass
+        if paths:
+            del paths[:]
 
         # Create placeholder for index 0.
         # It will be filled with the location of the model later.
@@ -1149,17 +1147,17 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
 
             # The user wants to use high-res unofficial primitives
-            if WhatRes == "HighRes":
+            if self.resPrims == "HighRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
             # The user wants to use low-res unofficial primitives
-            elif WhatRes == "LowRes":
+            elif self.resPrims == "LowRes":
                 paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
 
             # Search in the `unofficial/p` folder
             paths.append(os.path.join(LDrawDir, "unofficial", "p"))
 
             # The user wants to use LSynth parts
-            if LSynth:
+            if self.lsynthParts:
                 if os.path.exists(os.path.join(LDrawDir, "unofficial",
                                                "lsynth")):
                     paths.append(os.path.join(LDrawDir, "unofficial",
@@ -1170,12 +1168,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         paths.append(os.path.join(LDrawDir, "parts"))
 
         # The user wants to use high-res primitives
-        if WhatRes == "HighRes":
+        if self.resPrims == "HighRes":
             paths.append(os.path.join(LDrawDir, "p", "48"))
             Console.log("High-res primitives substitution selected")
 
         # The user wants to use low-res primitives
-        elif WhatRes == "LowRes":
+        elif self.resPrims == "LowRes":
             paths.append(os.path.join(LDrawDir, "p", "8"))
             Console.log("Low-res primitives substitution selected")
 
@@ -1186,8 +1184,18 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         # Finally, search in the `p` folder
         paths.append(os.path.join(LDrawDir, "p"))
 
-        # Save any preferences and import the model
-        self.prefs.setLDraw(self.ldrawPath)
-        self.prefs.savePrefs()
-        create_model(self, context, self.scale)
+        # Create the preferences dictionary
+        importOpts = {
+            "addGaps": self.addGaps,
+            "cleanUpParts": self.cleanUpParts,
+            "importScale": self.importScale,
+            "linkParts": self.linkParts,
+            "lsynthParts": self.lsynthParts,
+            "resPrims": self.resPrims
+        }
+
+        # Save the preferences and import the model
+        self.prefs.saveLDraw(self.ldrawPath)
+        self.prefs.save(importOpts)
+        create_model(self, context, self.importScale)
         return {'FINISHED'}

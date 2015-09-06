@@ -21,57 +21,19 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 import os
 import json
 import platform
-from datetime import datetime
 
-
-class Console:
-
-    @staticmethod
-    def __makeMessage(msg, prefix=None):
-        """Construct the message for displaying in the console.
-
-        Formats, timestamps, and identifies the message
-        as coming from this script.
-
-        @param {Tuple} msg The message to be displayed.
-        @param {String} prefix Any text to prefix to the message.
-        @return {String} The constucted message.
-        """
-        msg = [str(text) for text in msg]
-
-        # Prefix text if needed
-        if prefix:
-            msg.insert(0, str(prefix))
-
-        return "\n[LDR Importer] ({0}) {1}".format(
-            datetime.now().strftime("%H:%M:%S.%f")[:-4], " ".join(msg))
-
-    @staticmethod
-    def log(*msg):
-        """Print logging messages to the console.
-
-        @param {Tuple} msg The message to be displayed.
-        """
-        print(Console.__makeMessage(msg))
-
-    @staticmethod
-    def warn(*msg):
-        """Print warning messages to the console.
-
-        @param {Tuple} msg The message to be displayed.
-        """
-        print(Console.__makeMessage(msg, "Warning!"))
+from .ldconsole import Console
 
 
 class Preferences:
 
     def __init__(self):
-        self.ldPath = None
+        self.__ldPath = None
         self.__curPlatform = None
         self.__prefsData = None
         self.__prefsPath = self.__getPrefsDir()
         self.__prefsFile = os.path.join(self.__prefsPath, "LDR-Importer.json")
-        self.__getPrefs()
+        self.__load()
 
         self.__paths = {
             "win": [
@@ -94,16 +56,16 @@ class Preferences:
     def __getPrefsDir(self):
         """Get the file path where preferences file will be stored.
 
-        @returns {String} The configuration path.
+        @return {String} The configuration path.
         """
         return os.path.join(os.path.dirname(
             os.path.dirname(__file__)), "prefs")
 
-    def __getPrefs(self):
+    def __load(self):
         """Read and store the preferences file.
 
-        @returns {Boolean} True if the preferences file was read,
-                            False otherwise.
+        @return {Boolean} True if the preferences file was read,
+                          False otherwise.
         """
         if os.path.exists(self.__prefsFile):
             try:
@@ -122,12 +84,9 @@ class Preferences:
         @param {String} ldPath The path to confirm an LDraw installation.
         @return {Boolean} True if an installation exists, False otherwise.
         """
-        if os.path.isfile(os.path.join(ldPath, "LDConfig.ldr")):
-            Console.log("Found LDraw installation at {0}".format(ldPath))
-            return True
-        return False
+        return os.path.isfile(os.path.join(ldPath, "LDConfig.ldr"))
 
-    def findLDraw(self):
+    def __findLDraw(self):
         """Try to find an LDraw installation.
 
         @return {String} The found LDraw installation
@@ -136,13 +95,14 @@ class Preferences:
         # The path was previously stored in the preferences
         if self.__prefsData is not None:
             Console.log("Retrieve LDraw path from preferences")
-            self.ldPath = self.__prefsData["ldPath"]
+            self.__ldPath = self.__prefsData["ldPath"]
             self.__curPlatform = self.__prefsData["platform"]
 
-            Console.log("The current platform is", self.__prefsData["platform"])
+            Console.log("The current platform is {0}".format(
+                        self.__curPlatform))
             Console.log("The LDraw Parts Library to be used is\n{0}".format(
-                        self.ldPath))
-            return self.__prefsData["ldPath"]
+                        self.__ldPath))
+            return self.__ldPath
 
         # Get and resolve the current platform
         curOS = platform.system()
@@ -154,43 +114,67 @@ class Preferences:
             self.__curPlatform = "linux"
         else:
             self.__curPlatform = "win"
-        Console.log("The current platform is", self.__curPlatform)
+        Console.log("The current platform is {0}".format(self.__curPlatform))
 
         # Perform platform-specific searches to find the LDraw installation
         Console.log("Search {0}-specific paths for the LDraw path".format(
                     self.__curPlatform))
-
         for path in self.__paths[self.__curPlatform]:
-            if self.setLDraw(path):
+            if self.saveLDraw(path):
                 return path
 
         # We came up dry, default to Windows default
+        self.__ldPath = self.__paths["win"][0]
         Console.log("Cound not find LDraw installation, default to {0}".format(
-                    self.__paths["win"][0]))
-        self.ldPath = self.__paths["win"][0]
-        return self.__paths["win"][0]
+                    self.__ldPath))
+        return self.__ldPath
 
-    def setLDraw(self, ldPath):
-        """Set the LDraw installation.
+    def get(self, opt, default):
+        """Retrieve the desired import option from the preferences.
 
-        @param {String} ldPath The LDraw installation
-        @return {Boolean} True if the installation was set, False otherwise.
+        @param {String} opt The key for the import option desired.
+        @param {Boolean|Number|String} default Default value if a value cannot
+                                               be retrieved from the prefs.
+        @return {Boolean|Number|String} The import option to use.
         """
-        if self.__confirmLDraw(ldPath):
-            self.ldPath = ldPath.replace("\\", "/")
-            return True
-        return False
+        # Make sure we have preferences to use
+        if self.__prefsData is None or not self.__prefsData["importOpts"]:
+            return default
 
-    def savePrefs(self):
-        """Write the JSON-based preferences file.
+        # Retrieve the desired import option
+        options = self.__prefsData["importOpts"]
+        if opt in options.keys():
+            return options[opt]
+        return default
 
-        @returns {Boolean} True if the preferences file was written,
-                           False otherwise.
+    def getLDraw(self):
+        """Retrieve the LDraw installation.
+
+        @return {String} The LDraw installation.
         """
+        return (self.__ldPath if self.__ldPath is not None
+                else self.__findLDraw())
+
+    def save(self, importOpts):
+        """Write the JSON preferences.
+
+        @param {Dictionary} importOpts The import options to save.
+        @return {Boolean} True if the preferences were written,
+                          False otherwise.
+        """
+        # Round off any numbers to two decimal places
+        for k, v in importOpts.items():
+            if type(v) == float:
+                importOpts[k] = round(v, 2)
+
+        # Update the in-memory preferences
+        if self.__prefsData is not None:
+            self.__prefsData["importOpts"] = importOpts
+
         prefs = {
-            "platform": self.__curPlatform,
-            "ldPath": self.ldPath,
-            "importOpts": {}
+            "importOpts": importOpts,
+            "ldPath": self.__ldPath,
+            "platform": self.__curPlatform
         }
 
         # Create the preferences folder if it does not exist
@@ -199,10 +183,22 @@ class Preferences:
 
         try:
             with open(self.__prefsFile, "wt", encoding="utf_8") as f:
-                f.write(json.dumps(prefs, indent=4, sort_keys=True))
-            Console.log("Preferences saved to {0}".format(self.__prefsFile))
+                f.write(json.dumps(prefs, sort_keys=True))
+            Console.log("Preferences saved to\n{0}".format(self.__prefsFile))
             return True
 
         # Silently fail
         except PermissionError:
             return False
+
+    def saveLDraw(self, ldPath):
+        """Set the LDraw installation.
+
+        @param {String} ldPath The LDraw installation
+        @return {Boolean} True if the installation was set, False otherwise.
+        """
+        if self.__confirmLDraw(ldPath):
+            Console.log("Found LDraw installation at {0}".format(ldPath))
+            self.__ldPath = ldPath.replace("\\", "/")
+            return True
+        return False
