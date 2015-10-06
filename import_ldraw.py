@@ -201,6 +201,12 @@ class LDrawFile(object):
             # Check the part header for top-level part status
             isPart = isTopLevelPart(lines[3])
 
+            # Linked parts relies on the flawed isPart logic (#112)
+            # TODO Correct linked parts to use proper logic
+            # and remove this kludge
+            if LinkParts:  # noqa
+                isPart = filename == fileName  # noqa
+
             self.part_count += 1
             if self.part_count > 1 and self.level == 0:
                 self.subparts.append([filename, self.level + 1, self.mat,
@@ -218,9 +224,10 @@ class LDrawFile(object):
                                 x, y, z, a, b, c,
                                 d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
+
                             # Reset orientation of top-level part,
                             # track original orientation
-                            # TODO Check if isPart dependency can be avoided
+                            # TODO Use corrected isPart logic
                             if self.part_count == 1 and isPart and LinkParts:  # noqa
                                 mat_new = self.mat * mathutils.Matrix((
                                     (1, 0, 0, 0),
@@ -247,8 +254,9 @@ class LDrawFile(object):
                             if color == '16':
                                 color = self.colour
                             subfiles.append([new_file, mat_new, color])
+
                             # When top-level part, save orientation separately
-                            # TODO Check if isPart dependency can be avoided
+                            # TODO Use corrected isPart logic
                             if self.part_count == 1 and isPart:
                                 subfiles.append(['orientation',
                                                  orientation, ''])
