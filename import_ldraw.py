@@ -186,30 +186,27 @@ class LDrawFile(object):
         subfiles = []
 
         while True:
-            isPart = False
-            if os.path.exists(filename):
+            # Get the path to the part
+            filename = (filename if os.path.exists(filename)
+                        else locatePart(filename))
 
-                # Check if this is a main part or a subpart
-                if not isSubPart(filename):
-                    isPart = True
+            # The part does not exist
+            # TODO Do not halt on this condition (#11)
+            if filename is None:
+                return False
 
-                # Read the brick using relative path (to entire model)
-                with open(filename, "rt", encoding="utf_8") as f_in:
-                    lines = f_in.readlines()
+            # Read the located part
+            with open(filename, "rt", encoding="utf_8") as f:
+                lines = f.readlines()
 
-            else:
-                # Search for the brick in the various folders
-                fname, isPart = locate(filename)
+            # Check the part header for top-level part status
+            isPart = isTopLevelPart(lines[3])
 
-                # The brick does not exist
-                # TODO Do not halt on this condition
-                if fname is None:
-                    return False
-
-                # It exists, read it and get the data
-                if os.path.exists(fname):
-                    with open(fname, "rt", encoding="utf_8") as f_in:
-                        lines = f_in.readlines()
+            # Linked parts relies on the flawed isPart logic (#112)
+            # TODO Correct linked parts to use proper logic
+            # and remove this kludge
+            if LinkParts:  # noqa
+                isPart = filename == fileName  # noqa
 
             self.part_count += 1
             if self.part_count > 1 and self.level == 0:
@@ -228,9 +225,10 @@ class LDrawFile(object):
                                 x, y, z, a, b, c,
                                 d, e, f, g, h, i
                             ) = map(float, tmpdate[2:14])
+
                             # Reset orientation of top-level part,
                             # track original orientation
-                            # TODO Check if isPart dependency can be avoided
+                            # TODO Use corrected isPart logic
                             if self.part_count == 1 and isPart and LinkParts:  # noqa
                                 mat_new = self.mat * mathutils.Matrix((
                                     (1, 0, 0, 0),
@@ -257,8 +255,9 @@ class LDrawFile(object):
                             if color == '16':
                                 color = self.colour
                             subfiles.append([new_file, mat_new, color])
+
                             # When top-level part, save orientation separately
-                            # TODO Check if isPart dependency can be avoided
+                            # TODO Use corrected isPart logic
                             if self.part_count == 1 and isPart:
                                 subfiles.append(['orientation',
                                                  orientation, ''])
@@ -699,31 +698,44 @@ def getCyclesMilkyWhite(name, diff_color):
     return mat
 
 
-def isSubPart(part):
-    """Check if part is a main part or a subpart."""
-    # FIXME: Remove this function
-    # TODO: A file is a "part" only if its header states so.
-    # (#40#issuecomment-31279788)
-    return str.lower(os.path.split(part)[0]) == "s"
+def isTopLevelPart(headerLine):
+    """Check if the given part is a top level part.
+
+    @param {String} headerLine The header line stating the part level.
+    @return {Boolean} True if a top level part, False otherwise
+                      or the header does not specify.
+    """
+    headerLine = headerLine.lower().split()
+    if headerLine[0] != "0 !ldraw_org":
+        return False
+    return headerLine[2] in ("part", "unofficial_part")
 
 
-def locate(pattern):
-    """Check if a part exists."""
-    partName = pattern.replace("\\", os.path.sep)
+def locatePart(partName):
+    """Find the given part in the defined search paths.
+
+    @param {String} partName The part to find.
+    @return {!String} The absolute path to the part if found.
+    """
+    # Use the OS's path separator to ensure the parts are found
+    partName = partName.replace("\\", os.path.sep)
 
     for path in paths:
-        # Perform a case-sensitive check
+        # Find the part filename using the exact case in the file
         fname = os.path.join(path, partName)
         if os.path.exists(fname):
-            return (fname, False)
+            return fname
+        
+        # Because case-sensitive file systems, if the first check fails
+        # check again using a normalized part filename
+        # See #112#issuecomment-136719763
         else:
-            # Perform a normalized check
             fname = os.path.join(path, partName.lower())
             if os.path.exists(fname):
-                return (fname, False)
+                return fname
 
-    Console.log("Could not find file {0}".format(fname))
-    return (None, False)
+    Console.log("Could not find part {0}".format(fname))
+    return None
 
 
 def create_model(self, context, scale):
