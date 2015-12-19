@@ -1113,8 +1113,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     linkParts = BoolProperty(
         name="Link Identical Parts",
-        description="Link identical parts by type and color",
-        default=prefs.get("linkParts", True)
+        description="Link identical parts by type and color (experimental)",
+        default=prefs.get("linkParts", False)
     )
 
     def draw(self, context):
