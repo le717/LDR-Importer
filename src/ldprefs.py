@@ -48,8 +48,9 @@ class Preferences:
             "linux": [
                 os.path.expanduser("~/LDraw"),
                 os.path.expanduser("~/ldraw"),
-                "/usr/local/share/ldraw",
-                "/opt/ldraw"
+                os.path.expanduser("~/.LDraw"),
+                os.path.expanduser("~/.ldraw"),
+                "/usr/local/share/ldraw"
             ]
         }
 
