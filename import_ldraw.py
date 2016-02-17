@@ -306,7 +306,7 @@ def getMaterial(colour):
     """Get Blender Internal Material Values."""
     if colour in colors.getAll():
         if not (colour in mat_list):
-            mat = bpy.data.materials.new("Mat_{0}_".format(colour))
+            mat = bpy.data.materials.new("Mat_{0}".format(colour))
             col = colors.get(colour)
 
             mat.diffuse_color = col["value"]
@@ -362,7 +362,7 @@ def getMaterial(colour):
         # We have a direct color on our hands
         if directColor[0]:
             Console.log("Direct color {0} found".format(colour))
-            mat = bpy.data.materials.new("Mat_{0}_".format(colour))
+            mat = bpy.data.materials.new("Mat_{0}".format(colour))
             mat.diffuse_color = directColor[1]
 
             # Add it to the material lists to avoid duplicate processing
@@ -382,34 +382,34 @@ def getCyclesMaterial(colour):
             col = colors.get(colour)
 
             if col["name"] == "Milky_White":
-                mat = getCyclesMilkyWhite("Mat_{0}_".format(colour),
+                mat = getCyclesMilkyWhite("Mat_{0}".format(colour),
                                           col["value"])
 
             elif col["material"] == "BASIC" and col["luminance"] == 0:
-                mat = getCyclesBase("Mat_{0}_".format(colour),
+                mat = getCyclesBase("Mat_{0}".format(colour),
                                     col["value"], col["alpha"])
 
             elif col["luminance"] > 0:
-                mat = getCyclesEmit("Mat_{0}_".format(colour), col["value"],
+                mat = getCyclesEmit("Mat_{0}".format(colour), col["value"],
                                     col["alpha"], col["luminance"])
 
             elif col["material"] == "CHROME":
-                mat = getCyclesChrome("Mat_{0}_".format(colour), col["value"])
+                mat = getCyclesChrome("Mat_{0}".format(colour), col["value"])
 
             elif col["material"] == "PEARLESCENT":
-                mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
+                mat = getCyclesPearlMetal("Mat_{0}".format(colour),
                                           col["value"])
 
             elif col["material"] == "METAL":
-                mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
+                mat = getCyclesPearlMetal("Mat_{0}".format(colour),
                                           col["value"])
 
             elif col["material"] == "RUBBER":
-                mat = getCyclesRubber("Mat_{0}_".format(colour),
+                mat = getCyclesRubber("Mat_{0}".format(colour),
                                       col["value"], col["alpha"])
 
             else:
-                mat = getCyclesBase("Mat_{0}_".format(colour),
+                mat = getCyclesBase("Mat_{0}".format(colour),
                                     col["value"], col["alpha"])
 
             mat_list[colour] = mat
@@ -422,7 +422,7 @@ def getCyclesMaterial(colour):
         # We have a direct color on our hands
         if directColor[0]:
             Console.log("Direct color {0} found".format(colour))
-            mat = getCyclesBase("Mat_{0}_".format(colour),
+            mat = getCyclesBase("Mat_{0}".format(colour),
                                 directColor[1], 1.0)
 
             # Add it to the material lists to avoid duplicate processing
