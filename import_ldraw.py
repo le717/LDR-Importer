@@ -23,7 +23,6 @@ import re
 import math
 import mathutils
 import traceback
-from struct import unpack
 
 import bpy
 from bpy.props import (StringProperty,
@@ -34,6 +33,7 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import ImportHelper
 
+from .src.ldcolors import Colors
 from .src.ldconsole import Console
 from .src.ldprefs import Preferences
 
@@ -301,7 +301,7 @@ def convertDirectColor(color):
         re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None
     ):
         return (False,)
-    return (True, hexToRgb(color.lstrip("0x2")))
+    return (True, colors.hexToRgb(color[3:]))
 
 
 def getMaterial(colour):
@@ -1026,19 +1026,6 @@ def replaceParts(part, color):
     # Change mesh name in combination of .dat-filename and material.
     if mesh is not None:
         mesh.name = "{0} {1}".format(part, color)
-
-
-def hexToRgb(color):
-    """Convert color hex value to the RGB format Blender requires.
-
-    @param {String} color The hex color value to convert.
-                          Can be prefixed with "#".
-    @return {Tuple.<number>} A three-index tuple containing
-                            the converted RGB value.
-    """
-    color = color.lstrip("#")
-    rgbColor = unpack("BBB", bytes.fromhex(color))
-    return tuple([val / 255 for val in rgbColor])
 
 
 # ------------ Operator ------------ #
