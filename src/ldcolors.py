@@ -33,7 +33,7 @@ class Colors:
             "filename": self.__colorFile
         }
 
-    def __hexToRgb(self, color):
+    def hexToRgb(self, color):
         """Convert a Hex color value to the RGB format Blender requires.
 
         @param {String} color The hex color value to convert.
@@ -69,9 +69,9 @@ class Colors:
 
     def get(self, code):
         """Get an individual LDraw color object.
-        @param {String} code The color code.
-        @param {!Dictionary} The color code dictionary
-                             if available, None otherwise.
+        @param {String} code The code identifying the color.
+        @param {!Dictionary} The color definition if available,
+                             None otherwise.
         """
         return self.__colors.get(code)
 
@@ -99,7 +99,7 @@ class Colors:
     def load(self):
         """Parse the LDraw color definitions file.
 
-        @return {Dictionary} All defined LDraw colors,
+        @return {Dictionary} The complete LDraw color dictionary
                              with color codes as the keys.
         """
         # Read the color definition file
@@ -121,13 +121,11 @@ class Colors:
                 color = {
                     "alpha": 1.0,
                     "code": code,
-                    "edge": self.__hexToRgb(
-                        self.__getColorValue(line, "edge")),
+                    "edge": self.hexToRgb(self.__getColorValue(line, "edge")),
                     "luminance": 0.0,
                     "material": "basic",
                     "name": self.__getColorValue(line, "!colour"),
-                    "value": self.__hexToRgb(
-                        self.__getColorValue(line, "value"))
+                    "value": self.hexToRgb(self.__getColorValue(line, "value"))
                 }
 
                 # Extract the alpha value
