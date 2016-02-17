@@ -51,7 +51,6 @@ scriptFiles = [
 
 proseFiles = [
     "README.md",
-    "Readme.html",
     "LICENSE"
 ]
 
