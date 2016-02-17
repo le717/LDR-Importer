@@ -705,9 +705,18 @@ def isTopLevelPart(headerLine):
     @return {Boolean} True if a top level part, False otherwise
                       or the header does not specify.
     """
-    headerLine = headerLine.lower().split()
+    # Make sure the file has the spec'd META command
+    # If it does not, we cannot do easily determine the part type,
+    # so we will simply say it is not top level
+    headerLine = headerLine.lower().strip()
+    if headerLine == "":
+        return False
+
+    headerLine = headerLine.split()
     if headerLine[0] != "0 !ldraw_org":
         return False
+
+    # We can determine if this is top level or not
     return headerLine[2] in ("part", "unofficial_part")
 
 
@@ -725,7 +734,7 @@ def locatePart(partName):
         fname = os.path.join(path, partName)
         if os.path.exists(fname):
             return fname
-        
+
         # Because case-sensitive file systems, if the first check fails
         # check again using a normalized part filename
         # See #112#issuecomment-136719763
