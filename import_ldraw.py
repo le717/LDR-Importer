@@ -95,12 +95,10 @@ class LDrawFile(object):
             for i, f in enumerate(me.polygons):
                 n = self.material_index[i]
 
-                # Use Cycles materials if user is using Cycles
-                if engine == 'CYCLES':
-                    material = getCyclesMaterial(n)
-                # Non-Cycles materials (BI, BGE, POV-Ray, etc...)
-                else:
-                    material = getMaterial(n)
+                # Get the proper materials depending on the current engine
+                # (Cycles vs. BI, BGE, POV-Ray, etc)
+                material = (getCyclesMaterial(n) if engine == "CYCLES"
+                            else getMaterial(n))
 
                 if material is not None:
                     if me.materials.get(material.name) is None:
