@@ -13,7 +13,7 @@ The purpose of the LDR Importer is to import LDraw and LDraw compatible parts an
 All releases are available on the [Releases](https://github.com/le717/LDR-Importer/releases) page. It is always recommended to use the newest release unless otherwise noted.
 
 ## License ##
-<a target="_blank" href="http://www.ldraw.org/"><img src="Documentation/Official_LDraw_Logo.png" /></a>
+[![LDraw logo](Documentation/Official_LDraw_Logo.png)](http://www.ldraw.org/)
 
 LDraw&trade; is a trademark owned and licensed by the Estate of James Jessiman. This script is not developed or endorsed by the creators of The LDraw System of Tools.
 
