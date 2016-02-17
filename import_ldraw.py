@@ -304,12 +304,12 @@ def convertDirectColor(color):
 
 def getMaterial(colour):
     """Get Blender Internal Material Values."""
-    if colour in colors:
+    if colour in colors.getAll():
         if not (colour in mat_list):
             mat = bpy.data.materials.new("Mat_{0}_".format(colour))
-            col = colors[colour]
+            col = colors.get(colour)
 
-            mat.diffuse_color = col["color"]
+            mat.diffuse_color = col["value"]
 
             alpha = col["alpha"]
             if alpha < 1.0:
@@ -366,7 +366,9 @@ def getMaterial(colour):
             mat.diffuse_color = directColor[1]
 
             # Add it to the material lists to avoid duplicate processing
-            colors[colour] = mat
+            # TODO Do not add it to the LDraw-defined colors but only
+            # to the Blender material list
+            colors.add(colour, mat)
             mat_list[colour] = mat
             return mat_list[colour]
 
@@ -375,40 +377,40 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values."""
-    if colour in colors:
+    if colour in colors.getAll():
         if not (colour in mat_list):
-            col = colors[colour]
+            col = colors.get(colour)
 
             if col["name"] == "Milky_White":
                 mat = getCyclesMilkyWhite("Mat_{0}_".format(colour),
-                                          col["color"])
+                                          col["value"])
 
             elif col["material"] == "BASIC" and col["luminance"] == 0:
                 mat = getCyclesBase("Mat_{0}_".format(colour),
-                                    col["color"], col["alpha"])
+                                    col["value"], col["alpha"])
 
             elif col["luminance"] > 0:
-                mat = getCyclesEmit("Mat_{0}_".format(colour), col["color"],
+                mat = getCyclesEmit("Mat_{0}_".format(colour), col["value"],
                                     col["alpha"], col["luminance"])
 
             elif col["material"] == "CHROME":
-                mat = getCyclesChrome("Mat_{0}_".format(colour), col['color'])
+                mat = getCyclesChrome("Mat_{0}_".format(colour), col["value"])
 
             elif col["material"] == "PEARLESCENT":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"])
+                                          col["value"])
 
             elif col["material"] == "METAL":
                 mat = getCyclesPearlMetal("Mat_{0}_".format(colour),
-                                          col["color"])
+                                          col["value"])
 
             elif col["material"] == "RUBBER":
                 mat = getCyclesRubber("Mat_{0}_".format(colour),
-                                      col["color"], col["alpha"])
+                                      col["value"], col["alpha"])
 
             else:
                 mat = getCyclesBase("Mat_{0}_".format(colour),
-                                    col["color"], col["alpha"])
+                                    col["value"], col["alpha"])
 
             mat_list[colour] = mat
 
@@ -424,7 +426,9 @@ def getCyclesMaterial(colour):
                                 directColor[1], 1.0)
 
             # Add it to the material lists to avoid duplicate processing
-            colors[colour] = mat
+            # TODO Do not add it to the LDraw-defined colors but only
+            # to the Blender material list
+            colors.add(colour, mat)
             mat_list[colour] = mat
             return mat_list[colour]
 
@@ -791,7 +795,10 @@ Must be a .ldr or .dat''')
 {0}'''.format(LDrawDir))  # noqa
             return {'CANCELLED'}
 
-        colors = getLDColors(self, LDrawDir)  # noqa
+        # Instance the colors module and
+        # load the LDraw-defined color definitions
+        colors = Colors(LDrawDir, False)  # noqa
+        colors.load()
         mat_list = {}
 
         LDrawFile(context, fileName, 0, trix)
@@ -888,94 +895,6 @@ Must be a .ldr or .dat''')
         self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
         return {'CANCELLED'}
-
-
-def getLDColors(self, ldPath):
-    """Parse and extract color material from LDConfig.ldr.
-
-    @param {String} ldPath The path to the LDraw installation.
-    @return {Dictionary} All the colors, with color codes as the keys.
-    """
-    # LDConfig.ldr does not exist for some reason
-    if not os.path.exists(os.path.join(ldPath, "LDConfig.ldr")):
-        self.report({'ERROR'}, '''Could not find LDConfig.ldr at
-{0}
-Check the console logs for more information.'''.format(ldPath))
-
-        Console.log('''ERROR: Could not find LDConfig.ldr at
-{0}'''.format(LDrawDir))  # noqa
-        return {'CANCELLED'}
-
-    Console.log("Parsing LDConfig.ldr")
-    with open(os.path.join(ldPath, "LDConfig.ldr"),
-              "rt", encoding="utf_8") as ldconfig:
-        lines = ldconfig.readlines()
-
-    colors = {}
-
-    for line in lines:
-        if len(line) > 3:
-            if line[2:4].lower() == '!c':
-                line_split = line.split()
-
-                name = line_split[2]
-                code = line_split[4]
-
-                color = {
-                    "name": name,
-                    "color": hexToRgb(line_split[6][1:]),
-                    "alpha": 1.0,
-                    "luminance": 0.0,
-                    "material": "BASIC"
-                }
-
-                if hasColorValue(line_split, "ALPHA"):
-                    color["alpha"] = int(
-                        getColorValue(line_split, "ALPHA")) / 256.0
-
-                if hasColorValue(line_split, "LUMINANCE"):
-                    color["luminance"] = int(
-                        getColorValue(line_split, "LUMINANCE"))
-
-                if hasColorValue(line_split, "CHROME"):
-                    color["material"] = "CHROME"
-
-                if hasColorValue(line_split, "PEARLESCENT"):
-                    color["material"] = "PEARLESCENT"
-
-                if hasColorValue(line_split, 'RUBBER'):
-                    color["material"] = "RUBBER"
-
-                if hasColorValue(line_split, "METAL"):
-                    color["material"] = "METAL"
-
-                if hasColorValue(line_split, "MATERIAL"):
-                    subline = line_split[line_split.index("MATERIAL"):]
-
-                    color["material"] = getColorValue(subline, "MATERIAL")
-                    color["secondary_color"] = getColorValue(
-                        subline, "VALUE")[1:]
-                    color["fraction"] = getColorValue(subline, "FRACTION")
-                    color["vfraction"] = getColorValue(subline, "VFRACTION")
-                    color["size"] = getColorValue(subline, "SIZE")
-                    color["minsize"] = getColorValue(subline, "MINSIZE")
-                    color["maxsize"] = getColorValue(subline, "MAXSIZE")
-
-                colors[code] = color
-
-    return colors
-
-
-def hasColorValue(line, value):
-    """Check if the color value is present."""
-    return value in line
-
-
-def getColorValue(line, value):
-
-    if value in line:
-        n = line.index(value)
-        return line[n + 1]
 
 
 def linkedParts():
