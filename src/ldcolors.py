@@ -21,6 +21,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 import os
 import struct
 
+from .ldconsole import Console
+
 
 class Colors:
 
@@ -86,6 +88,7 @@ class Colors:
                              with color codes as the keys.
         """
         # Read the color definition file
+        Console.log("Parsing {0} color definitions".format(self.__colorFile))
         with open(os.path.join(self.__ldPath, self.__colorFile),
                   "rt", encoding="utf_8") as f:
             lines = f.readlines()
