@@ -69,9 +69,10 @@ class Colors:
 
     def get(self, code):
         """Get an individual LDraw color object.
+
         @param {String} code The code identifying the color.
-        @param {!Dictionary} The color definition if available,
-                             None otherwise.
+        @return {!Dictionary} The color definition if available,
+                              None otherwise.
         """
         return self.__colors.get(code)
 
@@ -89,8 +90,8 @@ class Colors:
                     It pollututes the LDraw-defined color definitions.
                     All non-LDraw materials should be stored separately.
 
-        @param {String} The code identifying the color.
-        @param {*} The structure describing the color.
+        @param {String} code The code identifying the color.
+        @param {*} mat The structure describing the color.
         """
         # Add key to denote it is not an LDraw color definition
         mat["not_ldraw"] = True
