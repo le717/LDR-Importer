@@ -76,11 +76,13 @@ class Colors:
         """
         return self.__colors.get(code)
 
-    def getAll(self):
-        """Get all available LDraw colors.
-        @param {!Dictionary} The complete LDraw color dictionary.
+    def contains(self, code):
+        """Check if a color exists in the color dictionary.
+
+        @param {String} code The code for the corresponding color.
+        @return {Boolean} True if the color was found, False otherwise.
         """
-        return self.__colors
+        return code in self.__colors.keys()
 
     def add(self, code, mat):
         """Add an arbitrary color to the colors dictionary.

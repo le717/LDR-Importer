@@ -304,7 +304,7 @@ def convertDirectColor(color):
 
 def getMaterial(colour):
     """Get Blender Internal Material Values."""
-    if colour in colors.getAll():
+    if colors.contains(colour):
         if not (colour in mat_list):
             mat = bpy.data.materials.new("Mat_{0}".format(colour))
             col = colors.get(colour)
@@ -377,7 +377,7 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values."""
-    if colour in colors.getAll():
+    if colors.contains(colour):
         if not (colour in mat_list):
             col = colors.get(colour)
 
