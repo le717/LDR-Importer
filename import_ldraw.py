@@ -845,20 +845,36 @@ Must be a .ldr or .dat''')
 
             # Select all the mesh
             for cur_obj in objects:
+                bpy.ops.object.select_all(action='DESELECT')
                 cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
-                if bpy.ops.object.mode_set.poll():
 
-                    # Change to edit mode
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    bpy.ops.mesh.select_all(action='SELECT')
+                # To change the width of the gaps, change the gapWidth variable
+                gapWidth = 0.007
+                objScale = cur_obj.scale * scale
+                dim = cur_obj.dimensions
 
-                    # Add small gaps between each brick
-                    bpy.ops.transform.resize(value=(0.99, 0.99, 0.99))
-                    if bpy.ops.object.mode_set.poll():
+                # Checks whether the object isn't flat in a certain direction
+                # to avoid division by zero.
+                # Else, the scale factor is set proportional to the inverse of
+                # the dimension so that the mesh shrinks a fixed distance
+                # (determined by the gap_width and the scale of the object)
+                # in every direction, creating a uniform gap.
+                scaleFac = {"x": 1, "y": 1, "z": 1}
 
-                        # Go back to object mode
-                        bpy.ops.object.mode_set(mode='OBJECT')
+                if dim.x != 0:
+                    scaleFac["x"] = 1 - 2 * gapWidth * abs(objScale.x) / dim.x
+                if dim.y != 0:
+                    scaleFac["y"] = 1 - 2 * gapWidth * abs(objScale.y) / dim.y
+                if dim.z != 0:
+                    scaleFac["z"] = 1 - 2 * gapWidth * abs(objScale.z) / dim.z
+
+                bpy.context.object.scale[0] *= scaleFac["x"]
+                bpy.context.object.scale[1] *= scaleFac["y"]
+                bpy.context.object.scale[2] *= scaleFac["z"]
+
+                bpy.ops.object.transform_apply(scale=True)
+                bpy.ops.object.select_all(action='DESELECT')
 
         # Link identical bricks
         if LinkParts:  # noqa
