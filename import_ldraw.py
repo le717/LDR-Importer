@@ -849,14 +849,14 @@ Must be a .ldr or .dat''')
                 cur_obj.select = True
                 bpy.context.scene.objects.active = cur_obj
 
-		# To change the width of the gaps, change the gapWidth variable
+                # To change the width of the gaps, change the gapWidth variable
                 gapWidth = 0.007
                 objScale = cur_obj.scale * scale
                 dim = cur_obj.dimensions
-                
+
                 # Checks whether the object isn't flat in a certain direction
                 # to avoid division by zero.
-                # Else, the scale factor is taken proportional to the inverse of
+                # Else, the scale factor is set proportional to the inverse of
                 # the dimension so that the mesh shrinks a fixed distance
                 # (determined by the gap_width and the scale of the object)
                 # in every direction, creating a uniform gap.
