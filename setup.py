@@ -45,6 +45,7 @@ scriptFiles = [
     "__version__.py",
     "import_ldraw.py",
     "src/__init__.py",
+    "src/ldcolors.py",
     "src/ldconsole.py",
     "src/ldprefs.py"
 ]
