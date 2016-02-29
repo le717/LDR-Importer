@@ -1,6 +1,6 @@
 # LDR Importer [![Build Status](https://travis-ci.org/le717/LDR-Importer.svg?branch=master)](https://travis-ci.org/le717/LDR-Importer) #
 
-> A [Blender 3D](http://www.blender.org) Importer script for the [LDraw Parts Library](http://www.ldraw.org).
+> A [Blender 3D](http://www.blender.org) Importer plugin for the [LDraw Parts Library](http://www.ldraw.org).
 
 LDraw&trade; is an open standard for LEGO CAD programs that allow the user to create virtual LEGO models and scenes. You can use it to document models
 you have physically built, create building instructions just like LEGO, render 3D photo realistic images of your virtual models and even make animations.
@@ -33,3 +33,5 @@ The names of all contributors are posted here for everyone to see! :smiley:
 * [@Tribex](https://github.com/Tribex)
 * [@MinnieTheMoocher](https://github.com/MinnieTheMoocher)
 * [@geertdaelemans](https://github.com/geertdaelemans)
+* [@BertVanRaemdonck](https://github.com/BertVanRaemdonck)
+* 
