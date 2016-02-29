@@ -192,7 +192,7 @@ class Preferences:
         except PermissionError:
             return False
 
-    def saveLDraw(self, ldPath):
+    def setLDraw(self, ldPath):
         """Set the LDraw installation.
 
         @param {String} ldPath The LDraw installation

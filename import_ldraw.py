@@ -1087,41 +1087,43 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         paths.append("")
 
         # Always search for parts in the `models` folder
-        paths.append(os.path.join(LDrawDir, "models"))
+        paths.append(os.path.join(self.ldrawPath, "models"))
 
         # The unofficial folder exists, search the standard folders
-        if os.path.exists(os.path.join(LDrawDir, "unofficial")):
-            paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
+        if os.path.exists(os.path.join(self.ldrawPath, "unofficial")):
+            paths.append(os.path.join(self.ldrawPath, "unofficial", "parts"))
 
             # The user wants to use high-res unofficial primitives
             if self.resPrims == "HighRes":
-                paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
+                paths.append(os.path.join(self.ldrawPath,
+                             "unofficial", "p", "48"))
             # The user wants to use low-res unofficial primitives
             elif self.resPrims == "LowRes":
-                paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
+                paths.append(os.path.join(self.ldrawPath,
+                             "unofficial", "p", "8"))
 
             # Search in the `unofficial/p` folder
-            paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+            paths.append(os.path.join(self.ldrawPath, "unofficial", "p"))
 
             # The user wants to use LSynth parts
             if self.lsynthParts:
-                if os.path.exists(os.path.join(LDrawDir, "unofficial",
+                if os.path.exists(os.path.join(self.ldrawPath, "unofficial",
                                                "lsynth")):
-                    paths.append(os.path.join(LDrawDir, "unofficial",
+                    paths.append(os.path.join(self.ldrawPath, "unofficial",
                                               "lsynth"))
                     Console.log("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
-        paths.append(os.path.join(LDrawDir, "parts"))
+        paths.append(os.path.join(self.ldrawPath, "parts"))
 
         # The user wants to use high-res primitives
         if self.resPrims == "HighRes":
-            paths.append(os.path.join(LDrawDir, "p", "48"))
+            paths.append(os.path.join(self.ldrawPath, "p", "48"))
             Console.log("High-res primitives substitution selected")
 
         # The user wants to use low-res primitives
         elif self.resPrims == "LowRes":
-            paths.append(os.path.join(LDrawDir, "p", "8"))
+            paths.append(os.path.join(self.ldrawPath, "p", "8"))
             Console.log("Low-res primitives substitution selected")
 
         # The user wants to use normal-res primitives
@@ -1129,7 +1131,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             Console.log("Standard-res primitives substitution selected")
 
         # Finally, search in the `p` folder
-        paths.append(os.path.join(LDrawDir, "p"))
+        paths.append(os.path.join(self.ldrawPath, "p"))
 
         # Create the preferences dictionary
         importOpts = {
@@ -1143,7 +1145,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         }
 
         # Save the preferences and import the model
-        self.prefs.saveLDraw(self.ldrawPath)
+        self.prefs.setLDraw(self.ldrawPath)
         self.prefs.save(importOpts)
         create_model(self, context, self.importScale)
         return {'FINISHED'}
