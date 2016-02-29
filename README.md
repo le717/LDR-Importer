@@ -34,4 +34,3 @@ The names of all contributors are posted here for everyone to see! :smiley:
 * [@MinnieTheMoocher](https://github.com/MinnieTheMoocher)
 * [@geertdaelemans](https://github.com/geertdaelemans)
 * [@BertVanRaemdonck](https://github.com/BertVanRaemdonck)
-* 
