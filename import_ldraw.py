@@ -299,15 +299,15 @@ def convertDirectColor(color):
         re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None
     ):
         return (False,)
-    return (True, colors.hexToRgb(color[3:]))
+    return (True, ldColors.hexToRgb(color[3:]))
 
 
 def getMaterial(colour):
     """Get Blender Internal Material Values."""
-    if colors.contains(colour):
+    if ldColors.contains(colour):
         if not (colour in mat_list):
             mat = bpy.data.materials.new("Mat_{0}".format(colour))
-            col = colors.get(colour)
+            col = ldColors.get(colour)
 
             mat.diffuse_color = col["value"]
 
@@ -368,7 +368,7 @@ def getMaterial(colour):
             # Add it to the material lists to avoid duplicate processing
             # TODO Do not add it to the LDraw-defined colors but only
             # to the Blender material list
-            colors.add(colour, mat)
+            ldColors.add(colour, mat)
             mat_list[colour] = mat
             return mat_list[colour]
 
@@ -377,9 +377,9 @@ def getMaterial(colour):
 
 def getCyclesMaterial(colour):
     """Get Cycles Material Values."""
-    if colors.contains(colour):
+    if ldColors.contains(colour):
         if not (colour in mat_list):
-            col = colors.get(colour)
+            col = ldColors.get(colour)
 
             if col["name"] == "Milky_White":
                 mat = getCyclesMilkyWhite("Mat_{0}".format(colour),
@@ -428,7 +428,7 @@ def getCyclesMaterial(colour):
             # Add it to the material lists to avoid duplicate processing
             # TODO Do not add it to the LDraw-defined colors but only
             # to the Blender material list
-            colors.add(colour, mat)
+            ldColors.add(colour, mat)
             mat_list[colour] = mat
             return mat_list[colour]
 
@@ -753,7 +753,7 @@ def create_model(self, context, scale):
     """Create the actual model."""
     # FIXME: rewrite - Rewrite entire function (#35)
     global objects
-    global colors
+    global ldColors
     global mat_list
     global fileName
 
@@ -797,8 +797,8 @@ Must be a .ldr or .dat''')
 
         # Instance the colors module and
         # load the LDraw-defined color definitions
-        colors = Colors(LDrawDir, False)  # noqa
-        colors.load()
+        ldColors = Colors(LDrawDir, AltColorsOpt)  # noqa
+        ldColors.load()
         mat_list = {}
 
         LDrawFile(context, fileName, 0, trix)
@@ -991,8 +991,6 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         default=prefs.getLDraw()
     )
 
-    # Import options
-
     importScale = FloatProperty(
         name="Scale",
         description="Use a specific scale for each part",
@@ -1028,6 +1026,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
+    altColors = BoolProperty(
+        name="Use Alternate Colors",
+        description="Use LDCfgalt.ldr for color definitions",
+        default=prefs.get("altColors", False)
+    )
+
     addGaps = BoolProperty(
         name="Spaces Between Parts",
         description="Add small spaces between each part",
@@ -1059,15 +1063,17 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Model Cleanup", icon='EDIT')
         box.prop(self, "cleanUpParts", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
+        box.prop(self, "altColors")
         box.prop(self, "addGaps")
         box.prop(self, "lsynthParts")
         box.prop(self, "linkParts")
 
     def execute(self, context):
-        """Set import options and run the script."""
-        global LDrawDir, CleanUpOpt, GapsOpt, LinkParts
+        """Set import options and start the import process."""
+        global LDrawDir, CleanUpOpt, AltColorsOpt, GapsOpt, LinkParts
         LDrawDir = str(self.ldrawPath)
         CleanUpOpt = str(self.cleanUpParts)
+        AltColorsOpt = bool(self.altColors)
         GapsOpt = bool(self.addGaps)
         LinkParts = bool(self.linkParts)
 
@@ -1081,41 +1087,43 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         paths.append("")
 
         # Always search for parts in the `models` folder
-        paths.append(os.path.join(LDrawDir, "models"))
+        paths.append(os.path.join(self.ldrawPath, "models"))
 
         # The unofficial folder exists, search the standard folders
-        if os.path.exists(os.path.join(LDrawDir, "unofficial")):
-            paths.append(os.path.join(LDrawDir, "unofficial", "parts"))
+        if os.path.exists(os.path.join(self.ldrawPath, "unofficial")):
+            paths.append(os.path.join(self.ldrawPath, "unofficial", "parts"))
 
             # The user wants to use high-res unofficial primitives
             if self.resPrims == "HighRes":
-                paths.append(os.path.join(LDrawDir, "unofficial", "p", "48"))
+                paths.append(os.path.join(self.ldrawPath,
+                             "unofficial", "p", "48"))
             # The user wants to use low-res unofficial primitives
             elif self.resPrims == "LowRes":
-                paths.append(os.path.join(LDrawDir, "unofficial", "p", "8"))
+                paths.append(os.path.join(self.ldrawPath,
+                             "unofficial", "p", "8"))
 
             # Search in the `unofficial/p` folder
-            paths.append(os.path.join(LDrawDir, "unofficial", "p"))
+            paths.append(os.path.join(self.ldrawPath, "unofficial", "p"))
 
             # The user wants to use LSynth parts
             if self.lsynthParts:
-                if os.path.exists(os.path.join(LDrawDir, "unofficial",
+                if os.path.exists(os.path.join(self.ldrawPath, "unofficial",
                                                "lsynth")):
-                    paths.append(os.path.join(LDrawDir, "unofficial",
+                    paths.append(os.path.join(self.ldrawPath, "unofficial",
                                               "lsynth"))
                     Console.log("Use LSynth Parts selected")
 
         # Always search for parts in the `parts` folder
-        paths.append(os.path.join(LDrawDir, "parts"))
+        paths.append(os.path.join(self.ldrawPath, "parts"))
 
         # The user wants to use high-res primitives
         if self.resPrims == "HighRes":
-            paths.append(os.path.join(LDrawDir, "p", "48"))
+            paths.append(os.path.join(self.ldrawPath, "p", "48"))
             Console.log("High-res primitives substitution selected")
 
         # The user wants to use low-res primitives
         elif self.resPrims == "LowRes":
-            paths.append(os.path.join(LDrawDir, "p", "8"))
+            paths.append(os.path.join(self.ldrawPath, "p", "8"))
             Console.log("Low-res primitives substitution selected")
 
         # The user wants to use normal-res primitives
@@ -1123,11 +1131,12 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             Console.log("Standard-res primitives substitution selected")
 
         # Finally, search in the `p` folder
-        paths.append(os.path.join(LDrawDir, "p"))
+        paths.append(os.path.join(self.ldrawPath, "p"))
 
         # Create the preferences dictionary
         importOpts = {
             "addGaps": self.addGaps,
+            "altColors": self.altColors,
             "cleanUpParts": self.cleanUpParts,
             "importScale": self.importScale,
             "linkParts": self.linkParts,
@@ -1136,7 +1145,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         }
 
         # Save the preferences and import the model
-        self.prefs.saveLDraw(self.ldrawPath)
+        self.prefs.setLDraw(self.ldrawPath)
         self.prefs.save(importOpts)
         create_model(self, context, self.importScale)
         return {'FINISHED'}
