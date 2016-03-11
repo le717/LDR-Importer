@@ -934,9 +934,8 @@ def linkedParts():
 
 def replaceParts(part, color):
     """
-    Replace identical meshes of part/color-combination
-    with a linked version.
-    
+    Replace identical meshes of part/color-combination with a linked version.
+
     @param {String} part @todo.
     @param {String} color @todo.
     """
