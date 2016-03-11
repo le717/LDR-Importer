@@ -59,7 +59,6 @@ Use the appropriate Console method instead.""")
 
 
 class LDrawFile(object):
-
     """Scans LDraw files."""
 
     # FIXME: rewrite - Rewrite entire class (#35)
@@ -934,8 +933,12 @@ def linkedParts():
 
 
 def replaceParts(part, color):
-    """Replace identical meshes of part/color-combination
-       with a linked version.
+    """
+    Replace identical meshes of part/color-combination
+    with a linked version.
+    
+    @param {String} part @todo.
+    @param {String} color @todo.
     """
     mat = bpy.data.materials[color]
     mesh = None
@@ -965,7 +968,6 @@ def replaceParts(part, color):
 
 
 class LDRImporterOps(bpy.types.Operator, ImportHelper):
-
     """LDR Importer Import Operator."""
 
     bl_idname = "import_scene.ldraw"
