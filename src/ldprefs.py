@@ -121,7 +121,7 @@ class Preferences:
         Console.log("Search {0}-specific paths for the LDraw path".format(
                     self.__curPlatform))
         for path in self.__paths[self.__curPlatform]:
-            if self.saveLDraw(path):
+            if self.setLDraw(path):
                 return path
 
         # We came up dry, default to Windows default
