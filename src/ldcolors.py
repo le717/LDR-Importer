@@ -25,8 +25,16 @@ from .ldconsole import Console
 
 
 class Colors:
+    """Parse and manage LDraw color definitions."""
 
     def __init__(self, ldPath, useAltColors):
+        """Instance the class.
+
+        @param {String} ldPath An absolute path to the LDraw library.
+        @param {Boolean} useAltColors True if alternative color definitions
+                                      should be used, False for
+                                      standard color definitions.
+        """
         self.__ldPath = ldPath
         self.__colorFile = ("LDCfgalt.ldr" if useAltColors else "LDConfig.ldr")
         self.__colors = {
