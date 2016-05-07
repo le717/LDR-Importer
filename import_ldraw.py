@@ -932,14 +932,14 @@ def linkedParts():
             replaceParts(part, color)
 
 
-def replaceParts(part, color):
+def replaceParts(part, material):
     """
     Replace identical meshes of part/color-combination with a linked version.
 
-    @param {String} part @todo.
-    @param {String} color @todo.
+    @param {String} part ID of LDraw part being processed.
+    @param {String} color Name of material the part uses.
     """
-    mat = bpy.data.materials[color]
+    mat = bpy.data.materials[material]
     mesh = None
 
     # For each imported object in the scene check
