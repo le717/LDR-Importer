@@ -197,8 +197,13 @@ class LDrawFile(object):
             with open(filename, "rt", encoding="utf_8") as f:
                 lines = f.readlines()
 
+            # Some models may not have headers or enough lines
+            # to support a header. Handle this case to avoid
+            # hitting an IndexError trying to extract the header line.
+            partTypeLine = ("" if len(lines) <= 3 else lines[3])
+
             # Check the part header for top-level part status
-            isPart = isTopLevelPart(lines[3])
+            isPart = isTopLevelPart(partTypeLine)
 
             # Linked parts relies on the flawed isPart logic (#112)
             # TODO Correct linked parts to use proper logic
