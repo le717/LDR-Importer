@@ -886,7 +886,7 @@ def replaceParts(part, material):
 
     # Change mesh name in combination of .dat-filename and material.
     if mesh is not None:
-        mesh.name = "{0} {1}".format(part, color)
+        mesh.name = "{0} {1}".format(part, material)
 
 
 # ------------ Operator ------------ #
