@@ -795,7 +795,7 @@ Must be a .ldr or .dat''')
         """
 
         # The CleanUp import option was selected
-        if CleanUpOpt == "CleanUp":  # noqa
+        if CleanUpOpt:  # noqa
             Console.log("CleanUp option selected")
             Extra_Cleanup.main(objects, LinkParts)  # noqa
 
@@ -971,17 +971,10 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
-    cleanUpParts = bpy.props.EnumProperty(
-        name="Model Cleanup Options",
-        description="Model Cleanup Options",
-        default=prefs.get("cleanUpParts", "CleanUp"),
-        items=(
-            ("CleanUp", "Basic Cleanup",
-             "Remove double vertices, recalculate normals, "
-             "add Edge Split modifier"),
-            ("DoNothing", "Original LDraw Mesh",
-             "Import using original LDraw Mesh"),
-        )
+    cleanUpParts = bpy.props.BoolProperty(
+        name="Model Cleanup",
+        description="Perform some basic model cleanup",
+        default=prefs.get("cleanUpParts", True)
     )
 
     altColors = bpy.props.BoolProperty(
@@ -1018,9 +1011,8 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.prop(self, "importScale")
         box.label("Primitives", icon='MOD_BUILD')
         box.prop(self, "resPrims", expand=True)
-        box.label("Model Cleanup", icon='EDIT')
-        box.prop(self, "cleanUpParts", expand=True)
         box.label("Additional Options", icon='PREFERENCES')
+        box.prop(self, "cleanUpParts", expand=True)
         box.prop(self, "altColors")
         box.prop(self, "addGaps")
         box.prop(self, "lsynthParts")
@@ -1030,7 +1022,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         """Set import options and start the import process."""
         global LDrawDir, CleanUpOpt, AltColorsOpt, GapsOpt, LinkParts
         LDrawDir = str(self.ldrawPath)
-        CleanUpOpt = str(self.cleanUpParts)
+        CleanUpOpt = bool(self.cleanUpParts)
         AltColorsOpt = bool(self.altColors)
         GapsOpt = bool(self.addGaps)
         LinkParts = bool(self.linkParts)
