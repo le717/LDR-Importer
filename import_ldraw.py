@@ -31,6 +31,7 @@ from bpy_extras.io_utils import ImportHelper
 from .src.ldcolors import Colors
 from .src.ldconsole import Console
 from .src.ldprefs import Preferences
+from .src.extras import cleanup as Extra_Cleanup
 
 # Global variables
 objects = []
@@ -793,40 +794,12 @@ Must be a .ldr or .dat''')
         Cleanup can be disabled by user if wished.
         """
 
-        # FIXME Rewrite - Split into separate function
         # The CleanUp import option was selected
         if CleanUpOpt == "CleanUp":  # noqa
             Console.log("CleanUp option selected")
+            Extra_Cleanup.main(objects, LinkParts)  # noqa
 
-            # Select all the mesh
-            for cur_obj in objects:
-                cur_obj.select = True
-                bpy.context.scene.objects.active = cur_obj
-
-                if bpy.ops.object.mode_set.poll():
-                    # Change to edit mode
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    bpy.ops.mesh.select_all(action='SELECT')
-
-                    # Remove doubles, calculate normals
-                    bpy.ops.mesh.remove_doubles(threshold=0.01)
-                    bpy.ops.mesh.normals_make_consistent()
-
-                    if bpy.ops.object.mode_set.poll():
-                        # Go back to object mode, set origin to geometry
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        # When using linked bricks, keep original origin point
-                        if not LinkParts:  # noqa
-                            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-
-                        # Set smooth shading
-                        bpy.ops.object.shade_smooth()
-
-                # Add 30 degree edge split modifier to all bricks
-                edges = cur_obj.modifiers.new(
-                    "Edge Split", type='EDGE_SPLIT')
-                edges.split_angle = 0.523599
-
+        # FIXME Rewrite - Split into separate function
         # The Gaps import option was selected
         if GapsOpt:  # noqa
             Console.log("Gaps option selected")
