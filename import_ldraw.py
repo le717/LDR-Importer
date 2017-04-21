@@ -25,11 +25,6 @@ import mathutils
 import traceback
 
 import bpy
-from bpy.props import (StringProperty,
-                       FloatProperty,
-                       EnumProperty,
-                       BoolProperty
-                       )
 
 from bpy_extras.io_utils import ImportHelper
 
@@ -971,24 +966,24 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
 
     # File type filter in file browser
     filename_ext = ".ldr"
-    filter_glob = StringProperty(
+    filter_glob = bpy.props.StringProperty(
         default="*.ldr;*.dat",
         options={'HIDDEN'}
     )
 
-    ldrawPath = StringProperty(
+    ldrawPath = bpy.props.StringProperty(
         name="",
         description="Path to the LDraw Parts Library",
         default=prefs.getLDraw()
     )
 
-    importScale = FloatProperty(
+    importScale = bpy.props.FloatProperty(
         name="Scale",
         description="Use a specific scale for each part",
         default=prefs.get("importScale", 1.00)
     )
 
-    resPrims = EnumProperty(
+    resPrims = bpy.props.EnumProperty(
         name="Resolution of part primitives",
         description="Resolution of part primitives",
         default=prefs.get("resPrims", "StandardRes"),
@@ -1004,7 +999,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
-    cleanUpParts = EnumProperty(
+    cleanUpParts = bpy.props.EnumProperty(
         name="Model Cleanup Options",
         description="Model Cleanup Options",
         default=prefs.get("cleanUpParts", "CleanUp"),
@@ -1017,25 +1012,25 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         )
     )
 
-    altColors = BoolProperty(
+    altColors = bpy.props.BoolProperty(
         name="Use Alternate Colors",
         description="Use LDCfgalt.ldr for color definitions",
         default=prefs.get("altColors", False)
     )
 
-    addGaps = BoolProperty(
+    addGaps = bpy.props.BoolProperty(
         name="Spaces Between Parts",
         description="Add small spaces between each part",
         default=prefs.get("addGaps", False)
     )
 
-    lsynthParts = BoolProperty(
+    lsynthParts = bpy.props.BoolProperty(
         name="Use LSynth Parts",
         description="Use LSynth parts during import",
         default=prefs.get("lsynthParts", False)
     )
 
-    linkParts = BoolProperty(
+    linkParts = bpy.props.BoolProperty(
         name="Link Identical Parts",
         description="Link identical parts by type and color (experimental)",
         default=prefs.get("linkParts", False)
