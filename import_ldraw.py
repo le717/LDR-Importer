@@ -32,6 +32,7 @@ from .src.ldcolors import Colors
 from .src.ldconsole import Console
 from .src.ldprefs import Preferences
 from .src.extras import cleanup as Extra_Cleanup
+from .src.extras import gaps as Extra_Part_Gaps
 
 # Global variables
 objects = []
@@ -799,44 +800,12 @@ Must be a .ldr or .dat''')
             Console.log("CleanUp option selected")
             Extra_Cleanup.main(objects, LinkParts)  # noqa
 
-        # FIXME Rewrite - Split into separate function
         # The Gaps import option was selected
         if GapsOpt:  # noqa
             Console.log("Gaps option selected")
+            Extra_Part_Gaps.main(objects, scale)
 
-            # Select all the mesh
-            for cur_obj in objects:
-                bpy.ops.object.select_all(action='DESELECT')
-                cur_obj.select = True
-                bpy.context.scene.objects.active = cur_obj
-
-                # To change the width of the gaps, change the gapWidth variable
-                gapWidth = 0.007
-                objScale = cur_obj.scale * scale
-                dim = cur_obj.dimensions
-
-                # Checks whether the object isn't flat in a certain direction
-                # to avoid division by zero.
-                # Else, the scale factor is set proportional to the inverse of
-                # the dimension so that the mesh shrinks a fixed distance
-                # (determined by the gap_width and the scale of the object)
-                # in every direction, creating a uniform gap.
-                scaleFac = {"x": 1, "y": 1, "z": 1}
-
-                if dim.x != 0:
-                    scaleFac["x"] = 1 - 2 * gapWidth * abs(objScale.x) / dim.x
-                if dim.y != 0:
-                    scaleFac["y"] = 1 - 2 * gapWidth * abs(objScale.y) / dim.y
-                if dim.z != 0:
-                    scaleFac["z"] = 1 - 2 * gapWidth * abs(objScale.z) / dim.z
-
-                bpy.context.object.scale[0] *= scaleFac["x"]
-                bpy.context.object.scale[1] *= scaleFac["y"]
-                bpy.context.object.scale[2] *= scaleFac["z"]
-
-                bpy.ops.object.transform_apply(scale=True)
-                bpy.ops.object.select_all(action='DESELECT')
-
+        # FIXME Rewrite - Split into separate module
         # Link identical bricks
         if LinkParts:  # noqa
             Console.log("LinkParts option selected")
