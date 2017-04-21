@@ -20,33 +20,40 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 import bpy
 
 
-def init():
+def main(objects, link_parts):
+    """Perform basic model cleanup procedures.
+    Actions performed include:
+    * Remove doubles
+    * Recalculate normals
+    * Set part origin
+    * Set smooth shading
+    * Add 30deg edge split modifier
+
+    @param {List} objects - A list of all models in the scene.
+    @param {Boolean} link_parts - True if Linked Parts option is enabled.
+    """
     # Select all the mesh
     for cur_obj in objects:
         cur_obj.select = True
         bpy.context.scene.objects.active = cur_obj
 
         if bpy.ops.object.mode_set.poll():
-            # Change to edit mode
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='SELECT')
 
-            # Remove doubles, calculate normals
+            # Remove doubles and recalculate the normals
             bpy.ops.mesh.remove_doubles(threshold=0.01)
             bpy.ops.mesh.normals_make_consistent()
 
-            if bpy.ops.object.mode_set.poll():
-                # Go back to object mode, set origin to geometry
-                bpy.ops.object.mode_set(mode='OBJECT')
-                # When using linked bricks, keep original origin point
-                if not LinkParts:  # noqa
-                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+            # When not linking parts, keep the original origin point
+            bpy.ops.object.mode_set(mode='OBJECT')
+            if not link_parts:  # noqa
+                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-                # Set smooth shading
-                bpy.ops.object.shade_smooth()
+            # Set smooth shading
+            bpy.ops.object.shade_smooth()
 
-    # Add 30 degree edge split modifier to all bricks
-    for cur_obj in objects:
+        # Add 30 degree edge split modifier to all bricks
         edges = cur_obj.modifiers.new(
             "Edge Split", type='EDGE_SPLIT')
         edges.split_angle = 0.523599

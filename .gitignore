@@ -84,5 +84,6 @@ blender_python_*/*
 Archives/
 Testing/
 prefs/
+.vscode/
 
 .idea
