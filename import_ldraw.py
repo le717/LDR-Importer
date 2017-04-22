@@ -448,11 +448,11 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         description="Resolution of part primitives",
         default=prefs.get("resPrims", "StandardRes"),
         items=(
-            ("StandardRes", "Standard Primitives",
-             "Import using standard resolution primitives"),
             ("HighRes", "High-Res Primitives",
              "Import using high resolution primitives. "
              "NOTE: This feature may create mesh errors"),
+            ("StandardRes", "Standard Primitives",
+             "Import using standard resolution primitives"),
             ("LowRes", "Low-Res Primitives",
              "Import using low resolution primitives. "
              "NOTE: This feature may create mesh errors")
@@ -500,11 +500,11 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         box.label("Primitives", icon="MOD_BUILD")
         box.prop(self, "resPrims", expand=True)
         box.label("Additional Options", icon="PREFERENCES")
-        box.prop(self, "cleanUpParts", expand=True)
-        box.prop(self, "altColors")
-        box.prop(self, "addGaps")
-        box.prop(self, "lsynthParts")
         box.prop(self, "linkParts")
+        box.prop(self, "cleanUpParts", expand=True)
+        box.prop(self, "addGaps")
+        box.prop(self, "altColors")
+        box.prop(self, "lsynthParts")
 
     def execute(self, context):
         """Set import options and start the import process."""
@@ -534,11 +534,11 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
             # The user wants to use high-res unofficial primitives
             if self.resPrims == "HighRes":
                 paths.append(os.path.join(self.ldrawPath,
-                             "unofficial", "p", "48"))
+                                          "unofficial", "p", "48"))
             # The user wants to use low-res unofficial primitives
             elif self.resPrims == "LowRes":
                 paths.append(os.path.join(self.ldrawPath,
-                             "unofficial", "p", "8"))
+                                          "unofficial", "p", "8"))
 
             # Search in the `unofficial/p` folder
             paths.append(os.path.join(self.ldrawPath, "unofficial", "p"))
