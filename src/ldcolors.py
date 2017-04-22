@@ -45,8 +45,8 @@ class Colors:
     def hexToRgb(self, color):
         """Convert a Hex color value to the RGB format Blender requires.
 
-        @param {String} color The hex color value to convert.
-                              Can be prefixed with "#".
+        @param {String} color - The hex color value to convert.
+                                Can be prefixed with "#".
         @return {!Tuple.<number>} A three-index tuple containing
                                   the converted RGB value.
                                   Otherwise None if the color
