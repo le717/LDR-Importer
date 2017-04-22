@@ -30,6 +30,7 @@ from bpy_extras.io_utils import ImportHelper
 
 from .src.ldcolors import Colors
 from .src.ldconsole import Console
+from .src.ldmaterials import main as Materials
 from .src.ldprefs import Preferences
 from .src.extras import cleanup as Extra_Cleanup
 from .src.extras import gaps as Extra_Part_Gaps
@@ -79,8 +80,7 @@ class LDrawFile(object):
 
                 # Get the proper materials depending on the current engine
                 # (Cycles vs. BI, BGE, POV-Ray, etc)
-                material = (getCyclesMaterial if engine == "CYCLES"
-                            else getMaterial)(n)
+                material = Materials(ldColors, mat_list, engine, n)
 
                 if material is not None:
                     if me.materials.get(material.name) is None:
@@ -88,8 +88,8 @@ class LDrawFile(object):
 
                     f.material_index = me.materials.find(material.name)
 
-            self.ob = bpy.data.objects.new('LDrawObj', me)
             # Naming of objects: filename of .dat-file, without extension
+            self.ob = bpy.data.objects.new("LDrawObj", me)
             self.ob.name = os.path.basename(filename)[:-4]
 
             if LinkParts:  # noqa
