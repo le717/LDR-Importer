@@ -26,7 +26,7 @@ bl_info = {
     "name": "LDR Importer",
     "description": "Import LDraw models in .ldr and .dat format",
     "author": "LDR Importer developers and contributors",
-    "version": (1, 3, 2),
+    "version": (1, 4, 0),
     "blender": (2, 67, 0),
     "api": 31236,
     "location": "File > Import",
