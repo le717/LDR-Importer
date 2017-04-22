@@ -69,7 +69,7 @@ class LDrawFile(object):
         bpy.ops.object.select_all(action='DESELECT')
 
         if len(self.points) > 0 and len(self.faces) > 0:
-            me = bpy.data.meshes.new('LDrawMesh')
+            me = bpy.data.meshes.new("LDrawMesh")
             me.from_pydata(self.points, [], self.faces)
             me.validate()
             me.update()

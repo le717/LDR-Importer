@@ -22,7 +22,182 @@ import bpy
 from .ldconsole import Console
 
 
-__all__ = ("main")
+__all__ = ("Materials")
+
+
+class Materials:
+
+    def __init__(self, ld_colors, render_engine):
+
+        self.__ld_colors = ld_colors
+        self.__render_engine = render_engine
+        self.__materials = {}
+
+    def contains(self, code):
+        """Check if a color exists in the color dictionary.
+
+        @param {String} code - The code for the corresponding color.
+        @return {Boolean} True if the color was found, False otherwise.
+        """
+        return code in self.__materials.keys()
+
+    def make(self, code):
+
+        if self.__render_engine == "CYCLES":
+            Console.log("Generating Cycles engine material")
+            return self.__get_cycles_material(code)
+        else:
+            Console.log("Generating non-Cycles engine material")
+            return self.__getBIMaterial(code)
+
+    def get(self, code):
+        """Get an individual material.
+
+        @param {String} code - The code identifying the color.
+        @return {!Dictionary} The color definition if available,
+                              None otherwise.
+        """
+        return self.__materials.get(code)
+
+    def __set(self, code, mat):
+        self.__materials[code] = mat
+
+    def __getBIMaterial(self, code):
+
+        # We have already generated this material, reuse it
+        if self.contains(code):
+            return self.get(code)
+
+        # Generate a material from a possible direct color
+        if not self.__ld_colors.contains(code):
+            col = self.__ld_colors.makeDirectColor(code)
+
+            # No direct color was found
+            if not col["valid"]:
+                return None
+
+            # We have a direct color on our hands
+            Console.log("Direct color {0} found".format(code))
+            mat = bpy.data.materials.new("Mat_{0}".format(code))
+            mat.diffuse_color = col["value"]
+
+            # Add it to the material lists to avoid duplicate processing
+            self.__set(code, mat)
+            return self.get(code)
+
+        # Valid LDraw color, generate the material
+        else:
+            col = self.__ld_colors.get(code)
+            mat = bpy.data.materials.new("Mat_{0}".format(code))
+
+            mat.diffuse_color = col["value"]
+
+            alpha = col["alpha"]
+            if alpha < 1.0:
+                mat.use_transparency = True
+                mat.alpha = alpha
+
+            mat.emit = col["luminance"] / 100
+
+            if col["material"] == "CHROME":
+                mat.specular_intensity = 1.4
+                mat.roughness = 0.01
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.3
+
+            elif col["material"] == "PEARLESCENT":
+                mat.specular_intensity = 0.1
+                mat.roughness = 0.32
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.07
+
+            elif col["material"] == "RUBBER":
+                mat.specular_intensity = 0.19
+
+            elif col["material"] == "METAL":
+                mat.specular_intensity = 1.473
+                mat.specular_hardness = 292
+                mat.diffuse_fresnel = 0.93
+                mat.darkness = 0.771
+                mat.roughness = 0.01
+                mat.raytrace_mirror.use = True
+                mat.raytrace_mirror.reflect_factor = 0.9
+
+            # elif col["material"] == "GLITTER":
+            #    slot = mat.texture_slots.add()
+            #    tex = bpy.data.textures.new("GlitterTex", type = "STUCCI")
+            #    tex.use_color_ramp = True
+            #
+            #    slot.texture = tex
+
+            else:
+                mat.specular_intensity = 0.2
+
+            self.__set(code, mat)
+            return self.get(code)
+
+        # We were unable to generate a material
+        return None
+
+    def __get_cycles_material(self, code):
+
+        # We have already generated this material, reuse it
+        if self.contains(code):
+            return self.get(code)
+
+        # Generate a material from a possible direct color
+        if not self.__ld_colors.contains(code):
+            col = self.__ld_colors.makeDirectColor(code)
+
+            # No direct color was found
+            if not col["valid"]:
+                return None
+
+            # We have a direct color on our hands
+            Console.log("Direct color {0} found".format(code))
+            mat = getCyclesBase("Mat_{0}".format(code), col["value"], 1.0)
+
+            # Add it to the material list to avoid duplicate processing
+            self.__set(code, mat)
+            return self.get(code)
+
+        # Valid LDraw color, generate the material
+        else:
+            col = self.__ld_colors.get(code)
+
+            if col["name"] == "Milky_White":
+                mat = getCyclesMilkyWhite("Mat_{0}".format(code), col["value"])
+
+            elif col["material"] == "BASIC" and col["luminance"] == 0:
+                mat = getCyclesBase("Mat_{0}".format(code),
+                                    col["value"], col["alpha"])
+
+            elif col["luminance"] > 0:
+                mat = getCyclesEmit("Mat_{0}".format(code), col["value"],
+                                    col["alpha"], col["luminance"])
+
+            elif col["material"] == "CHROME":
+                mat = getCyclesChrome("Mat_{0}".format(code), col["value"])
+
+            elif col["material"] == "PEARLESCENT":
+                mat = getCyclesPearlMetal("Mat_{0}".format(code), col["value"])
+
+            elif col["material"] == "METAL":
+                mat = getCyclesPearlMetal("Mat_{0}".format(code), col["value"])
+
+            elif col["material"] == "RUBBER":
+                mat = getCyclesRubber("Mat_{0}".format(code),
+                                      col["value"], col["alpha"])
+
+            else:
+                mat = getCyclesBase("Mat_{0}".format(code),
+                                    col["value"], col["alpha"])
+
+            self.__set(code, mat)
+            return self.get(code)
+
+        # We were unable to generate a material
+        return None
 
 
 def getCyclesBase(name, diffColor, alpha):
@@ -288,151 +463,3 @@ def getCyclesMilkyWhite(name, diff_color):
     links.new(diff.outputs[0], mix.inputs[2])
 
     return mat
-
-
-def getCyclesMaterial(ldColors, mat_list, color):
-
-    # We have already generated this material, reuse it
-    if color in mat_list:
-        return mat_list[color]
-
-    # Generate a material from a possible direct color
-    if not ldColors.contains(color):
-        col = ldColors.makeDirectColor(color)
-
-        # No direct color was found
-        if not col["valid"]:
-            return None
-
-        # We have a direct color on our hands
-        Console.log("Direct color {0} found".format(color))
-        mat = getCyclesBase("Mat_{0}".format(color), col["value"], 1.0)
-
-        # Add it to the material lists to avoid duplicate processing
-        mat_list[color] = mat
-        return mat_list[color]
-
-    # Valid LDraw color, generate the material
-    else:
-        col = ldColors.get(color)
-
-        if col["name"] == "Milky_White":
-            mat = getCyclesMilkyWhite("Mat_{0}".format(color), col["value"])
-
-        elif col["material"] == "BASIC" and col["luminance"] == 0:
-            mat = getCyclesBase("Mat_{0}".format(color),
-                                col["value"], col["alpha"])
-
-        elif col["luminance"] > 0:
-            mat = getCyclesEmit("Mat_{0}".format(color), col["value"],
-                                col["alpha"], col["luminance"])
-
-        elif col["material"] == "CHROME":
-            mat = getCyclesChrome("Mat_{0}".format(color), col["value"])
-
-        elif col["material"] == "PEARLESCENT":
-            mat = getCyclesPearlMetal("Mat_{0}".format(color), col["value"])
-
-        elif col["material"] == "METAL":
-            mat = getCyclesPearlMetal("Mat_{0}".format(color), col["value"])
-
-        elif col["material"] == "RUBBER":
-            mat = getCyclesRubber("Mat_{0}".format(color),
-                                  col["value"], col["alpha"])
-
-        else:
-            mat = getCyclesBase("Mat_{0}".format(color),
-                                col["value"], col["alpha"])
-
-        mat_list[color] = mat
-        return mat_list[color]
-
-    # We were unable to generate a material
-    return None
-
-
-def getBIMaterial(ldColors, mat_list, color):
-
-    # We have already generated this material, reuse it
-    if color in mat_list:
-        return mat_list[color]
-
-    # Generate a material from a possible direct color
-    if not ldColors.contains(color):
-        col = ldColors.makeDirectColor(color)
-
-        # No direct color was found
-        if not col["valid"]:
-            return None
-
-        # We have a direct color on our hands
-        Console.log("Direct color {0} found".format(color))
-        mat = bpy.data.materials.new("Mat_{0}".format(color))
-        mat.diffuse_color = col["value"]
-
-        # Add it to the material lists to avoid duplicate processing
-        mat_list[color] = mat
-        return mat_list[color]
-
-    # Valid LDraw color, generate the material
-    else:
-        col = ldColors.get(color)
-        mat = bpy.data.materials.new("Mat_{0}".format(color))
-
-        mat.diffuse_color = col["value"]
-
-        alpha = col["alpha"]
-        if alpha < 1.0:
-            mat.use_transparency = True
-            mat.alpha = alpha
-
-        mat.emit = col["luminance"] / 100
-
-        if col["material"] == "CHROME":
-            mat.specular_intensity = 1.4
-            mat.roughness = 0.01
-            mat.raytrace_mirror.use = True
-            mat.raytrace_mirror.reflect_factor = 0.3
-
-        elif col["material"] == "PEARLESCENT":
-            mat.specular_intensity = 0.1
-            mat.roughness = 0.32
-            mat.raytrace_mirror.use = True
-            mat.raytrace_mirror.reflect_factor = 0.07
-
-        elif col["material"] == "RUBBER":
-            mat.specular_intensity = 0.19
-
-        elif col["material"] == "METAL":
-            mat.specular_intensity = 1.473
-            mat.specular_hardness = 292
-            mat.diffuse_fresnel = 0.93
-            mat.darkness = 0.771
-            mat.roughness = 0.01
-            mat.raytrace_mirror.use = True
-            mat.raytrace_mirror.reflect_factor = 0.9
-
-        # elif col["material"] == "GLITTER":
-        #    slot = mat.texture_slots.add()
-        #    tex = bpy.data.textures.new("GlitterTex", type = "STUCCI")
-        #    tex.use_color_ramp = True
-        #
-        #    slot.texture = tex
-
-        else:
-            mat.specular_intensity = 0.2
-
-        mat_list[color] = mat
-        return mat_list[color]
-
-    # We were unable to generate a material
-    return None
-
-
-def main(ldColors, mat_list, render_engine, color):
-
-    if render_engine == "CYCLES":
-        return getCyclesMaterial(ldColors, mat_list, color)
-    else:
-        return getBIMaterial(ldColors, mat_list, color)
-
