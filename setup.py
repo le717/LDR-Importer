@@ -47,7 +47,11 @@ scriptFiles = [
     "src/__init__.py",
     "src/ldcolors.py",
     "src/ldconsole.py",
-    "src/ldprefs.py"
+    "src/ldprefs.py",
+    "src/extras/__init__.py",
+    "src/extras/cleanup.py",
+    "src/extras/gaps.py",
+    "src/extras/linked_parts.py"
 ]
 
 proseFiles = [
