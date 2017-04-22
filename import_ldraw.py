@@ -19,7 +19,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
 import os
-import re
 import math
 import mathutils
 import traceback
@@ -30,6 +29,7 @@ from bpy_extras.io_utils import ImportHelper
 
 from .src.ldcolors import Colors
 from .src.ldconsole import Console
+from .src.ldmaterials import Materials
 from .src.ldprefs import Preferences
 from .src.extras import cleanup as Extra_Cleanup
 from .src.extras import gaps as Extra_Part_Gaps
@@ -38,7 +38,6 @@ from .src.extras import linked_parts as Extra_Part_Linked
 # Global variables
 objects = []
 paths = []
-mat_list = {}
 
 
 class LDrawFile(object):
@@ -48,7 +47,6 @@ class LDrawFile(object):
     def __init__(self, context, filename, level, mat,
                  colour=None, orientation=None):
 
-        engine = context.scene.render.engine
         self.level = level
         self.points = []
         self.faces = []
@@ -69,27 +67,25 @@ class LDrawFile(object):
         bpy.ops.object.select_all(action='DESELECT')
 
         if len(self.points) > 0 and len(self.faces) > 0:
-            me = bpy.data.meshes.new('LDrawMesh')
-            me.from_pydata(self.points, [], self.faces)
-            me.validate()
-            me.update()
+            mesh = bpy.data.meshes.new("LDrawMesh")
+            mesh.from_pydata(self.points, [], self.faces)
+            mesh.validate()
+            mesh.update()
 
-            for i, f in enumerate(me.polygons):
+            for i, f in enumerate(mesh.polygons):
                 n = self.material_index[i]
 
-                # Get the proper materials depending on the current engine
-                # (Cycles vs. BI, BGE, POV-Ray, etc)
-                material = (getCyclesMaterial if engine == "CYCLES"
-                            else getMaterial)(n)
+                # Get the material depending on the current render engine
+                material = ldMaterials.make(n)
 
                 if material is not None:
-                    if me.materials.get(material.name) is None:
-                        me.materials.append(material)
+                    if mesh.materials.get(material.name) is None:
+                        mesh.materials.append(material)
 
-                    f.material_index = me.materials.find(material.name)
+                    f.material_index = mesh.materials.find(material.name)
 
-            self.ob = bpy.data.objects.new('LDrawObj', me)
             # Naming of objects: filename of .dat-file, without extension
+            self.ob = bpy.data.objects.new("LDrawObj", mesh)
             self.ob.name = os.path.basename(filename)[:-4]
 
             if LinkParts:  # noqa
@@ -150,12 +146,12 @@ class LDrawFile(object):
         for i in range(num_points):
             verts.append(len(self.points) + i)
 
-        if (nA.dot(nB) < 0):
+        if nA.dot(nB) < 0:
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
-                               v[3].to_tuple(), v[2].to_tuple()])
+                                v[3].to_tuple(), v[2].to_tuple()])
         else:
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
-                               v[2].to_tuple(), v[3].to_tuple()])
+                                v[2].to_tuple(), v[3].to_tuple()])
 
         self.faces.append(verts)
         self.material_index.append(color)
@@ -185,13 +181,13 @@ class LDrawFile(object):
             partTypeLine = ("" if len(lines) <= 3 else lines[3])
 
             # Check the part header for top-level part status
-            isPart = isTopLevelPart(partTypeLine)
+            is_top_part = is_top_level_part(partTypeLine)
 
-            # Linked parts relies on the flawed isPart logic (#112)
+            # Linked parts relies on the flawed is_top_part logic (#112)
             # TODO Correct linked parts to use proper logic
             # and remove this kludge
             if LinkParts:  # noqa
-                isPart = filename == fileName  # noqa
+                is_top_part = filename == fileName  # noqa
 
             self.part_count += 1
             if self.part_count > 1 and self.level == 0:
@@ -214,7 +210,7 @@ class LDrawFile(object):
                             # Reset orientation of top-level part,
                             # track original orientation
                             # TODO Use corrected isPart logic
-                            if self.part_count == 1 and isPart and LinkParts:  # noqa
+                            if self.part_count == 1 and is_top_part and LinkParts:  # noqa
                                 mat_new = self.mat * mathutils.Matrix((
                                     (1, 0, 0, 0),
                                     (0, 1, 0, 0),
@@ -242,8 +238,8 @@ class LDrawFile(object):
                             subfiles.append([new_file, mat_new, color])
 
                             # When top-level part, save orientation separately
-                            # TODO Use corrected isPart logic
-                            if self.part_count == 1 and isPart:
+                            # TODO Use corrected is_top_part logic
+                            if self.part_count == 1 and is_top_part:
                                 subfiles.append(['orientation',
                                                  orientation, ''])
 
@@ -270,424 +266,7 @@ class LDrawFile(object):
                 break
 
 
-def convertDirectColor(color):
-    """Convert direct colors to usable RGB values.
-
-    @param {String} An LDraw direct color in the format 0x2RRGGBB.
-                    Details at http://www.ldraw.org/article/218.html#colours.
-    @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
-                                      if a direct color was found or not.
-                                      If it is True, index one is the color
-                                      converted into a three-index
-                                      RGB color tuple.
-    """
-    if (
-        color is None or
-        re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None
-    ):
-        return (False,)
-    return (True, ldColors.hexToRgb(color[3:]))
-
-
-def getMaterial(colour):
-    """Get Blender Internal Material Values."""
-    if ldColors.contains(colour):
-        if not (colour in mat_list):
-            mat = bpy.data.materials.new("Mat_{0}".format(colour))
-            col = ldColors.get(colour)
-
-            mat.diffuse_color = col["value"]
-
-            alpha = col["alpha"]
-            if alpha < 1.0:
-                mat.use_transparency = True
-                mat.alpha = alpha
-
-            mat.emit = col["luminance"] / 100
-
-            if col["material"] == "CHROME":
-                mat.specular_intensity = 1.4
-                mat.roughness = 0.01
-                mat.raytrace_mirror.use = True
-                mat.raytrace_mirror.reflect_factor = 0.3
-
-            elif col["material"] == "PEARLESCENT":
-                mat.specular_intensity = 0.1
-                mat.roughness = 0.32
-                mat.raytrace_mirror.use = True
-                mat.raytrace_mirror.reflect_factor = 0.07
-
-            elif col["material"] == "RUBBER":
-                mat.specular_intensity = 0.19
-
-            elif col["material"] == "METAL":
-                mat.specular_intensity = 1.473
-                mat.specular_hardness = 292
-                mat.diffuse_fresnel = 0.93
-                mat.darkness = 0.771
-                mat.roughness = 0.01
-                mat.raytrace_mirror.use = True
-                mat.raytrace_mirror.reflect_factor = 0.9
-
-            # elif col["material"] == "GLITTER":
-            #    slot = mat.texture_slots.add()
-            #    tex = bpy.data.textures.new("GlitterTex", type = "STUCCI")
-            #    tex.use_color_ramp = True
-            #
-            #    slot.texture = tex
-
-            else:
-                mat.specular_intensity = 0.2
-
-            mat_list[colour] = mat
-
-        return mat_list[colour]
-    else:
-        # Check for a possible direct color
-        directColor = convertDirectColor(colour)
-
-        # We have a direct color on our hands
-        if directColor[0]:
-            Console.log("Direct color {0} found".format(colour))
-            mat = bpy.data.materials.new("Mat_{0}".format(colour))
-            mat.diffuse_color = directColor[1]
-
-            # Add it to the material lists to avoid duplicate processing
-            # TODO Do not add it to the LDraw-defined colors but only
-            # to the Blender material list
-            ldColors.add(colour, mat)
-            mat_list[colour] = mat
-            return mat_list[colour]
-
-    return None
-
-
-def getCyclesMaterial(colour):
-    """Get Cycles Material Values."""
-    if ldColors.contains(colour):
-        if not (colour in mat_list):
-            col = ldColors.get(colour)
-
-            if col["name"] == "Milky_White":
-                mat = getCyclesMilkyWhite("Mat_{0}".format(colour),
-                                          col["value"])
-
-            elif col["material"] == "BASIC" and col["luminance"] == 0:
-                mat = getCyclesBase("Mat_{0}".format(colour),
-                                    col["value"], col["alpha"])
-
-            elif col["luminance"] > 0:
-                mat = getCyclesEmit("Mat_{0}".format(colour), col["value"],
-                                    col["alpha"], col["luminance"])
-
-            elif col["material"] == "CHROME":
-                mat = getCyclesChrome("Mat_{0}".format(colour), col["value"])
-
-            elif col["material"] == "PEARLESCENT":
-                mat = getCyclesPearlMetal("Mat_{0}".format(colour),
-                                          col["value"])
-
-            elif col["material"] == "METAL":
-                mat = getCyclesPearlMetal("Mat_{0}".format(colour),
-                                          col["value"])
-
-            elif col["material"] == "RUBBER":
-                mat = getCyclesRubber("Mat_{0}".format(colour),
-                                      col["value"], col["alpha"])
-
-            else:
-                mat = getCyclesBase("Mat_{0}".format(colour),
-                                    col["value"], col["alpha"])
-
-            mat_list[colour] = mat
-
-        return mat_list[colour]
-    else:
-        # Check for a possible direct color
-        directColor = convertDirectColor(colour)
-
-        # We have a direct color on our hands
-        if directColor[0]:
-            Console.log("Direct color {0} found".format(colour))
-            mat = getCyclesBase("Mat_{0}".format(colour),
-                                directColor[1], 1.0)
-
-            # Add it to the material lists to avoid duplicate processing
-            # TODO Do not add it to the LDraw-defined colors but only
-            # to the Blender material list
-            ldColors.add(colour, mat)
-            mat_list[colour] = mat
-            return mat_list[colour]
-
-    return None
-
-
-def getCyclesBase(name, diffColor, alpha):
-    """Basic material colors for Cycles render engine."""
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    mat.diffuse_color = diffColor
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    # Remove all previous nodes
-    for n in nodes:
-        nodes.remove(n)
-
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
-    mix.inputs['Fac'].default_value = 0.05
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    # Solid bricks
-    if alpha == 1.0:
-        node = nodes.new('ShaderNodeBsdfDiffuse')
-        node.location = -242, 154
-        node.inputs['Color'].default_value = diffColor + (1.0,)
-        node.inputs['Roughness'].default_value = 0.0
-
-    # Transparent bricks
-    else:
-        # TODO Figure out a good way to make use of the alpha value
-        node = nodes.new('ShaderNodeBsdfGlass')
-        node.location = -242, 154
-        node.inputs['Color'].default_value = diffColor + (1.0,)
-        node.inputs['Roughness'].default_value = 0.05
-        node.inputs['IOR'].default_value = 1.46
-
-    gloss = nodes.new('ShaderNodeBsdfGlossy')
-    gloss.location = -242, -23
-    gloss.distribution = 'BECKMANN'
-    gloss.inputs['Roughness'].default_value = 0.05
-    gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
-
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(node.outputs[0], mix.inputs[1])
-    links.new(gloss.outputs[0], mix.inputs[2])
-
-    return mat
-
-
-def getCyclesEmit(name, diff_color, alpha, luminance):
-
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    for n in nodes:
-        nodes.remove(n)
-
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
-    mix.inputs['Fac'].default_value = luminance / 100
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    """
-    NOTE: The alpha value again is not making much sense here.
-    I'm leaving it in, in case someone has an idea how to use it.
-    """
-
-    trans = nodes.new('ShaderNodeBsdfTranslucent')
-    trans.location = -242, 154
-    trans.inputs['Color'].default_value = diff_color + (1.0,)
-
-    emit = nodes.new('ShaderNodeEmission')
-    emit.location = -242, -23
-
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(trans.outputs[0], mix.inputs[1])
-    links.new(emit.outputs[0], mix.inputs[2])
-
-    return mat
-
-
-def getCyclesChrome(name, diffColor):
-    """Chrome material colors for Cycles render engine."""
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    mat.diffuse_color = diffColor
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    # Remove all previous nodes
-    for n in nodes:
-        nodes.remove(n)
-
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
-    mix.inputs['Fac'].default_value = 0.01
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    glossOne = nodes.new('ShaderNodeBsdfGlossy')
-    glossOne.location = -242, 154
-    glossOne.distribution = 'GGX'
-    glossOne.inputs['Color'].default_value = diffColor + (1.0,)
-    glossOne.inputs['Roughness'].default_value = 0.03
-
-    glossTwo = nodes.new('ShaderNodeBsdfGlossy')
-    glossTwo.location = -242, -23
-    glossTwo.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
-    glossTwo.inputs['Roughness'].default_value = 0.03
-
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(glossOne.outputs[0], mix.inputs[1])
-    links.new(glossTwo.outputs[0], mix.inputs[2])
-
-    return mat
-
-
-def getCyclesPearlMetal(name, diffColor):
-    """Pearlescent material colors for Cycles render engine."""
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    mat.diffuse_color = diffColor
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    # Remove all previous nodes
-    for n in nodes:
-        nodes.remove(n)
-
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
-    mix.inputs['Fac'].default_value = 0.4
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    gloss = nodes.new('ShaderNodeBsdfGlossy')
-    gloss.location = -242, 154
-    gloss.distribution = 'BECKMANN'
-    gloss.inputs['Color'].default_value = diffColor + (1.0,)
-    gloss.inputs['Roughness'].default_value = 0.05
-
-    diffuse = nodes.new('ShaderNodeBsdfDiffuse')
-    diffuse.location = -242, -23
-    diffuse.inputs['Color'].default_value = diffColor + (1.0,)
-    diffuse.inputs['Roughness'].default_value = 0.0
-
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(gloss.outputs[0], mix.inputs[1])
-    links.new(diffuse.outputs[0], mix.inputs[2])
-
-    return mat
-
-
-def getCyclesRubber(name, diffColor, alpha):
-    """Rubber material colors for Cycles render engine."""
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    mat.diffuse_color = diffColor
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    # Remove all previous nodes
-    for n in nodes:
-        nodes.remove(n)
-
-    mixTwo = nodes.new('ShaderNodeMixShader')
-    mixTwo.location = 0, 90
-    mixTwo.inputs['Fac'].default_value = 0.05
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    # Solid bricks
-    if alpha == 1.0:
-        diffuse = nodes.new('ShaderNodeBsdfDiffuse')
-        diffuse.location = -242, 154
-        diffuse.inputs['Color'].default_value = diffColor + (1.0,)
-        diffuse.inputs['Roughness'].default_value = 0
-
-        trans = nodes.new('ShaderNodeBsdfTranslucent')
-        trans.location = -242, 154
-        trans.inputs['Color'].default_value = diffColor + (1.0,)
-
-        mixOne = nodes.new('ShaderNodeMixShader')
-        mixOne.location = 0, 90
-        mixOne.inputs['Fac'].default_value = 0.7
-
-        gloss = nodes.new('ShaderNodeBsdfGlossy')
-        gloss.location = -242, 154
-        gloss.distribution = 'BECKMANN'
-        gloss.inputs['Color'].default_value = diffColor + (1.0,)
-        gloss.inputs['Roughness'].default_value = 0.2
-
-        links.new(diffuse.outputs[0], mixOne.inputs[1])
-        links.new(trans.outputs[0], mixOne.inputs[2])
-        links.new(mixOne.outputs[0], mixTwo.inputs[1])
-        links.new(gloss.outputs[0], mixTwo.inputs[2])
-
-    # Transparent bricks
-    else:
-        glass = nodes.new('ShaderNodeBsdfGlass')
-        glass.location = -242, 154
-        glass.distribution = 'BECKMANN'
-        glass.inputs['Color'].default_value = diffColor + (1.0,)
-        glass.inputs['Roughness'].default_value = 0.4
-        glass.inputs['IOR'].default_value = 1.160
-
-        gloss = nodes.new('ShaderNodeBsdfGlossy')
-        gloss.location = -242, 154
-        gloss.distribution = 'GGX'
-        gloss.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
-        gloss.inputs['Roughness'].default_value = 0.2
-
-        links.new(glass.outputs[0], mixTwo.inputs[1])
-        links.new(gloss.outputs[0], mixTwo.inputs[2])
-
-    links.new(mixTwo.outputs[0], out.inputs[0])
-
-    return mat
-
-
-def getCyclesMilkyWhite(name, diff_color):
-
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-
-    for n in nodes:
-        nodes.remove(n)
-
-    mix = nodes.new('ShaderNodeMixShader')
-    mix.location = 0, 90
-    mix.inputs['Fac'].default_value = 0.1
-
-    out = nodes.new('ShaderNodeOutputMaterial')
-    out.location = 290, 100
-
-    trans = nodes.new('ShaderNodeBsdfTranslucent')
-    trans.location = -242, 154
-    trans.inputs['Color'].default_value = diff_color + (1.0,)
-
-    diff = nodes.new('ShaderNodeBsdfDiffuse')
-    diff.location = -242, -23
-    diff.inputs['Color'].default_value = diff_color + (1.0,)
-    diff.inputs['Roughness'].default_value = 0.1
-
-    links.new(mix.outputs[0], out.inputs[0])
-    links.new(trans.outputs[0], mix.inputs[1])
-    links.new(diff.outputs[0], mix.inputs[2])
-
-    return mat
-
-
-def isTopLevelPart(headerLine):
+def is_top_level_part(header_line):
     """Check if the given part is a top level part.
 
     @param {String} headerLine The header line stating the part level.
@@ -697,16 +276,16 @@ def isTopLevelPart(headerLine):
     # Make sure the file has the spec'd META command
     # If it does not, we cannot do easily determine the part type,
     # so we will simply say it is not top level
-    headerLine = headerLine.lower().strip()
-    if headerLine == "":
+    header_line = header_line.lower().strip()
+    if header_line == "":
         return False
 
-    headerLine = headerLine.split()
-    if headerLine[0] != "0 !ldraw_org":
+    header_line = header_line.split()
+    if header_line[0] != "0 !ldraw_org":
         return False
 
     # We can determine if this is top level or not
-    return headerLine[2] in ("part", "unofficial_part")
+    return header_line[2] in ("part", "unofficial_part")
 
 
 def locatePart(partName):
@@ -741,7 +320,7 @@ def create_model(self, context, scale):
     # FIXME: rewrite - Rewrite entire function (#35)
     global objects
     global ldColors
-    global mat_list
+    global ldMaterials
     global fileName
 
     fileName = self.filepath
@@ -786,7 +365,7 @@ Must be a .ldr or .dat''')
         # load the LDraw-defined color definitions
         ldColors = Colors(LDrawDir, AltColorsOpt)  # noqa
         ldColors.load()
-        mat_list = {}
+        ldMaterials = Materials(ldColors, context.scene.render.engine)
 
         LDrawFile(context, fileName, 0, trix)
 
@@ -828,10 +407,10 @@ Must be a .ldr or .dat''')
 
     except Exception as e:
         Console.log("ERROR: {0}\n{1}\n".format(
-                    type(e).__name__, traceback.format_exc()))
+            type(e).__name__, traceback.format_exc()))
 
         Console.log("ERROR: Reason: {0}.".format(
-                    type(e).__name__))
+            type(e).__name__))
 
         self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
