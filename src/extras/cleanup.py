@@ -22,6 +22,7 @@ import bpy
 
 def main(cur_obj, link_parts):
     """Perform basic model cleanup procedures.
+
     Actions performed include:
     * Remove doubles
     * Recalculate normals
