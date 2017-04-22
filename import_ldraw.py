@@ -33,6 +33,7 @@ from .src.ldconsole import Console
 from .src.ldprefs import Preferences
 from .src.extras import cleanup as Extra_Cleanup
 from .src.extras import gaps as Extra_Part_Gaps
+from .src.extras import linked_parts as Extra_Part_Linked
 
 # Global variables
 objects = []
@@ -805,11 +806,10 @@ Must be a .ldr or .dat''')
             Console.log("Gaps option selected")
             Extra_Part_Gaps.main(objects, scale)
 
-        # FIXME Rewrite - Split into separate module
         # Link identical bricks
         if LinkParts:  # noqa
             Console.log("LinkParts option selected")
-            linkedParts()
+            Extra_Part_Linked.main(objects)
 
         # Select all the mesh now that import is complete
         for cur_obj in objects:
@@ -836,57 +836,6 @@ Must be a .ldr or .dat''')
         self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
         return {'CANCELLED'}
-
-
-def linkedParts():
-    """Clean-up design by linking identical parts (mesh/color)."""
-    # Generate list of all materials (colors).
-    colors = [color.name for color in bpy.data.materials]
-
-    # List all unique meshes
-    # For example 3002 and 3002.001 are considered equal.
-    parts = []
-    for part in objects:
-        # Find all unique names of meshes, ignoring everything behind the '.'
-        # and create a list of these names, making sure no double enties occur.
-        if part.type == 'MESH' and part.name.split('.')[0] not in parts:
-            parts.append(part.name.split('.')[0])
-
-    # For each mesh/color combination create a link to a unique mesh.
-    for part in parts:
-        for color in colors:
-            replaceParts(part, color)
-
-
-def replaceParts(part, material):
-    """
-    Replace identical meshes of part/color-combination with a linked version.
-
-    @param {String} part ID of LDraw part being processed.
-    @param {String} color Name of material the part uses.
-    """
-    mat = bpy.data.materials[material]
-    mesh = None
-
-    # For each imported object in the scene check
-    # if it matches the given part name.
-    for ob in objects:
-        if ob.type == 'MESH' and ob.name.split('.')[0] == part:
-            for slot in ob.material_slots:
-                if slot.material == mat:
-                    # First occurrence of part, save in mesh.
-                    if mesh is None:
-                        mesh = ob.data
-                    # Following occurrences of part, link to mesh.
-                    else:
-                        ob.data = mesh
-                    ob.select = True
-        else:
-            ob.select = False
-
-    # Change mesh name in combination of .dat-filename and material.
-    if mesh is not None:
-        mesh.name = "{0} {1}".format(part, material)
 
 
 # ------------ Operator ------------ #
