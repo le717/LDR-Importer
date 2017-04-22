@@ -79,8 +79,8 @@ class LDrawFile(object):
 
                 # Get the proper materials depending on the current engine
                 # (Cycles vs. BI, BGE, POV-Ray, etc)
-                material = (getCyclesMaterial(n) if engine == "CYCLES"
-                            else getMaterial(n))
+                material = (getCyclesMaterial if engine == "CYCLES"
+                            else getMaterial)(n)
 
                 if material is not None:
                     if me.materials.get(material.name) is None:
