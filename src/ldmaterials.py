@@ -34,16 +34,16 @@ def getBIMaterial(ldColors, mat_list, colour):
     # Generate a material from a direct color
     if not ldColors.contains(colour):
         # Check for a possible direct color
-        direct_color = ldColors.makeDirectColor(colour)
+        col = ldColors.makeDirectColor(colour)
 
         # No direct color was found
-        if not direct_color["valid"]:
+        if not col["valid"]:
             return None
 
         # We have a direct color on our hands
         Console.log("Direct color {0} found".format(colour))
         mat = bpy.data.materials.new("Mat_{0}".format(colour))
-        mat.diffuse_color = direct_color["value"]
+        mat.diffuse_color = col["value"]
 
         # Add it to the material lists to avoid duplicate processing
         mat_list[colour] = mat
@@ -107,7 +107,6 @@ def getBIMaterial(ldColors, mat_list, colour):
 def main(ldColors, mat_list, render_engine, color):
 
     if render_engine == "CYCLES":
-        material = getCyclesMaterial(color)
+        return getCyclesMaterial(ldColors, mat_list, color)
     else:
-        material = getBIMaterial(ldColors, mat_list, color)
-    return material
+        return getBIMaterial(ldColors, mat_list, color)
