@@ -47,7 +47,6 @@ class LDrawFile(object):
     def __init__(self, context, filename, level, mat,
                  colour=None, orientation=None):
 
-        engine = context.scene.render.engine
         self.level = level
         self.points = []
         self.faces = []
@@ -68,26 +67,25 @@ class LDrawFile(object):
         bpy.ops.object.select_all(action='DESELECT')
 
         if len(self.points) > 0 and len(self.faces) > 0:
-            me = bpy.data.meshes.new("LDrawMesh")
-            me.from_pydata(self.points, [], self.faces)
-            me.validate()
-            me.update()
+            mesh = bpy.data.meshes.new("LDrawMesh")
+            mesh.from_pydata(self.points, [], self.faces)
+            mesh.validate()
+            mesh.update()
 
-            for i, f in enumerate(me.polygons):
+            for i, f in enumerate(mesh.polygons):
                 n = self.material_index[i]
 
-                # Get the proper materials depending on the current engine
-                # (Cycles vs. BI, BGE, POV-Ray, etc)
+                # Get the material depending on the current render engine
                 material = ldMaterials.make(n)
 
                 if material is not None:
-                    if me.materials.get(material.name) is None:
-                        me.materials.append(material)
+                    if mesh.materials.get(material.name) is None:
+                        mesh.materials.append(material)
 
-                    f.material_index = me.materials.find(material.name)
+                    f.material_index = mesh.materials.find(material.name)
 
             # Naming of objects: filename of .dat-file, without extension
-            self.ob = bpy.data.objects.new("LDrawObj", me)
+            self.ob = bpy.data.objects.new("LDrawObj", mesh)
             self.ob.name = os.path.basename(filename)[:-4]
 
             if LinkParts:  # noqa
@@ -183,13 +181,13 @@ class LDrawFile(object):
             partTypeLine = ("" if len(lines) <= 3 else lines[3])
 
             # Check the part header for top-level part status
-            isPart = isTopLevelPart(partTypeLine)
+            is_top_part = is_top_level_part(partTypeLine)
 
-            # Linked parts relies on the flawed isPart logic (#112)
+            # Linked parts relies on the flawed is_top_part logic (#112)
             # TODO Correct linked parts to use proper logic
             # and remove this kludge
             if LinkParts:  # noqa
-                isPart = filename == fileName  # noqa
+                is_top_part = filename == fileName  # noqa
 
             self.part_count += 1
             if self.part_count > 1 and self.level == 0:
@@ -212,7 +210,7 @@ class LDrawFile(object):
                             # Reset orientation of top-level part,
                             # track original orientation
                             # TODO Use corrected isPart logic
-                            if self.part_count == 1 and isPart and LinkParts:  # noqa
+                            if self.part_count == 1 and is_top_part and LinkParts:  # noqa
                                 mat_new = self.mat * mathutils.Matrix((
                                     (1, 0, 0, 0),
                                     (0, 1, 0, 0),
@@ -240,8 +238,8 @@ class LDrawFile(object):
                             subfiles.append([new_file, mat_new, color])
 
                             # When top-level part, save orientation separately
-                            # TODO Use corrected isPart logic
-                            if self.part_count == 1 and isPart:
+                            # TODO Use corrected is_top_part logic
+                            if self.part_count == 1 and is_top_part:
                                 subfiles.append(['orientation',
                                                  orientation, ''])
 
@@ -268,7 +266,7 @@ class LDrawFile(object):
                 break
 
 
-def isTopLevelPart(headerLine):
+def is_top_level_part(header_line):
     """Check if the given part is a top level part.
 
     @param {String} headerLine The header line stating the part level.
@@ -278,16 +276,16 @@ def isTopLevelPart(headerLine):
     # Make sure the file has the spec'd META command
     # If it does not, we cannot do easily determine the part type,
     # so we will simply say it is not top level
-    headerLine = headerLine.lower().strip()
-    if headerLine == "":
+    header_line = header_line.lower().strip()
+    if header_line == "":
         return False
 
-    headerLine = headerLine.split()
-    if headerLine[0] != "0 !ldraw_org":
+    header_line = header_line.split()
+    if header_line[0] != "0 !ldraw_org":
         return False
 
     # We can determine if this is top level or not
-    return headerLine[2] in ("part", "unofficial_part")
+    return header_line[2] in ("part", "unofficial_part")
 
 
 def locatePart(partName):
