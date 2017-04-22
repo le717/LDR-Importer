@@ -47,6 +47,7 @@ scriptFiles = [
     "src/__init__.py",
     "src/ldcolors.py",
     "src/ldconsole.py",
+    "src/ldmaterials.py",
     "src/ldprefs.py",
     "src/extras/__init__.py",
     "src/extras/cleanup.py",
