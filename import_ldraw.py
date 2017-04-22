@@ -276,10 +276,10 @@ def convertDirectColor(color):
     @param {String} An LDraw direct color in the format 0x2RRGGBB.
                     Details at http://www.ldraw.org/article/218.html#colours.
     @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
-                                     if a direct color was found or not.
-                                     If it is True, index one is the color
-                                     converted into a three-index
-                                     RGB color tuple.
+                                      if a direct color was found or not.
+                                      If it is True, index one is the color
+                                      converted into a three-index
+                                      RGB color tuple.
     """
     if (
         color is None or
