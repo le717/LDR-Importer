@@ -92,21 +92,6 @@ class Colors:
         """
         return code in self.__colors.keys()
 
-    def add(self, code, mat):
-        """Add an arbitrary color to the colors dictionary.
-
-        @deprecated This method is implemented to preserve existing
-                    code compatibility and should not be used in new code.
-                    It pollututes the LDraw-defined color definitions.
-                    All non-LDraw materials should be stored separately.
-
-        @param {String} code The code identifying the color.
-        @param {*} mat The structure describing the color.
-        """
-        # Add key to denote it is not an LDraw color definition
-        mat["not_ldraw"] = True
-        self.__colors[code] = mat
-
     def load(self):
         """Parse the LDraw color definitions file.
 
