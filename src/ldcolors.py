@@ -76,6 +76,14 @@ class Colors:
             return line[line.index(value) + 1]
         return None
 
+    def __set(self, code, color):
+        """Store an LDraw color.
+
+        @param {String} code - The code identifying the color.
+        @param {*} color - The structure describing the color.
+        """
+        self.__colors[code] = color
+
     def makeDirectColor(self, color):
         """Convert a direct color to RGB values.
 
@@ -189,5 +197,4 @@ class Colors:
                     color["minsize"] = self.__getColorValue(subLine, "minsize")
                     color["maxsize"] = self.__getColorValue(subLine, "maxsize")
 
-                # Store the color
-                self.__colors[code] = color
+                self.__set(code, color)
