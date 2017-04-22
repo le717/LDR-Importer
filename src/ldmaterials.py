@@ -296,9 +296,8 @@ def getCyclesMaterial(ldColors, mat_list, color):
     if color in mat_list:
         return mat_list[color]
 
-    # Generate a material from a direct color
+    # Generate a material from a possible direct color
     if not ldColors.contains(color):
-        # Check for a possible direct color
         col = ldColors.makeDirectColor(color)
 
         # No direct color was found
@@ -358,9 +357,8 @@ def getBIMaterial(ldColors, mat_list, color):
     if color in mat_list:
         return mat_list[color]
 
-    # Generate a material from a direct color
+    # Generate a material from a possible direct color
     if not ldColors.contains(color):
-        # Check for a possible direct color
         col = ldColors.makeDirectColor(color)
 
         # No direct color was found
