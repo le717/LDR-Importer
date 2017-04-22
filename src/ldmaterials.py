@@ -44,11 +44,9 @@ class Materials:
     def make(self, code):
 
         if self.__render_engine == "CYCLES":
-            Console.log("Generating Cycles engine material")
             return self.__get_cycles_material(code)
         else:
-            Console.log("Generating non-Cycles engine material")
-            return self.__getBIMaterial(code)
+            return self.__get_bi_materials(code)
 
     def get(self, code):
         """Get an individual material.
@@ -62,7 +60,7 @@ class Materials:
     def __set(self, code, mat):
         self.__materials[code] = mat
 
-    def __getBIMaterial(self, code):
+    def __get_bi_materials(self, code):
 
         # We have already generated this material, reuse it
         if self.contains(code):

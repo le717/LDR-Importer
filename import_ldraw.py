@@ -387,7 +387,6 @@ Must be a .ldr or .dat''')
 
         # Link identical bricks
         if LinkParts:  # noqa
-            Console.log("LinkParts option selected")
             Extra_Part_Linked.main(objects)
 
         # Select all the mesh now that import is complete
