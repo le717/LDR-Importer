@@ -290,96 +290,96 @@ def getCyclesMilkyWhite(name, diff_color):
     return mat
 
 
-def getCyclesMaterial(ldColors, mat_list, colour):
+def getCyclesMaterial(ldColors, mat_list, color):
 
     # We have already generated this material, reuse it
-    if colour in mat_list:
-        return mat_list[colour]
+    if color in mat_list:
+        return mat_list[color]
 
     # Generate a material from a direct color
-    if not ldColors.contains(colour):
+    if not ldColors.contains(color):
         # Check for a possible direct color
-        col = ldColors.makeDirectColor(colour)
+        col = ldColors.makeDirectColor(color)
 
         # No direct color was found
         if not col["valid"]:
             return None
 
         # We have a direct color on our hands
-        Console.log("Direct color {0} found".format(colour))
-        mat = getCyclesBase("Mat_{0}".format(colour), col["value"], 1.0)
+        Console.log("Direct color {0} found".format(color))
+        mat = getCyclesBase("Mat_{0}".format(color), col["value"], 1.0)
 
         # Add it to the material lists to avoid duplicate processing
-        mat_list[colour] = mat
-        return mat_list[colour]
+        mat_list[color] = mat
+        return mat_list[color]
 
     # Valid LDraw color, generate the material
     else:
-        col = ldColors.get(colour)
+        col = ldColors.get(color)
 
         if col["name"] == "Milky_White":
-            mat = getCyclesMilkyWhite("Mat_{0}".format(colour), col["value"])
+            mat = getCyclesMilkyWhite("Mat_{0}".format(color), col["value"])
 
         elif col["material"] == "BASIC" and col["luminance"] == 0:
-            mat = getCyclesBase("Mat_{0}".format(colour),
+            mat = getCyclesBase("Mat_{0}".format(color),
                                 col["value"], col["alpha"])
 
         elif col["luminance"] > 0:
-            mat = getCyclesEmit("Mat_{0}".format(colour), col["value"],
+            mat = getCyclesEmit("Mat_{0}".format(color), col["value"],
                                 col["alpha"], col["luminance"])
 
         elif col["material"] == "CHROME":
-            mat = getCyclesChrome("Mat_{0}".format(colour), col["value"])
+            mat = getCyclesChrome("Mat_{0}".format(color), col["value"])
 
         elif col["material"] == "PEARLESCENT":
-            mat = getCyclesPearlMetal("Mat_{0}".format(colour), col["value"])
+            mat = getCyclesPearlMetal("Mat_{0}".format(color), col["value"])
 
         elif col["material"] == "METAL":
-            mat = getCyclesPearlMetal("Mat_{0}".format(colour), col["value"])
+            mat = getCyclesPearlMetal("Mat_{0}".format(color), col["value"])
 
         elif col["material"] == "RUBBER":
-            mat = getCyclesRubber("Mat_{0}".format(colour),
+            mat = getCyclesRubber("Mat_{0}".format(color),
                                   col["value"], col["alpha"])
 
         else:
-            mat = getCyclesBase("Mat_{0}".format(colour),
+            mat = getCyclesBase("Mat_{0}".format(color),
                                 col["value"], col["alpha"])
 
-        mat_list[colour] = mat
-        return mat_list[colour]
+        mat_list[color] = mat
+        return mat_list[color]
 
     # We were unable to generate a material
     return None
 
 
-def getBIMaterial(ldColors, mat_list, colour):
+def getBIMaterial(ldColors, mat_list, color):
 
     # We have already generated this material, reuse it
-    if colour in mat_list:
-        return mat_list[colour]
+    if color in mat_list:
+        return mat_list[color]
 
     # Generate a material from a direct color
-    if not ldColors.contains(colour):
+    if not ldColors.contains(color):
         # Check for a possible direct color
-        col = ldColors.makeDirectColor(colour)
+        col = ldColors.makeDirectColor(color)
 
         # No direct color was found
         if not col["valid"]:
             return None
 
         # We have a direct color on our hands
-        Console.log("Direct color {0} found".format(colour))
-        mat = bpy.data.materials.new("Mat_{0}".format(colour))
+        Console.log("Direct color {0} found".format(color))
+        mat = bpy.data.materials.new("Mat_{0}".format(color))
         mat.diffuse_color = col["value"]
 
         # Add it to the material lists to avoid duplicate processing
-        mat_list[colour] = mat
-        return mat_list[colour]
+        mat_list[color] = mat
+        return mat_list[color]
 
     # Valid LDraw color, generate the material
     else:
-        col = ldColors.get(colour)
-        mat = bpy.data.materials.new("Mat_{0}".format(colour))
+        col = ldColors.get(color)
+        mat = bpy.data.materials.new("Mat_{0}".format(color))
 
         mat.diffuse_color = col["value"]
 
@@ -424,8 +424,8 @@ def getBIMaterial(ldColors, mat_list, colour):
         else:
             mat.specular_intensity = 0.2
 
-        mat_list[colour] = mat
-        return mat_list[colour]
+        mat_list[color] = mat
+        return mat_list[color]
 
     # We were unable to generate a material
     return None
@@ -437,3 +437,4 @@ def main(ldColors, mat_list, render_engine, color):
         return getCyclesMaterial(ldColors, mat_list, color)
     else:
         return getBIMaterial(ldColors, mat_list, color)
+
