@@ -369,23 +369,15 @@ Must be a .ldr or .dat''')
 
         LDrawFile(context, fileName, 0, trix)
 
-        """
-        Remove doubles and recalculate normals in each brick.
-        The model is super high-poly without the cleanup.
-        Cleanup can be disabled by user if wished.
-        """
+        for cur_obj in objects:
+            # The CleanUp import option was selected
+            if CleanUpOpt:  # noqa
+                Extra_Cleanup.main(cur_obj, LinkParts)  # noqa
 
-        # The CleanUp import option was selected
-        if CleanUpOpt:  # noqa
-            Console.log("CleanUp option selected")
-            Extra_Cleanup.main(objects, LinkParts)  # noqa
+            if GapsOpt:  # noqa
+                Extra_Part_Gaps.main(cur_obj, scale)
 
-        # The Gaps import option was selected
-        if GapsOpt:  # noqa
-            Console.log("Gaps option selected")
-            Extra_Part_Gaps.main(objects, scale)
-
-        # Link identical bricks
+        # The link identical parts import option was selected
         if LinkParts:  # noqa
             Extra_Part_Linked.main(objects)
 

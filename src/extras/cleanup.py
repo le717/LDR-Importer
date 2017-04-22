@@ -20,7 +20,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 import bpy
 
 
-def main(objects, link_parts):
+def main(cur_obj, link_parts):
     """Perform basic model cleanup procedures.
     Actions performed include:
     * Remove doubles
@@ -29,31 +29,29 @@ def main(objects, link_parts):
     * Set smooth shading
     * Add 30deg edge split modifier
 
-    @param {List} objects - A list of all models in the scene.
+    @param {Mesh} cur_obj - The individual model to process.
     @param {Boolean} link_parts - True if Linked Parts option is enabled.
     """
-    # Select all the mesh
-    for cur_obj in objects:
-        cur_obj.select = True
-        bpy.context.scene.objects.active = cur_obj
+    cur_obj.select = True
+    bpy.context.scene.objects.active = cur_obj
 
-        if bpy.ops.object.mode_set.poll():
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
+    if bpy.ops.object.mode_set.poll():
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
 
-            # Remove doubles and recalculate the normals
-            bpy.ops.mesh.remove_doubles(threshold=0.01)
-            bpy.ops.mesh.normals_make_consistent()
+        # Remove doubles and recalculate the normals
+        bpy.ops.mesh.remove_doubles(threshold=0.01)
+        bpy.ops.mesh.normals_make_consistent()
 
-            # When not linking parts, keep the original origin point
-            bpy.ops.object.mode_set(mode='OBJECT')
-            if not link_parts:  # noqa
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+        # When not linking parts, keep the original origin point
+        bpy.ops.object.mode_set(mode='OBJECT')
+        if not link_parts:  # noqa
+            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-            # Set smooth shading
-            bpy.ops.object.shade_smooth()
+        # Set smooth shading
+        bpy.ops.object.shade_smooth()
 
-        # Add 30 degree edge split modifier to all bricks
-        edges = cur_obj.modifiers.new(
-            "Edge Split", type='EDGE_SPLIT')
-        edges.split_angle = 0.523599
+    # Add 30 degree edge split modifier to all bricks
+    edges = cur_obj.modifiers.new(
+        "Edge Split", type='EDGE_SPLIT')
+    edges.split_angle = 0.523599
