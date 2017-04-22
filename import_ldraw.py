@@ -494,7 +494,7 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         layout = self.layout
         box = layout.box()
         box.label("Import Options", icon="SCRIPTWIN")
-        box.label("LDraw Path", icon="FILESEL")
+        box.label("LDraw Parts Library", icon="FILESEL")
         box.prop(self, "ldrawPath")
         box.prop(self, "importScale")
         box.label("Primitives", icon="MOD_BUILD")
