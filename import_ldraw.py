@@ -923,13 +923,13 @@ class LDRImporterOps(bpy.types.Operator, ImportHelper):
         """Display import options."""
         layout = self.layout
         box = layout.box()
-        box.label("Import Options", icon='SCRIPTWIN')
-        box.label("LDraw Path", icon='FILESEL')
+        box.label("Import Options", icon="SCRIPTWIN")
+        box.label("LDraw Path", icon="FILESEL")
         box.prop(self, "ldrawPath")
         box.prop(self, "importScale")
-        box.label("Primitives", icon='MOD_BUILD')
+        box.label("Primitives", icon="MOD_BUILD")
         box.prop(self, "resPrims", expand=True)
-        box.label("Additional Options", icon='PREFERENCES')
+        box.label("Additional Options", icon="PREFERENCES")
         box.prop(self, "cleanUpParts", expand=True)
         box.prop(self, "altColors")
         box.prop(self, "addGaps")
