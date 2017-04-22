@@ -192,4 +192,3 @@ class Colors:
 
                 # Store the color
                 self.__colors[code] = color
-        return self.__colors
