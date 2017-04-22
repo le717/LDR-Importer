@@ -59,8 +59,8 @@ class Colors:
     def __hasColorValue(self, line, value):
         """Check if the color tag has a specific attribute.
 
-        @param {List} line The color line to search.
-        @param {String} value The attribute to find.
+        @param {List} line - The color line to search.
+        @param {String} value - The attribute to find.
         @return {Boolean} True if attribute is present, False otherwise.
         """
         return value in line
@@ -68,8 +68,8 @@ class Colors:
     def __getColorValue(self, line, value):
         """Get a specific attribute for a given color tag.
 
-        @param {List} line The color line to search.
-        @param {String} value The value to find.
+        @param {List} line - The color line to search.
+        @param {String} value - The value to find.
         @return {!String} The color value is present, None otherwise.
         """
         if value in line:
@@ -80,13 +80,12 @@ class Colors:
         """Convert a direct color to RGB values.
 
         @link {http://www.ldraw.org/article/218.html#colours}
-        @param {String}  color - An LDraw direct color in the format 0x2RRGGBB.
-        # TODO This is out of date
-        @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
-                                          if a direct color was found or not.
-                                          If it is True, index one is the color
-                                          converted into a three-index
-                                          RGB color tuple.
+        @param {String} color - An LDraw direct color in the format 0x2RRGGBB.
+        @return {Dictionary} "valid" key is a boolean value indicating
+                             if a direct color was found or not.
+                             "value" key is the color converted into
+                             a three-index RGB color tuple or None if
+                             "valid" if False.
         """
         results = {
             "valid": False,
@@ -109,7 +108,7 @@ class Colors:
     def get(self, code):
         """Get an individual LDraw color object.
 
-        @param {String} code The code identifying the color.
+        @param {String} code - The code identifying the color.
         @return {!Dictionary} The color definition if available,
                               None otherwise.
         """
@@ -118,7 +117,7 @@ class Colors:
     def contains(self, code):
         """Check if a color exists in the color dictionary.
 
-        @param {String} code The code for the corresponding color.
+        @param {String} code - The code for the corresponding color.
         @return {Boolean} True if the color was found, False otherwise.
         """
         return code in self.__colors.keys()
