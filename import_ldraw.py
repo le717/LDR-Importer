@@ -29,7 +29,7 @@ from bpy_extras.io_utils import ImportHelper
 
 from .src.ldcolors import Colors
 from .src.ldconsole import Console
-from .src.ldmaterials import main as Materials
+from .src.ldmaterials import Materials
 from .src.ldprefs import Preferences
 from .src.extras import cleanup as Extra_Cleanup
 from .src.extras import gaps as Extra_Part_Gaps
@@ -38,7 +38,6 @@ from .src.extras import linked_parts as Extra_Part_Linked
 # Global variables
 objects = []
 paths = []
-mat_list = {}
 
 
 class LDrawFile(object):
@@ -79,7 +78,7 @@ class LDrawFile(object):
 
                 # Get the proper materials depending on the current engine
                 # (Cycles vs. BI, BGE, POV-Ray, etc)
-                material = Materials(ldColors, mat_list, engine, n)
+                material = ldMaterials.make(n)
 
                 if material is not None:
                     if me.materials.get(material.name) is None:
@@ -323,7 +322,7 @@ def create_model(self, context, scale):
     # FIXME: rewrite - Rewrite entire function (#35)
     global objects
     global ldColors
-    global mat_list
+    global ldMaterials
     global fileName
 
     fileName = self.filepath
@@ -368,7 +367,7 @@ Must be a .ldr or .dat''')
         # load the LDraw-defined color definitions
         ldColors = Colors(LDrawDir, AltColorsOpt)  # noqa
         ldColors.load()
-        mat_list = {}
+        ldMaterials = Materials(ldColors, context.scene.render.engine)
 
         LDrawFile(context, fileName, 0, trix)
 
