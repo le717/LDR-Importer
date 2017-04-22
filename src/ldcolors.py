@@ -19,6 +19,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
 import os
+import re
 import struct
 
 from .ldconsole import Console
@@ -74,6 +75,36 @@ class Colors:
         if value in line:
             return line[line.index(value) + 1]
         return None
+
+    def makeDirectColor(self, color):
+        """Convert a direct color to RGB values.
+
+        @link {http://www.ldraw.org/article/218.html#colours}
+        @param {String}  color - An LDraw direct color in the format 0x2RRGGBB.
+        # TODO This is out of date
+        @return {Tuple.<boolean, ?tuple>} Index zero is a boolean value indicating
+                                          if a direct color was found or not.
+                                          If it is True, index one is the color
+                                          converted into a three-index
+                                          RGB color tuple.
+        """
+        results = {
+            "valid": False,
+            "value": None
+        }
+
+        # There is no color data
+        if color is None:
+            return results
+
+        # This is not a direct color
+        if re.fullmatch(r"^0x2(?:[A-F0-9]{2}){3}$", color) is None:
+            return results
+
+        # This is a valid direct color
+        results["valid"] = True
+        results["value"] = self.hexToRgb(color[3:])
+        return results
 
     def get(self, code):
         """Get an individual LDraw color object.
