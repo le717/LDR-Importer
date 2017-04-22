@@ -150,12 +150,12 @@ class LDrawFile(object):
         for i in range(num_points):
             verts.append(len(self.points) + i)
 
-        if (nA.dot(nB) < 0):
+        if nA.dot(nB) < 0:
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
-                               v[3].to_tuple(), v[2].to_tuple()])
+                                v[3].to_tuple(), v[2].to_tuple()])
         else:
             self.points.extend([v[0].to_tuple(), v[1].to_tuple(),
-                               v[2].to_tuple(), v[3].to_tuple()])
+                                v[2].to_tuple(), v[3].to_tuple()])
 
         self.faces.append(verts)
         self.material_index.append(color)
@@ -828,10 +828,10 @@ Must be a .ldr or .dat''')
 
     except Exception as e:
         Console.log("ERROR: {0}\n{1}\n".format(
-                    type(e).__name__, traceback.format_exc()))
+            type(e).__name__, traceback.format_exc()))
 
         Console.log("ERROR: Reason: {0}.".format(
-                    type(e).__name__))
+            type(e).__name__))
 
         self.report({'ERROR'}, '''File not imported ("{0}").
 Check the console logs for more information.'''.format(type(e).__name__))
